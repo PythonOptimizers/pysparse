@@ -5,7 +5,7 @@
 % $Id$
 
 function L = poisson2d(n)
-  L = sparse(n*n);
+L = spalloc(n*n, n*n, 5*n*n);
   for i = 1:n
     for j = 1:n
       k = i + n*(j-1);
