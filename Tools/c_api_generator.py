@@ -86,12 +86,17 @@ print """
 #endif
 
 /* C API address pointer */
+#ifdef NO_IMPORT_%s
+extern void **%s;
+#else
 #ifdef %s_UNIQUE_SYMBOL
 void **%s;
 #else
 static void **%s;
 #endif
-"""% (module_name.upper(), c_api_name, module_name.upper(), module_name.upper(), c_api_name, c_api_name)
+#endif
+"""% (module_name.upper(), c_api_name, module_name.upper(), module_name.upper(), c_api_name,
+      module_name.upper(), c_api_name, c_api_name)
 
 for t in c_api_types:
     print '#define %s *(PyTypeObject *)%s[%s_NUM]' % (t, c_api_name, t)

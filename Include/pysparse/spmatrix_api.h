@@ -127,10 +127,14 @@ static ItSolvers_Solve_RET ItSolvers_Solve ItSolvers_Solve_PROTO;
 #endif
 
 /* C API address pointer */
+#ifdef NO_IMPORT_SPMATRIX
+extern void **SpMatrix_API;
+#else
 #ifdef SPMATRIX_UNIQUE_SYMBOL
 void **SpMatrix_API;
 #else
 static void **SpMatrix_API;
+#endif
 #endif
 
 #define LLMatType *(PyTypeObject *)SpMatrix_API[LLMatType_NUM]
