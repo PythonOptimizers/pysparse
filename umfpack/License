@@ -1,3 +1,7 @@
+The UMFPACK library in this directory is a modified version of the original
+which is available at http://www.cise.ufl.edu/research/sparse/umfpack. The license
+for the use of UMFPACK is available below.
+
 UMFPACK Version 4.1 (Apr. 30, 2003),  Copyright (c) 2003 by Timothy A.
 Davis.  All Rights Reserved.
 
