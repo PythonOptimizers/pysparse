@@ -26,7 +26,7 @@ print x
 
 print "------------------------------"
 
-n = 500
+n = 50
 L = poisson.poisson2d_sym_blk(n)
 b = Numeric.ones(n * n, 'd')
 x = Numeric.zeros(n * n, 'd')
