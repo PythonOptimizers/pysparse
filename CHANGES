@@ -1,3 +1,8 @@
+0.32.028
+---------------------------------------------------------------------------------
+
+added Xavier Vasseur's gmres solver to the itsolvers module. Thanks Xaxier!
+
 0.31.027
 ---------------------------------------------------------------------------------
 fixed: call to SpMatrix_MATVEC in Src/pcg.c
