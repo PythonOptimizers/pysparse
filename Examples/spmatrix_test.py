@@ -120,7 +120,7 @@ print 'original matrix:'
 printMatrix(Atemp)
 
 print 'Matrix with rows 7 and 8 and deleted:'
-mask = Numeric.ones(n, 'i')
+mask = Numeric.ones(n, 'l')
 mask[7:9] = 0
 Atemp.delete_rows(mask)
 printMatrix(Atemp)
@@ -133,7 +133,7 @@ print 'original matrix:'
 printMatrix(Atemp)
 
 print 'Matrix with rows/cols 7 and 8 and deleted:'
-mask = Numeric.ones(n, 'i')
+mask = Numeric.ones(n, 'l')
 mask[7:9] = 0
 Atemp.delete_rowcols(mask)
 printMatrix(Atemp)
@@ -142,7 +142,7 @@ nn = 100
 R = spmatrix_util.ll_mat_rand(nn, nn, 0.3)
 ##print R.nnz
 for i in range(nn-5):
-    mask = Numeric.ones(nn, 'i')
+    mask = Numeric.ones(nn, 'l')
     mask[0] = 0
     R.delete_rowcols(mask)
     nn -= 1

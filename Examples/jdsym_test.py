@@ -110,7 +110,9 @@ lmbd_exact = zeros(ncv, 'd')
 for k in xrange(ncv):
     lmbd_exact[k] =  A[k,k]/M[k,k]
 
-X0 = RandomArray.random((n,ncv))
+# Fixme: RandomArray.random is broken AMD64
+# X0 = RandomArray.random((n,ncv))
+X0 = zeros((n,ncv), 'd')
 for k in xrange(ncv):
     X0[k,k] = 10000
 
