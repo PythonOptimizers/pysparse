@@ -21,6 +21,14 @@ elif hostname == 'maxwell':
     # when installing
     libraries_list = ['acml', 'g2c']
     library_dirs_list = ['/opt/acml/gnu64']
+elif hostname == 'sysiphus':
+    # Linux RedHat 7.3 2.4.18-10 i686 with atlas Lapack routines
+    library_dirs_list= ['/hg/u/vasseur/Linux/lib/atlas']
+    libraries_list = ['lapack', 'f77blas', 'cblas', 'atlas', 'g2c']
+elif hostname == 'sophokles':
+    #SunOS sophokles 5.8 Generic_108528-15 sun4u sparc SUNW,Sun-Fire-880
+    library_dirs_list= ['/hg/s/solaris/8/opt/SUNWspro/lib']
+    libraries_list = ['F77', 'sunperf', 'fui', 'fsu', 'sunmath']
 elif hostname == 'sim0':
     # Linux sim0 2.2.19-7.0.16enterprise #1 SMP Wed Mar 13 13:23:22 EST 2002 i686 unknown
     library_dirs_list = ['/home/geus/linux/lib']
@@ -55,6 +63,7 @@ elif hostname == 'psw283.psi.ch':
 ext_modules = [Extension('spmatrix', ['Src/spmatrixmodule.c']),
                Extension('itsolvers', ['Src/itsolversmodule.c',
                                        'Src/pcg.c',
+                                       'Src/gmres.c',
                                        'Src/minres.c',
                                        'Src/qmrs.c',
                                        'Src/bicgstab.c',

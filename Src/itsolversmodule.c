@@ -13,6 +13,7 @@
 #include "pysparse/pcg.h"
 #include "pysparse/bicgstab.h"
 #include "pysparse/minres.h"
+#include "pysparse/gmres.h"
 #include "pysparse/qmrs.h"
 #include "pysparse/cgs.h"
 
@@ -293,6 +294,99 @@ ItSolvers_minres(PyObject *self, PyObject *args)
     return Py_BuildValue("iid", info, iter, relres);
 }
 
+static char gmres_doc[] =
+"info, iter, relres = gmres(A, b, x, tol, maxit, K, dim)\n\
+\n\
+General Minimal Residual method GMRES(m) (m=dim) of Saad and Schultz.";
+
+static PyObject *
+ItSolvers_gmres(PyObject *self, PyObject *args)
+{
+  /* input arguments */
+  PyObject *amat;
+  PyArrayObject *b;
+  PyArrayObject *x;
+  double tol;
+  int maxit;
+  int dim_gmres = 20;
+  /* output arguments */
+  int info;
+  int iter;
+  double relres;
+  /* other variables */
+  int n;
+  double *work;
+  int res;
+  int nx, nb;
+  double *x_data, *b_data;
+  int dim[2];			/* shape of amat */
+  PyObject *precon = Py_None;	/* default value for precon */
+
+  /* Parse input arguments */
+  if (!PyArg_ParseTuple(args, "OOOdi|Oi",
+			&amat,
+			&b,
+			&x,
+			&tol,
+			&maxit,
+			&precon,&dim_gmres))
+    return NULL;
+
+  /* check shape of matrix object */
+  SpMatrix_GetShape((PyObject *)amat, dim);
+  if (dim[0] != dim[1] || dim[0] <= 0) {
+    PyErr_SetString(PyExc_ValueError, "invalid matrix shape");
+    return NULL;
+  }
+  n = dim[0];
+
+  /* Make sure that x and b are continous double arrays */
+  res = PyArray_As1D((PyObject **)&x, (char **)&x_data, &nx, PyArray_DOUBLE);
+  if (res == -1) {
+    PyErr_SetString(PyExc_ValueError, "Unable to convert x to double array");
+    return NULL;
+  }
+  res = PyArray_As1D((PyObject **)&b, (char **)&b_data, &nb, PyArray_DOUBLE);
+  if (res == -1) {
+    PyErr_SetString(PyExc_ValueError, "Unable to convert b to double array");
+    return NULL;
+  }
+
+  if (nx != nb || n != nx) {
+    PyErr_SetString(PyExc_ValueError, "incompatible operand shapes");
+    return NULL;
+  }
+
+  /* allocate workspace for temporary vectors */
+  work = PyMem_New(double, n);
+
+  /* call gmres routine */
+  info = Itsolvers_gmres_kernel(n,
+				 tol,
+				 maxit,
+				 &iter,
+				 &relres,
+				 dim_gmres,
+				 x_data,
+				 b_data,
+				 work,
+				 amat,
+				 precon == Py_None ? NULL : precon);
+
+  /* free workspace */
+  PyMem_DEL(work);
+  res = PyArray_Free((PyObject *)x, (char *)x_data);
+  assert(res != -1);
+  res = PyArray_Free((PyObject *)b, (char *)b_data);
+  assert(res != -1);
+
+  /* return result tuple */
+  if (PyErr_Occurred())
+    return NULL;
+  else
+    return Py_BuildValue("iid", info, iter, relres);
+}
+
 static char qmrs_doc[] = 
 "info, iter, relres = qmrs(A, b, x, tol, maxit, K)\n\
 \n\
@@ -481,6 +575,7 @@ static PyMethodDef itsolvers_methods[] = {
   {"pcg",     (PyCFunction)ItSolvers_pcg,      METH_VARARGS, pcg_doc},
   {"bicgstab",(PyCFunction)ItSolvers_bicgstab, METH_VARARGS, bicgstab_doc},
   {"minres",  (PyCFunction)ItSolvers_minres,   METH_VARARGS, minres_doc},
+  {"gmres",   (PyCFunction)ItSolvers_gmres,    METH_VARARGS, gmres_doc},
   {"qmrs",    (PyCFunction)ItSolvers_qmrs,     METH_VARARGS, qmrs_doc},
   {"cgs",     (PyCFunction)ItSolvers_cgs,      METH_VARARGS, cgs_doc}, 
   {NULL, NULL}	/* sentinel */
