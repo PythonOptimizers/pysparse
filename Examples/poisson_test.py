@@ -47,11 +47,20 @@ def poisson2d_sym_blk(n):
         if i > 0: L[i:i+n,i-n:i] = I
     return L
 
-n = 500
+tol = 1e-8
+n = 100
 
 t1 = time.clock()
 L = poisson2d_sym_blk(n)
-print 'Time for constructing the matrix: %8.2f sec' % (time.clock() - t1, )
+print 'Time for constructing the matrix using poisson2d_sym_blk: %8.2f sec' % (time.clock() - t1, )
+
+t1 = time.clock()
+L = poisson2d_sym(n)
+print 'Time for constructing the matrix using poisson2d_sym    : %8.2f sec' % (time.clock() - t1, )
+
+t1 = time.clock()
+L = poisson2d(n)
+print 'Time for constructing the matrix using poisson2d        : %8.2f sec' % (time.clock() - t1, )
 
 
 A = L.to_csr()
@@ -66,7 +75,7 @@ b = Numeric.ones(n*n, 'd')
 t1 = time.clock()
 
 x = Numeric.zeros(n*n, 'd')
-info, iter, relres = itsolvers.pcg(S, b, x, 1e-12, 2000)
+info, iter, relres = itsolvers.pcg(S, b, x, tol, 2000)
 print 'info=%d, iter=%d, relres=%e' % (info, iter, relres)
 
 print 'Time for solving the system using SSS matrix: %8.2f sec' % (time.clock() - t1, )
@@ -85,7 +94,7 @@ print x[0:10]
 t1 = time.clock()
 
 x = Numeric.zeros(n*n, 'd')
-info, iter, relres = itsolvers.pcg(A, b, x, 1e-12, 2000)
+info, iter, relres = itsolvers.pcg(A, b, x, tol, 2000)
 print 'info=%d, iter=%d, relres=%e' % (info, iter, relres)
 
 print 'Time for solving the system using CSR matrix: %8.2f sec' % (time.clock() - t1, )
@@ -102,7 +111,7 @@ print 'norm(b - A*x) = %g' % math.sqrt(Numeric.dot(r, r))
 t1 = time.clock()
 
 x = Numeric.zeros(n*n, 'd')
-info, iter, relres = itsolvers.pcg(L, b, x, 1e-12, 2000)
+info, iter, relres = itsolvers.pcg(L, b, x, tol, 2000)
 print 'info=%d, iter=%d, relres=%e' % (info, iter, relres)
 
 print 'Time for solving the system using LL matrix: %8.2f sec' % (time.clock() - t1, )
@@ -120,7 +129,7 @@ K_ssor = precon.ssor(S, 1.9)
 t1 = time.clock()
 
 x = Numeric.zeros(n*n, 'd')
-info, iter, relres = itsolvers.pcg(S, b, x, 1e-12, 2000, K_ssor)
+info, iter, relres = itsolvers.pcg(S, b, x, tol, 2000, K_ssor)
 print 'info=%d, iter=%d, relres=%e' % (info, iter, relres)
 
 print 'Time for solving the system using SSS matrix and SSOR preconditioner: %8.2f sec' % (time.clock() - t1, )
