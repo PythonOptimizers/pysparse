@@ -1,3 +1,9 @@
+% Create sparse 2D Poisson matrix
+%
+% Used for benchmarking element-wise assignment to sparse matrices in Matlab.
+%
+% $Id$
+
 function L = poisson2d(n)
   L = sparse(n*n);
   for i = 1:n
