@@ -31,10 +31,13 @@ Win32 using MinGW
 
 2. Install the BLAS/LAPACK
 
-   - Download LAPACK (which includes BLAS) from
-     http://www63.tok2.com/home/bitwalk/download.html
+   - Download the LAPACK and BLAS sources from
+     http://www.netlib.org.
 
-   - Install the libraries in your MinGW tree
+   - Follow the included instructions to build the libraries using the
+     MinGW development tools.
+
+   - Install the libraries in your MinGW tree.
 
 3. Build pysparse
 

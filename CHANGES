@@ -1,3 +1,9 @@
+applied patches 1089844, 1089837, 1089831 (supplied by Daniel Wheeler & Jon Guyer). 
+
+applied some additional fixes for 64-bit machines.
+
+PySparse now works with Numeric 23.6 (also on 64-bit machines).
+
 0.33.029
 ---------------------------------------------------------------------------------
 added new umfpack module. (by Nathaniel C. Domingo)
