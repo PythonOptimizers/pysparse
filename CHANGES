@@ -1,7 +1,6 @@
 0.32.028
 ---------------------------------------------------------------------------------
-
-added Xavier Vasseur's gmres solver to the itsolvers module. Thanks Xaxier!
+added Xavier Vasseur's gmres solver to the itsolvers module. Thanks Xavier!
 
 0.31.027
 ---------------------------------------------------------------------------------
