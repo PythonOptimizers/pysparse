@@ -103,13 +103,13 @@ ssor_kernel(int n, double *b, double *x, double *h, double *temp,
   /* main iteration loop */
   for (step = 0; step < steps; step ++) {
  
-    /* 1st half-step: x = (L + D) \ (b - y) and y = L*x */
+    /* 1st half-step: x = (omega*L + D) \ (D*x - omega*(L^T + D)*x) and h = -omega*L*x */
     if (step == 0)
       for (i = 0; i < n; i ++)
 	temp[i] = omega*b[i];
     else
       for (i = 0; i < n; i ++)
-	temp[i] = x[i]*da[i] + h[i] + omega*b[i];
+	temp[i] = (1.0 - omega)*x[i]*da[i] + h[i] + omega*b[i];
 
     for (i = 0; i < n; i ++) {
       s = 0.0;
@@ -121,9 +121,9 @@ ssor_kernel(int n, double *b, double *x, double *h, double *temp,
       x[i] = (temp[i] + h[i])/da[i];
     }
  
-    /* 2nd half-step: x = (L^T + D) \ (b - y) and y = L^T*x */
+    /* 2nd half-step: x = (omega*L^T + D) \ (D*x - omega*(L+D)*x) and h = -omega*L^T*x */
     for (i = 0; i < n; i ++) {
-      temp[i] = x[i]*da[i] + h[i] + omega*b[i];
+      temp[i] = (1.0 - omega)*x[i]*da[i] + h[i] + omega*b[i];
       h[i] = 0.0;
     }
     for (i = n-1; i >= 0; i --) {
@@ -138,6 +138,7 @@ ssor_kernel(int n, double *b, double *x, double *h, double *temp,
  
   } /* end of main iteration loop */
 }
+
 
 /** SYMGS_KERNEL -- SYMGS iteration kernel, optimized version of
  *   SSOR_KERNEL for omega==1.0
