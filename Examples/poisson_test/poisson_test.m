@@ -11,6 +11,6 @@ for n = [100, 300, 500]
    tic
    [x,flag,relres,iter] = pcg(L, b, 1e-8, 2000, [], [], zeros(n*n,1));
    toc
-   iter, relres, norm(b - L*x)
+   iter, relres, norm(b - L*x)/norm(b)
 
 end
