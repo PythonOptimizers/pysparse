@@ -51,7 +51,8 @@ Jdsym_Proj(PyObject *proj, int n, double *x) {
   /* Call "project" method of "proj" object */
   res = PyObject_CallMethod(proj, "project", "O", x_arr);
   if (res != Py_None) {
-    PyErr_SetString(PyExc_RuntimeError, "error when calling projector");
+    if (!PyErr_Occurred())
+      PyErr_SetString(PyExc_RuntimeError, "error when calling projector");
     goto fail;
   }
   Py_DECREF(res);
@@ -278,7 +279,7 @@ JDSym_jdsym(PyObject *self, PyObject *args, PyObject *keywds) {
   Q_obj = (PyArrayObject *)PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
   if (Q_obj == NULL)
     goto fail;
-  /* copy conveged eigenvectors, convert from Fortran to C ordering */
+  /* copy converged eigenvectors, convert from Fortran to C ordering */
   for (k = 0; k < kconv; k ++)
     for (i = 0; i < n; i ++)
       ((double *)Q_obj->data)[i*kconv + k] = Q[k*n + i];
