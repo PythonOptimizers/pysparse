@@ -1,8 +1,19 @@
-applied patches 1089844, 1089837, 1089831 (supplied by Daniel Wheeler & Jon Guyer). 
+0.34.030
+---------------------------------------------------------------------------------
+Applied patches 1089844, 1089837, 1089831 (supplied by Daniel Wheeler
+& Jonathan Guyer): Added three new ll_mat methods:
+update_add_at(b,id1,id2), put(b,id1,id2), take(b,id1,id2), fixed OS X
+compatibility issues, Numpy compatibility fixes.
 
-applied some additional fixes for 64-bit machines.
+Applied some additional fixes for 64-bit machines.
 
-PySparse now works with Numeric 23.6 (also on 64-bit machines).
+PySparse now works with Numeric 23.7 (also on 64-bit machines).
+
+[1111727] Replaced #include <malloc.h> by #include <stdlib.h> to fix
+compatibility issue on OS X (reported by Jonathan Guyer).
+
+Removed reference to libm.a which broke compilation on Win32 (reported
+by Mark Dausch).
 
 0.33.029
 ---------------------------------------------------------------------------------

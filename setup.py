@@ -14,7 +14,7 @@ linky=[]
 compily=[]
 
 umfpack_defs = [('DINT', 1), ('NBLAS', 1)] # most basic configuration, no BLAS
-umfpack_libraries = ['m']
+umfpack_libraries = []
 umfpack_include_dirs = ['amd', 'umfpack']
 umfpack_library_dirs = []
 

@@ -3,7 +3,7 @@ import math, random
 import spmatrix
 import spmatrix_util
 import poisson
-import Numeric, RandomArray, RNG
+import Numeric, RandomArray
 
 def llmat_isEqual(aMat, bMat):
     if aMat.issym and not bMat.issym:
@@ -208,9 +208,7 @@ class LLMatMatMul(unittest.TestCase):
               y1 = Numeric.zeros(n, 'd')
               y2 = Numeric.zeros(n, 'd')
               for s in range(10):
-                  # Fixme: RandomArray.random is broken on AMD64
-                  # x = RandomArray.random((m, ))
-                  x = RNG.random_sample(m)
+                  x = RandomArray.random((m, ))
                   C.matvec(x, y1)
                   B.matvec(x, t)
                   A.matvec(t, y2)
