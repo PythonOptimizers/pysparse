@@ -343,7 +343,7 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
   UMFPackObject *self;
   void *Symbolic;
   struct llColIndex *colidx;
-  int i, j, validx, curridx, status;
+  int i, validx, curridx, status;
 
   if (SpMatrix_LLMatBuildColIndex(&colidx, matrix, 1) == 1)
     return NULL;
@@ -527,7 +527,7 @@ tolsympivot         if diagonal pivoting is attempted then this\n\
                     parameter is used to control when the diagonal\n\
                     is selected in a given pivot column.\n\
 \n\
-irstep              number of iterative refinement steps to attempt.
+irstep              number of iterative refinement steps to attempt.\
 ";
 
 static PyObject *
