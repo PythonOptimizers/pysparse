@@ -1,0 +1,13 @@
+*shared*
+
+MYLIBS = -L/software/SunOS/5.X/opt/SUNWspro/WS6/lib -lF77 -lsunperf -lfui -lfsu -lsunmath -lm
+
+spmatrix spmatrixmodule.c ll_mat.c csr_mat.c sss_mat.c mmio_patched.c
+
+itsolvers itsolversmodule.c minres.c qmrs.c cgs.c -I./include $(MYLIBS)
+
+precon preconmodule.c $(MYLIBS)
+
+superlu superlumodule.c -I/pub/local/superlu-1.1 -L/pub/local/superlu-1.1 -lsuperlu $(MYLIBS)
+
+jdsym jdsymmodule.c $(MYLIBS)

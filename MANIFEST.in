@@ -1,0 +1,10 @@
+include CHANGES
+include INSTALL
+include LICENSE
+include Src/*.h
+include Src/*.c
+include Doc/*.pdf
+include superlu/*.h
+recursive-include Include *.h
+recursive-include Examples *.txt *.py
+recursive-include Test *.py

@@ -1,0 +1,13 @@
+*shared*
+
+LIBS = -L/usr/lib/pa20_64 -lcl 
+
+spmatrix spmatrixmodule.c ll_mat.c csr_mat.c sss_mat.c mmio_patched.c
+
+itsolvers itsolversmodule.c minres.c qmrs.c cgs.c -I./include -llapack -lm
+
+precon preconmodule.c -llapack -lm
+
+superlu superlumodule.c -I/home/infk/geus/include/SuperLU -L/home/infk/geus/lib -lsuperlu -llapack -lm
+
+jdsym jdsymmodule.c -llapack -lm -lF90
