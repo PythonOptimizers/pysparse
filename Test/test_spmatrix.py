@@ -3,7 +3,7 @@ import math, random
 import spmatrix
 import spmatrix_util
 import poisson
-import Numeric, RandomArray
+import Numeric, RandomArray, RNG
 
 def llmat_isEqual(aMat, bMat):
     if aMat.issym and not bMat.issym:
@@ -127,9 +127,9 @@ class LLMatDeleteRowColsTestCase(unittest.TestCase):
         self.I = spmatrix.ll_mat_sym(self.n)
         for i in range(self.n):
             self.I[i,i] = -1.0
-        self.mask = Numeric.zeros(self.n**2, 'i')
+        self.mask = Numeric.zeros(self.n**2, 'l')
         self.mask[self.n/2*self.n:(self.n/2 + 1)*self.n] = 1
-        self.mask1 = Numeric.zeros(self.n**2, 'i')
+        self.mask1 = Numeric.zeros(self.n**2, 'l')
         self.mask1[(self.n/2 + 1)*self.n:(self.n/2 + 2)*self.n] = 1
 
     def testDeleteRowColsSym(self):
@@ -154,7 +154,7 @@ class LLMatDeleteRowColsTestCase(unittest.TestCase):
         self.A.delete_rows(self.mask)
         self.A.delete_cols(self.mask1)
         norm1 = self.A.norm('fro')
-        print self.A.compress()
+        self.A.compress()
         norm2 = self.A.norm('fro')
         self.failUnless(norm1 == norm2)
 
@@ -208,11 +208,13 @@ class LLMatMatMul(unittest.TestCase):
               y1 = Numeric.zeros(n, 'd')
               y2 = Numeric.zeros(n, 'd')
               for s in range(10):
-                  x = RandomArray.random((m, ))
+                  # Fixme: RandomArray.random is broken on AMD64
+                  # x = RandomArray.random((m, ))
+                  x = RNG.random_sample(m)
                   C.matvec(x, y1)
                   B.matvec(x, t)
                   A.matvec(t, y2)
-                  self.failUnless(Numeric.dot(y1 - y2, y1 - y2) < eps * n*m*k)
+                  self.failUnless(math.sqrt(Numeric.dot(y1 - y2, y1 - y2)) < eps * n*m*k)
               
 if __name__ == '__main__':
     unittest.main()
