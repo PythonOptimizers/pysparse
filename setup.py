@@ -3,12 +3,15 @@
 from distutils.core import setup, Extension
 import glob
 import os, socket
+import sys
 
 # default settings
 library_dirs_list= []
 libraries_list = ['lapack', 'blas', 'g2c']
 superlu_defs = [('USE_VENDOR_BLAS',1)]
 f77_defs = []
+linky=[]
+compily=[]
 
 umfpack_defs = [('DINT', 1), ('NBLAS', 1)] # most basic configuration, no BLAS
 umfpack_libraries = ['m']
@@ -65,7 +68,29 @@ elif hostname == 'psw283.psi.ch':
     # OSF1 psw283.psi.ch V4.0 1530 alpha
     library_dirs_list = ['/data/geus/lib']
     libraries_list = ['dxml']
+elif sys.platform == 'darwin':
+    superlu_defs = [('USE_VENDOR_BLAS',1)]
+    library_dirs_list = ['/System/Library/Frameworks']
+    libraries_list = []
+    f77_defs = []
     
+    # the following 'linky' arguments must not be concatenated together into a single
+    # string, c.f. <http://mail.python.org/pipermail/distutils-sig/2003-December/003532.html>
+    
+    if sys.exec_prefix == '/sw':
+        # fink python
+        linky=["-faltivec","-framework","vecLib","-bundle_loader","/sw/bin/python "]
+    else:
+        # Apple python
+        linky=["-faltivec","-framework","vecLib"]
+        # The python Framework build is compiled with (and propagates to all library builds) the 
+        # '-fno-common' flag. Nobody seems to know why.
+        # (c.f. <https://sourceforge.net/tracker/?func=detail&atid=105470&aid=768306&group_id=5470>)
+        # This flag wreaks havoc with the nightmarishly circular declarations in the itsolvers module.
+        # We reset it by appending this flag:
+        compily=["-fcommon"]
+
+        
 
 ext_modules = [Extension('spmatrix', ['Src/spmatrixmodule.c']),
                Extension('itsolvers', ['Src/itsolversmodule.c',
@@ -77,11 +102,13 @@ ext_modules = [Extension('spmatrix', ['Src/spmatrixmodule.c']),
                                        'Src/cgs.c'],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
-                         define_macros=f77_defs),
+                         define_macros=f77_defs,
+                         extra_compile_args=compily,
+                         extra_link_args=linky),
                Extension('precon',  [os.path.join('Src', 'preconmodule.c')],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
-                         define_macros=f77_defs),
+                         define_macros=f77_defs,extra_link_args=linky),
                Extension('superlu', [os.path.join('Src', 'superlumodule.c'),
                                      "superlu/dcolumn_bmod.c",
                                      "superlu/dcolumn_dfs.c",
@@ -129,11 +156,11 @@ ext_modules = [Extension('spmatrix', ['Src/spmatrixmodule.c']),
                          define_macros=superlu_defs,
                          include_dirs=["superlu"],
                          library_dirs=library_dirs_list,
-                         libraries=libraries_list),
+                         libraries=libraries_list,extra_link_args=linky),
                Extension('jdsym', [os.path.join('Src', 'jdsymmodule.c')],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
-                         define_macros=f77_defs),
+                         define_macros=f77_defs,extra_link_args=linky),
                Extension('umfpack', sources=[os.path.join('Src', 'umfpackmodule.c'),
                                      'amd/amd_aat.c',
                                      'amd/amd_1.c',
