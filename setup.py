@@ -15,12 +15,8 @@ if hostname in ['bree', 'brokoli', 'givens2', 'givens4', 'nedelec', 'gondor']:
     libraries_list = ['lapack', 'blas', 'g2c']
 elif hostname == 'maxwell':
     # AMD Opteron 'x86-64' architecture using ACML
-    #
-    # use --install-purelib=/usr/lib64/python2.2/site-packages 
-    # and --install-platlib=/usr/lib64/python2.2/site-packages options
-    # when installing
     libraries_list = ['acml', 'g2c']
-    library_dirs_list = ['/opt/acml/gnu64']
+    library_dirs_list = ['/opt/acml/gnu64/lib']
 elif hostname == 'sysiphus':
     # Linux RedHat 7.3 2.4.18-10 i686 with atlas Lapack routines
     library_dirs_list= ['/hg/u/vasseur/Linux/lib/atlas']
