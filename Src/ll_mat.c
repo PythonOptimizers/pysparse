@@ -1099,6 +1099,88 @@ LLMat_copy(LLMatObject *self, PyObject *args)
   return (PyObject *)new;
 }
 
+static char update_add_at_doc[] = "a.update_add_at(b,id1,id2)\n\
+\n\
+for i in range(len(b)):\n\
+    a[id1[i],id2[i]] += b[i]";
+
+static PyObject *
+LLMat_update_add_at(LLMatObject *self, PyObject *args) {
+  PyObject *bIn;
+  PyObject *id1in;
+  PyObject *id2in;
+  PyArrayObject *b = NULL;
+  PyArrayObject *id1 = NULL;
+  PyArrayObject *id2 = NULL;
+  double v;
+  int lenb,i;
+
+  if (self->issym) 
+    {
+      PyErr_SetString(SpMatrix_ErrorObject, "method not allowed for symmetric matrices");
+      return NULL;
+    }
+  if (!PyArg_ParseTuple(args, "OOO", &bIn,&id1in,&id2in))
+    return NULL;
+
+  b = (PyArrayObject *)PyArray_ContiguousFromObject(bIn, PyArray_DOUBLE, 1, 1);
+  if (b == NULL)
+    goto fail;
+
+  lenb = b->dimensions[0];
+
+  id1 = (PyArrayObject *)PyArray_ContiguousFromObject(id1in, PyArray_LONG, 1, 1);
+  if (id1 == NULL)
+    goto fail;
+  
+  id2 = (PyArrayObject *)PyArray_ContiguousFromObject(id2in, PyArray_LONG, 1, 1);
+  if (id2 == NULL)
+    goto fail;
+  
+  if(self->dim[0]!=self->dim[1]){
+    PyErr_SetString(PyExc_IndexError, "dim[0] and dim[1] are different sizes");
+    goto fail;}
+
+  if (lenb < 0 ) {
+    PyErr_SetString(PyExc_IndexError, "vector b is a negative size");
+    goto fail;}
+
+  if (id1->dimensions[0] != lenb ) {
+    PyErr_SetString(PyExc_IndexError, "id1 is not the same size as b");
+    goto fail;}
+
+  if (id2->dimensions[0] != lenb ) {
+    PyErr_SetString(PyExc_IndexError, "id2 is not the same size as b");
+    goto fail;}
+
+  /* perform update add operation */
+
+  for (i = 0; i < lenb; i ++)
+    {
+      v = ((double *)b->data)[i];
+      if (SpMatrix_LLMatUpdateItemAdd(self, ((long *) id1->data)[i], ((long *) id2->data)[i], v) == -1)
+	goto fail;
+    }
+
+  Py_DECREF(b);
+  Py_DECREF(id1);
+  Py_DECREF(id2);
+  Py_INCREF(Py_None); 
+  return Py_None;
+
+ fail:
+  if (b) {
+      Py_XDECREF(b);
+  }  
+  if (id1) {
+      Py_XDECREF(id1);
+  }
+  if (id2) {
+      Py_XDECREF(id2);
+  }
+  
+  return NULL;
+}
 
 static char LLMat_norm_doc[] = "return p-norm of matrix\n\
 \n\
@@ -1255,10 +1337,10 @@ LLMat_update_add_mask(LLMatObject *self, PyObject *args) {
     return NULL;
 
   b = (PyArrayObject *)PyArray_ContiguousFromObject(bIn, PyArray_DOUBLE, 2, 2);
-  ind0 = (PyArrayObject *)PyArray_ContiguousFromObject(ind0In, PyArray_INT, 1, 1);
-  ind1 = (PyArrayObject *)PyArray_ContiguousFromObject(ind1In, PyArray_INT, 1, 1);
-  mask0 = (PyArrayObject *)PyArray_ContiguousFromObject(mask0In, PyArray_INT, 1, 1);
-  mask1 = (PyArrayObject *)PyArray_ContiguousFromObject(mask1In, PyArray_INT, 1, 1);
+  ind0 = (PyArrayObject *)PyArray_ContiguousFromObject(ind0In, PyArray_LONG, 1, 1);
+  ind1 = (PyArrayObject *)PyArray_ContiguousFromObject(ind1In, PyArray_LONG, 1, 1);
+  mask0 = (PyArrayObject *)PyArray_ContiguousFromObject(mask0In, PyArray_LONG, 1, 1);
+  mask1 = (PyArrayObject *)PyArray_ContiguousFromObject(mask1In, PyArray_LONG, 1, 1);
 
   if (b == NULL || ind0 == NULL || ind1 == NULL || mask0 == NULL || mask1 == NULL)
     goto fail;
@@ -1279,9 +1361,9 @@ LLMat_update_add_mask(LLMatObject *self, PyObject *args) {
   /* perform update add operation */
   ldb = b->dimensions[0];
   for (i = 0; i < len0; i ++) {
-    if (((int *)mask0->data)[i]) {
+    if (((long *)mask0->data)[i]) {
 
-      i1 = ((int *)ind0->data)[i];
+      i1 = ((long *)ind0->data)[i];
       if (i1 < 0)
 	i1 += self->dim[0];
       if (i1 < 0 || i1 >= self->dim[0]) {
@@ -1290,9 +1372,9 @@ LLMat_update_add_mask(LLMatObject *self, PyObject *args) {
       }
    
       for (j = 0; j < len1; j ++) {
-	if (((int *)mask1->data)[j]) {
+	if (((long *)mask1->data)[j]) {
 
-	  j1 = ((int *)ind1->data)[j];
+	  j1 = ((long *)ind1->data)[j];
 	  if (j1 < 0)
 	    j1 += self->dim[1];
 	  if (j1 < 0 || j1 >= self->dim[1]) {
@@ -1325,7 +1407,6 @@ LLMat_update_add_mask(LLMatObject *self, PyObject *args) {
   return NULL;
 }
 
-
 static char update_add_mask_sym_doc[] = "a.update_add_mask(b, ind, mask)\n\
 \n\
 Symmetric update of global FEM matrix. Equivalent to:\n\
@@ -1350,8 +1431,8 @@ LLMat_update_add_mask_sym(LLMatObject *self, PyObject *args) {
     return NULL;
 
   b = (PyArrayObject *)PyArray_ContiguousFromObject(bIn, PyArray_DOUBLE, 2, 2);
-  ind = (PyArrayObject *)PyArray_ContiguousFromObject(indIn, PyArray_INT, 1, 1);
-  mask = (PyArrayObject *)PyArray_ContiguousFromObject(maskIn, PyArray_INT, 1, 1);
+  ind = (PyArrayObject *)PyArray_ContiguousFromObject(indIn, PyArray_LONG, 1, 1);
+  mask = (PyArrayObject *)PyArray_ContiguousFromObject(maskIn, PyArray_LONG, 1, 1);
 
   if (b == NULL || ind == NULL || mask == NULL)
     goto fail;
@@ -1371,9 +1452,9 @@ LLMat_update_add_mask_sym(LLMatObject *self, PyObject *args) {
   /* perform update add operation */
   ldb = b->dimensions[0];
   for (i = 0; i < len; i ++) {
-    if (((int *)mask->data)[i]) {
+    if (((long *)mask->data)[i]) {
 
-      i1 = ((int *)ind->data)[i];
+      i1 = ((long *)ind->data)[i];
       if (i1 < 0)
 	i1 += self->dim[0];
       if (i1 < 0 || i1 >= self->dim[0]) {
@@ -1382,9 +1463,9 @@ LLMat_update_add_mask_sym(LLMatObject *self, PyObject *args) {
       }
    
       for (j = 0; j <= i; j ++) {
-	if (((int *)mask->data)[j]) {
+	if (((long *)mask->data)[j]) {
 
-	  j1 = ((int *)ind->data)[j]; /* index check not necessary here */
+	  j1 = ((long *)ind->data)[j]; /* index check not necessary here */
 	  if (j1 < 0)
 	    j1 += self->dim[1];
 	  v = ((double *)b->data)[i + ldb*j];
@@ -1426,6 +1507,221 @@ LLMat_update_add_mask_sym(LLMatObject *self, PyObject *args) {
   return NULL;
 }
 
+static char LLMat_take_doc[] = "a.take(b,id1,id2)\n\
+\n\
+for i in range(len(b)):\n\
+    b[i] = a[id1[i],id2[i]]";
+
+static PyObject *
+LLMat_take(LLMatObject *self, PyObject *args) {
+  PyObject *bIn;
+  PyObject *id1in = NULL;
+  PyObject *id2in = NULL;
+  PyArrayObject *b;
+  PyArrayObject *id1 = NULL;
+  PyArrayObject *id2 = NULL;
+  int lenb,i;
+
+  if (!PyArg_ParseTuple(args, "O|OO", &bIn,&id1in,&id2in))
+    return NULL;
+
+  b = (PyArrayObject *)PyArray_ContiguousFromObject(bIn, PyArray_DOUBLE, 1, 1);
+  if (b == NULL)
+    goto fail;
+
+  lenb = b->dimensions[0];
+
+  if (id1in) {
+      id1 = (PyArrayObject *)PyArray_ContiguousFromObject(id1in, PyArray_LONG, 1, 1);
+      if (id1 == NULL)
+	goto fail;
+  }
+  
+  if (id2in) {
+      id2 = (PyArrayObject *)PyArray_ContiguousFromObject(id2in, PyArray_LONG, 1, 1);
+      if (id2 == NULL)
+	goto fail;
+  }
+  
+  if (self->dim[0] != self->dim[1]){
+      PyErr_SetString(PyExc_IndexError, "dim[0] and dim[1] are different sizes");
+      goto fail;
+  }
+  
+  if (lenb < 0 ) {
+      PyErr_SetString(PyExc_IndexError, "vector b is a negative size");
+      goto fail;
+  }
+  
+  if (id1 && id1->dimensions[0] != lenb ) {
+      PyErr_SetString(PyExc_IndexError, "id1 is not the same size as b");
+      goto fail;
+  }
+
+  if (id2 && id2->dimensions[0] != lenb ) {
+      PyErr_SetString(PyExc_IndexError, "id2 is not the same size as b");
+      goto fail;
+  }
+  
+  if (id1 != id2 && self->issym) {
+      PyErr_SetString(SpMatrix_ErrorObject, "symmetric matrices require identical sets of indices");
+      goto fail;
+  }
+    
+  /* perform take operation */
+
+    for (i = 0; i < lenb; i ++)
+      {
+	  int	i1, j1;
+	  
+	  if (id1) {
+	      i1 = ((long *) id1->data)[i];
+	  } else {
+	      i1 = i;
+	  }
+	  if (id2) {
+	      j1 = ((long *) id2->data)[i];
+	  } else {
+	      j1 = i1;
+	  }
+
+	  if (i1 > j1 || !self->issym) {
+	      /* get entries as given */
+	      ((double *)b->data)[i] = SpMatrix_LLMatGetItem(self, i1, j1);
+	  } else {
+	      /* symmetric matrix: get entries from lower triangle */
+	      ((double *)b->data)[i] = SpMatrix_LLMatGetItem(self, j1, i1);
+	  }
+      }
+      
+    Py_DECREF(b);
+    if (id1) {
+	Py_DECREF(id1);
+    }
+    if (id2) {
+	Py_DECREF(id2);
+    }
+    Py_INCREF(Py_None); 
+    return Py_None;
+
+   fail:
+    Py_XDECREF(b);
+    if (id1) {
+	Py_XDECREF(id1);
+    }
+    if (id2) {
+	Py_XDECREF(id2);
+    }
+    return NULL;
+}
+
+static char LLMat_put_doc[] = "a.put(b,id1,id2)\n\
+\n\
+for i in range(len(b)):\n\
+    a[id1[i],id2[i]] = b[i]";
+
+static PyObject *
+LLMat_put(LLMatObject *self, PyObject *args) {
+    PyObject *bIn;
+    PyObject *id1in = NULL;
+    PyObject *id2in = NULL;
+    PyArrayObject *b;
+    PyArrayObject *id1 = NULL;
+    PyArrayObject *id2 = NULL;
+    int lenb,i;
+
+    if (!PyArg_ParseTuple(args, "O|OO", &bIn,&id1in,&id2in))
+      return NULL;
+
+    b = (PyArrayObject *)PyArray_ContiguousFromObject(bIn, PyArray_DOUBLE, 1, 1);
+    if (b == NULL)
+      goto fail;
+
+    lenb = b->dimensions[0];
+
+    if (id1in) {
+	id1 = (PyArrayObject *)PyArray_ContiguousFromObject(id1in, PyArray_LONG, 1, 1);
+	if (id1 == NULL)
+	  goto fail;
+    }
+    
+    if (id2in) {
+	id2 = (PyArrayObject *)PyArray_ContiguousFromObject(id2in, PyArray_LONG, 1, 1);
+	if (id2 == NULL)
+	  goto fail;
+    }
+    
+    if (self->dim[0] != self->dim[1]){
+	PyErr_SetString(PyExc_IndexError, "dim[0] and dim[1] are different sizes");
+	goto fail;
+    }
+    
+    if (lenb < 0 ) {
+	PyErr_SetString(PyExc_IndexError, "vector b is a negative size");
+	goto fail;
+    }
+    
+    if (id1 && id1->dimensions[0] != lenb ) {
+	PyErr_SetString(PyExc_IndexError, "id1 is not the same size as b");
+	goto fail;
+    }
+
+    if (id2 && id2->dimensions[0] != lenb ) {
+	PyErr_SetString(PyExc_IndexError, "id2 is not the same size as b");
+	goto fail;
+    }
+    
+  /* perform put operation */
+
+   for (i = 0; i < lenb; i ++)
+     {
+	 int	i1, j1;
+	 
+	 if (id1) {
+	     i1 = ((long *) id1->data)[i];
+	 } else {
+	     i1 = i;
+	 }
+	 if (id2) {
+	     j1 = ((long *) id2->data)[i];
+	 } else {
+	     j1 = i1;
+	 }
+
+	 if (i1 > j1 || !self->issym) {
+	     /* update entries as given */
+	     if (SpMatrix_LLMatSetItem(self, i1, j1, ((double *)b->data)[i]) == -1) {
+		 goto fail;
+	     }
+	 } else {
+	     /* symmetric matrix: update entries in lower triangle */
+	     if (SpMatrix_LLMatSetItem(self, j1, i1, ((double *)b->data)[i]) == -1) {
+		 goto fail;
+	     }
+	 }
+     }
+     
+    Py_DECREF(b);
+    if (id1) {
+	Py_DECREF(id1);
+    }
+    if (id2) {
+	Py_DECREF(id2);
+    }
+    Py_INCREF(Py_None); 
+    return Py_None;
+
+   fail:
+    Py_XDECREF(b);
+    if (id1) {
+	Py_XDECREF(id1);
+    }
+    if (id2) {
+	Py_XDECREF(id2);
+    }
+    return NULL;
+}
+
 static char LLMat_delete_rows_doc[] = 
 "Delete rows from matrix (inplace). The rows to be deleted are specified by the mask array.\n\
 \n\
@@ -1444,7 +1740,7 @@ LLMat_delete_rows(LLMatObject *self, PyObject* args){
   
   if (!PyArg_ParseTuple(args, "O!", &PyArray_Type, &maskObj)) 
     return NULL;
-  if (maskObj->nd != 1 || maskObj->descr->type_num != PyArray_INT || maskObj->dimensions[0] != self->dim[0]) {
+  if (maskObj->nd != 1 || maskObj->descr->type_num != PyArray_LONG || maskObj->dimensions[0] != self->dim[0]) {
     PyErr_SetString(PyExc_ValueError, "mask must be a 1D integer NumPy array of appropriate length");
     return NULL;
   }
@@ -1501,7 +1797,7 @@ LLMat_delete_cols(LLMatObject *self, PyObject* args){
   
   if (!PyArg_ParseTuple(args, "O!", &PyArray_Type, &maskObj)) 
     return NULL;
-  if (maskObj->nd != 1 || maskObj->descr->type_num != PyArray_INT || maskObj->dimensions[0] != self->dim[1]) {
+  if (maskObj->nd != 1 || maskObj->descr->type_num != PyArray_LONG || maskObj->dimensions[0] != self->dim[1]) {
     PyErr_SetString(PyExc_ValueError, "mask must be a 1D integer NumPy array of appropriate length");
     return NULL;
   }
@@ -1510,7 +1806,7 @@ LLMat_delete_cols(LLMatObject *self, PyObject* args){
     return NULL;
   }
 
-#define MASK(i) *(int *)(maskObj->data + (i)*maskObj->strides[0])
+#define MASK(i) *(long *)(maskObj->data + (i)*maskObj->strides[0])
 
   /* Allocate column shift vector (after deletion col[i] is at */
   /* col[i] - shift[i]). */
@@ -1580,7 +1876,7 @@ LLMat_delete_rowcols(LLMatObject *self, PyObject* args){
   
   if (!PyArg_ParseTuple(args, "O!", &PyArray_Type, &maskObj)) 
     return NULL;
-  if (maskObj->nd != 1 || maskObj->descr->type_num != PyArray_INT || maskObj->dimensions[0] != self->dim[0]) {
+  if (maskObj->nd != 1 || maskObj->descr->type_num != PyArray_LONG || maskObj->dimensions[0] != self->dim[0]) {
     PyErr_SetString(PyExc_ValueError, "mask must be a 1D integer NumPy array of appropriate length");
     return NULL;
   }
@@ -1589,7 +1885,7 @@ LLMat_delete_rowcols(LLMatObject *self, PyObject* args){
     return NULL;
   }
 
-#define MASK(i) *(int *)(maskObj->data + (i)*maskObj->strides[0])
+#define MASK(i) *(long *)(maskObj->data + (i)*maskObj->strides[0])
 
   /* Delete the rows to be cancelled by rearranging the row */
   /* array. After having done so, newdim is the new matrix dim. */
@@ -1687,6 +1983,9 @@ PyMethodDef LLMat_methods[] = {
   {"delete_rows",     (PyCFunction)LLMat_delete_rows,     METH_VARARGS, LLMat_delete_rows_doc},
   {"delete_cols",     (PyCFunction)LLMat_delete_cols,     METH_VARARGS, LLMat_delete_cols_doc},
   {"delete_rowcols",  (PyCFunction)LLMat_delete_rowcols,  METH_VARARGS, LLMat_delete_rowcols_doc},
+  {"update_add_at",  (PyCFunction)LLMat_update_add_at,  METH_VARARGS, update_add_at_doc},
+  {"put",             (PyCFunction)LLMat_put,             METH_VARARGS, LLMat_put_doc},
+  {"take",            (PyCFunction)LLMat_take,            METH_VARARGS, LLMat_take_doc},
   {NULL, NULL}			/* sentinel */
 };
 
