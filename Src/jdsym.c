@@ -552,7 +552,7 @@ jdsym (int n, double tau, double jdtol,
       /* Adaptive accuracy and shift for the lin.solver. In case the
 	 residual is big, we don't need a too precise solution for the
 	 correction equation, since even in exact arithmetic the
-	 solution wouldn't be too usefull for the Eigenproblem. */
+	 solution wouldn't be too useful for the Eigenproblem. */
       r = Res + act*n;
 
       if (resnrm[act] < eps_tr)
