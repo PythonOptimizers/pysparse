@@ -1,3 +1,15 @@
+0.33.029
+---------------------------------------------------------------------------------
+added new umfpack module. (by Nathaniel C. Domingo)
+
+added Umfpack library source files to distribution (by Nathaniel C. Domingo)
+
+added new module sparray, implementing a multidimensional sparse array
+(by Pascal Barbedor)
+
+fixed bug in SSOR preconditioner (precon module) for omega != 1.0 and
+steps > 1
+
 0.32.028
 ---------------------------------------------------------------------------------
 added Xavier Vasseur's gmres solver to the itsolvers module. Thanks Xavier!

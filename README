@@ -96,8 +96,9 @@ Paul Scherrer Institute
 CH-5232 Villigen, Switzerland
 
 
-I would like thank the developers of the SuperLU package. SuperLU is
-incorporated into the PySparse software distribution.
+I would like thank the developers of the SuperLU and Umfpack
+packages. Both SuperLU and Umfpack are incorporated into the PySparse
+software distribution.
 
 
 Contact

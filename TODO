@@ -1,24 +1,5 @@
-Problem in HP-UX with +DA2.0W
------------------------------
-
-+DA2.0W results in sizeof(long) == 8
-Numeric lapack_lite_module uses the long type for Fortran integer arguments
-/usr/lib/pa20_64/lapack.sl has 4 byte integer arguments
-
-Possible resolution I:
-  Do not use /usr/lib/pa20_64/lapack.sl
-  compile all modules using lapack_lite
-  compile SuperLU using the +i8, link to lapack_lite
-     hardly possible, calls to blas use ints
-
-Possible resolution II:
-  rewrite lapack_lite_module to use int instead of long (a lot of work)
-
-
 Other stuff
 -----------
-
-benchmarks, to find fastest args parsing for matvec and precon
 
 support additional comment parameter in ll_mat.export_mtx
 
