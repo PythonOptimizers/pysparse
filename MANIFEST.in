@@ -5,6 +5,8 @@ include Src/*.h
 include Src/*.c
 include Doc/*.pdf
 include superlu/*.h
+include umfpack/*.h
+include amd/*.h
 recursive-include Include *.h
 recursive-include Examples *.txt *.py
 recursive-include Test *.py
