@@ -10,8 +10,8 @@ superlu_defs = [('USE_VENDOR_BLAS',1)]
 f77_defs = []
 
 hostname = socket.gethostname()
-if hostname in ['bree', 'brokoli', 'givens2', 'givens4', 'nedelec']:
-    # SuSE Linux 8.0
+if hostname in ['bree', 'brokoli', 'givens2', 'givens4', 'nedelec', 'gondor']:
+    # SuSE Linux 8.x and 9.0
     libraries_list = ['lapack', 'blas', 'g2c']
 elif hostname == 'maxwell':
     # AMD Opteron 'x86-64' architecture using ACML
