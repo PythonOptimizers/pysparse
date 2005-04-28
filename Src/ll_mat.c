@@ -16,6 +16,9 @@
 #define PPRINT_COL_THRESH 20	/* column threshold for choosing between print formats */
 #define OPT_MATMATMUL     1	/* enable optimised matrix-matrix-mult */
 
+#define MAX(A,B) ( (A) > (B) ? (A) : (B) )
+
+
 /*************************************************************************************/
 /*  R o u t i n e s   f o r   b u i l d i n g   d a t a   s t r u c t u r e   f o r  */
 /*  c o l u m n - w i s e   t r a v e r s a l   o f   l l _ m a t   o b j e c t s    */
@@ -1312,6 +1315,201 @@ LLMat_shift(LLMatObject *self, PyObject *args)
   return Py_None;
 }
 
+
+static char keys_doc[] = "A.keys()\n\
+\n\
+Returns a list of tuples (i,j) of non-zero matrix entries";
+
+static PyObject *
+LLMat_keys(register LLMatObject *a, PyObject *args)
+{
+        register PyObject *list;   /* the list that will hold the keys */
+	register int i, j, k;
+	int n;
+	int pos = 0;  /* position in list */
+
+	if (!PyArg_ParseTuple(args, ""))
+	  return NULL;
+
+
+  again:
+	n = a->nnz;
+	list = PyList_New(n);
+	if (list == NULL)
+		return NULL;
+	if (n != a->nnz) {
+	  /* (A little exception handler from the Python 2.4 source code.) */
+		Py_DECREF(list);
+		goto again;
+	}
+
+	if (!a->issym) {
+	  for (i = 0; i < a->dim[0]; i ++) {
+	    k = a->root[i];
+	    while (k != -1) {
+	      j = a->col[k];
+	      
+	      PyList_SetItem(list, pos++, Py_BuildValue("(OO)", PyInt_FromLong(i), PyInt_FromLong(j)));
+
+	      /* edvalue = SpMatrix_LLMatGetItem(a, i, j); */
+
+	      k = a->link[k];
+	    }
+	  }
+	} else {
+	  PyErr_SetString(PyExc_NotImplementedError, 
+			  "keys() doesn't yet support symmetric matrices");
+	  return NULL;
+	}
+
+	return list;
+}
+
+
+
+
+static char values_doc[] = "A.values()\n\
+\n\
+Returns a list of the non-zero matrix entries as floats.";
+
+static PyObject *
+LLMat_values(register LLMatObject *a, PyObject *args)
+{
+        register PyObject *list;   /* the list that will hold the values */
+	register int i, k;
+	int n;
+	int pos = 0;  /* position in list */
+	double val;
+
+	if (!PyArg_ParseTuple(args, ""))
+	  return NULL;
+
+
+  again:
+	n = a->nnz;
+	list = PyList_New(n);
+	if (list == NULL)
+		return NULL;
+	if (n != a->nnz) {
+	  /* (A little exception handler from the Python 2.4 source code.) */
+		Py_DECREF(list);
+		goto again;
+	}
+
+	if (!a->issym) {
+	  for (i = 0; i < a->dim[0]; i ++) {
+	    k = a->root[i];
+	    while (k != -1) {
+	      val = SpMatrix_LLMatGetItem(a, i, a->col[k]);
+
+	      PyList_SetItem(list, pos++, PyFloat_FromDouble(val));
+
+	      k = a->link[k];
+	    }
+	  }
+	} else {
+	  PyErr_SetString(PyExc_NotImplementedError, 
+			  "values() doesn't yet support symmetric matrices");
+	  return NULL;
+	}
+
+	return list;
+}
+
+
+
+static char items_doc[] = "A.items()\n\
+\n\
+Returns a list of tuples (indices, value) of\n\
+the non-zero matrix entries' keys and values.\n\
+\n\
+The indices are themselves tuples (i,j) of row\n\
+and column values.";
+
+static PyObject *
+LLMat_items(register LLMatObject *a, PyObject *args)
+{
+        register PyObject *list;   /* the list that will hold the values */
+	register int i, j, k;
+	int n;
+	int pos = 0;  /* position in list */
+	double val;
+
+	if (!PyArg_ParseTuple(args, ""))
+	  return NULL;
+
+
+  again:
+	n = a->nnz;
+	list = PyList_New(n);
+	if (list == NULL)
+		return NULL;
+	if (n != a->nnz) {
+	  /* (A little exception handler from the Python 2.4 source code.) */
+		Py_DECREF(list);
+		goto again;
+	}
+
+	if (!a->issym) {
+	  for (i = 0; i < a->dim[0]; i ++) {
+	    k = a->root[i];
+	    while (k != -1) {
+	      j = a->col[k];
+	      
+	      val = SpMatrix_LLMatGetItem(a, i, j);
+
+	      PyList_SetItem(list, pos++, Py_BuildValue("((ii)d)", i, j, val));
+	      
+	      k = a->link[k];
+	    }
+	  }
+	} else {
+	  PyErr_SetString(PyExc_NotImplementedError, 
+			  "items() doesn't yet support symmetric matrices");
+	  return NULL;
+	}
+
+	return list;
+}
+
+
+
+
+static char scale_doc[] = "a.scale(sigma)\n\
+\n\
+scale each element in the matrix by the constant sigma.\n";
+
+static PyObject *
+LLMat_scale(LLMatObject *self, PyObject *args)
+{
+  double sigma, v;
+  int i, j, k;
+  
+  if (!PyArg_ParseTuple(args, "d", &sigma))
+    return NULL;
+  
+  if (!self->issym) {
+    for (i = 0; i < self->dim[0]; i ++) {
+      k = self->root[i];
+      while (k != -1) {
+	j = self->col[k];
+	v = sigma * SpMatrix_LLMatGetItem(self, i, j);
+	if (SpMatrix_LLMatSetItem(self, i, j, v) == -1)
+	  return NULL;
+	k = self->link[k];
+      }
+    }
+  } else {
+    PyErr_SetString(PyExc_NotImplementedError, 
+		    "scale() doesn't yet support symmetric matrices");
+    return NULL;
+  }
+
+  Py_INCREF(Py_None); 
+  return Py_None;
+}
+
+
 static char update_add_mask_doc[] = "a.update_add_mask(b, ind0, ind1, mask0, mask1)\n\
 \n\
 Update of global FEM matrix. Equivalent to:\n\
@@ -1978,6 +2176,10 @@ PyMethodDef LLMat_methods[] = {
   {"copy",            (PyCFunction)LLMat_copy,            METH_VARARGS, copy_doc},
   {"norm",            (PyCFunction)LLMat_norm,            METH_VARARGS, LLMat_norm_doc},
   {"shift",           (PyCFunction)LLMat_shift,           METH_VARARGS, shift_doc},
+  {"scale",           (PyCFunction)LLMat_scale,           METH_VARARGS, scale_doc},
+  {"keys",            (PyCFunction)LLMat_keys,            METH_VARARGS, keys_doc},
+  {"values",          (PyCFunction)LLMat_values,          METH_VARARGS, values_doc},
+  {"items",           (PyCFunction)LLMat_items,           METH_VARARGS, items_doc},
   {"update_add_mask", (PyCFunction)LLMat_update_add_mask, METH_VARARGS, update_add_mask_doc},
   {"update_add_mask_sym", (PyCFunction)LLMat_update_add_mask_sym, METH_VARARGS, update_add_mask_sym_doc},
   {"delete_rows",     (PyCFunction)LLMat_delete_rows,     METH_VARARGS, LLMat_delete_rows_doc},
