@@ -1,12 +1,14 @@
+0.34.032
+---------------------------------------------------------------------------------
+Fixed a memory leak in ll_mat.keys(). (Reported by c chui)
+
+Improved the performance of ll_mat.scale(), ll_mat.values() and ll_mat.items().
+
 0.34.031
 ---------------------------------------------------------------------------------
 Modules using the pysparse C API can now define NO_IMPORT_SPMATRIX
 together with SPMATRIX_UNIQUE_SYMBOL to avoid multiple definition of
 the SpMatrix_API pointer. This fix was suggested by Erica Madeleine Ligner.
-
-Fixed a memory leak in ll_mat.keys().
-
-Improved the performance of ll_mat.scale(), ll_mat.values() and ll_mat.items().
 
 0.34.030
 ---------------------------------------------------------------------------------
