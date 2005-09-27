@@ -79,7 +79,7 @@ elif sys.platform == 'darwin':
     
     if sys.exec_prefix == '/sw':
         # fink python
-        linky=["-faltivec","-framework","vecLib","-bundle_loader","/sw/bin/python "]
+        linky=["-faltivec","-framework","vecLib","-bundle_loader","/sw/bin/python"]
     else:
         # Apple python
         linky=["-faltivec","-framework","vecLib"]
