@@ -73,6 +73,7 @@ elif sys.platform == 'darwin':
     library_dirs_list = ['/System/Library/Frameworks']
     libraries_list = []
     f77_defs = []
+
     
     # the following 'linky' arguments must not be concatenated together into a single
     # string, c.f. <http://mail.python.org/pipermail/distutils-sig/2003-December/003532.html>
@@ -90,6 +91,13 @@ elif sys.platform == 'darwin':
         # We reset it by appending this flag:
         compily=["-fcommon"]
 
+elif sys.platform == 'linux2':
+    ## fix for Fedora core 4, 'g2c' doesn't exist and isn't required
+    if 'redhat-release' in os.listdir('/etc'):
+        f = open('/etc/redhat-release', 'r')
+        if 'release 4' in f.read():
+            libraries_list = ['lapack', 'blas']
+        f.close()
         
 
 ext_modules = [Extension('spmatrix', ['Src/spmatrixmodule.c']),
