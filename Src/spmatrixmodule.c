@@ -4,7 +4,14 @@
 #include "pysparse/spmatrix.h"
 
 #define PY_ARRAY_UNIQUE_SYMBOL spmatrix
-#include "Numeric/arrayobject.h"
+//#include "Numeric/arrayobject.h"
+
+#if NUMPY
+    #include "numpy/arrayobject.h"
+    #include "numpy/noprefix.h"
+#else
+    #include "Numeric/arrayobject.h"
+#endif
 
 PyObject *SpMatrix_ErrorObject;
 

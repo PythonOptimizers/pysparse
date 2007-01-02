@@ -1,6 +1,7 @@
 import math
 import Numeric
-import spmatrix, itsolvers, jdsym, precon, superlu
+import pysparse.spmatrix
+from pysparse import spmatrix, itsolvers, jdsym, precon, superlu
 
 test = 1
 

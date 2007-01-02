@@ -1,4 +1,4 @@
-from spmatrix import *
+from pysparse.spmatrix import *
 import RandomArray
 import time
 

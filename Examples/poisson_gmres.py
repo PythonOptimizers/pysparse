@@ -1,8 +1,8 @@
 import Numeric
 import math
-import spmatrix
-import itsolvers
-import precon
+from pysparse import spmatrix
+from pysparse import itsolvers
+from pysparse import precon
 import time
 
 def poisson2d(n):

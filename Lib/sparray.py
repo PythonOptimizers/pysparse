@@ -2,7 +2,6 @@
 from types import IntType,SliceType
 import operator
 import spmatrix
-import Numeric
 
 class sparray:
     """
@@ -103,7 +102,8 @@ class sparray:
             ii=vec.index(True)
             indices=[]
             k = list(k)
-            rep = Numeric.zeros((self.dims[ii],), 'd')
+            import numpy
+            rep = numpy.zeros((self.dims[ii],), 'd')
             for i in range(self.dims[ii]):
                 k[ii] = i
                 rep[i] = self.data[self.comp(k), 0]

@@ -1,7 +1,7 @@
 import math, unittest
 import Numeric
-import spmatrix, superlu
-import poisson
+from pysparse import spmatrix, superlu
+from pysparse import poisson
 
 def residual(A, x, b):
     n = A.shape[0]

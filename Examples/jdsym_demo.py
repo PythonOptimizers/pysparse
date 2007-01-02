@@ -1,5 +1,5 @@
 import os
-import spmatrix, itsolvers, jdsym, precon
+from pysparse import spmatrix, itsolvers, jdsym, precon
 
 path = os.path.join(os.environ['HOME'], 'matrices')
 A = spmatrix.ll_mat_from_mtx(os.path.join(path, 'edge6x3x5_A.mtx'))

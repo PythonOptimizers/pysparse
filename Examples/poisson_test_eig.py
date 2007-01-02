@@ -1,9 +1,9 @@
 import Numeric
 import math
-import spmatrix
-import itsolvers
-import precon
-import jdsym
+from pysparse import spmatrix
+from pysparse import itsolvers
+from pysparse import precon
+from pysparse import jdsym
 import time
 
 def poisson2d_sym_blk(n):

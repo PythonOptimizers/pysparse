@@ -1,6 +1,6 @@
 import math, time
 import Numeric
-import spmatrix, itsolvers, precon, poisson
+from pysparse import spmatrix, itsolvers, precon, poisson
 
 N = 200
 TOL = 1e-8

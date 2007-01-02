@@ -1,8 +1,8 @@
 import math, os, sys, time
 import Numeric
-import spmatrix
-import itsolvers
-import precon
+from pysparse import spmatrix
+from pysparse import itsolvers
+from pysparse import precon
 
 ll = spmatrix.ll_mat(5,5)
 print ll

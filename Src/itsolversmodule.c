@@ -5,7 +5,14 @@
 #include "Python.h"
 
 #define PY_ARRAY_UNIQUE_SYMBOL itsolvers_pyarray
-#include "Numeric/arrayobject.h"
+//#include "Numeric/arrayobject.h"
+
+#if NUMPY
+    #include "numpy/arrayobject.h"
+    #include "numpy/noprefix.h"
+#else
+    #include "Numeric/arrayobject.h"
+#endif
 
 #define SPMATRIX_UNIQUE_SYMBOL itsolvers_spmatrix
 #include "pysparse/spmatrix.h"

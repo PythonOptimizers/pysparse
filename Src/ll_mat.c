@@ -6,7 +6,14 @@
 #include "pysparse/sss_mat.h"
 
 #define SPMATRIX_MODULE
-#include "pysparse/spmatrix.h"
+//#include "pysparse/spmatrix.h"
+
+#if NUMPY
+    #include "numpy/arrayobject.h"
+    #include "numpy/noprefix.h"
+#else
+    #include "Numeric/arrayobject.h"
+#endif
 
 #define PY_ARRAY_UNIQUE_SYMBOL spmatrix
 #include "Numeric/arrayobject.h"

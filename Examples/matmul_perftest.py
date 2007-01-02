@@ -1,5 +1,5 @@
 import time
-import spmatrix
+from pysparse import spmatrix
 
 
 n = 1000000

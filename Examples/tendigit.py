@@ -1,7 +1,7 @@
 """ Solves problem 7 of the One Hundred Dollars, One Hundred Digits Challenge """
 
 import Numeric 
-import spmatrix, itsolvers, precon
+from pysparse import spmatrix, itsolvers, precon
 
 def get_primes(nofPrimes):
     primes = Numeric.zeros(nofPrimes, 'i')

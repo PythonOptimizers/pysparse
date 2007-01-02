@@ -13,6 +13,16 @@ f77_defs = []
 linky=[]
 compily=[]
 
+## numpy / Numeric settings
+use_numpy=True
+if use_numpy:
+    numerix_macro = [('NUMPY', '1')]
+    package_name = 'pysparse_numpy'
+else:
+    numerix_macro = []
+    package_name = 'pysparse_Numeric'
+
+
 umfpack_defs = [('DINT', 1), ('NBLAS', 1)] # most basic configuration, no BLAS
 umfpack_libraries = []
 umfpack_include_dirs = ['amd', 'umfpack']
@@ -98,10 +108,12 @@ elif sys.platform == 'linux2':
         if 'release 4' in f.read():
             libraries_list = ['lapack', 'blas']
         f.close()
-        
 
-ext_modules = [Extension('spmatrix', ['Src/spmatrixmodule.c']),
-               Extension('itsolvers', ['Src/itsolversmodule.c',
+from distutils.core import Command
+    
+ext_modules = [Extension(package_name + '.spmatrix', ['Src/spmatrixmodule.c'],
+                         define_macros=numerix_macro),
+               Extension(package_name + '.itsolvers', ['Src/itsolversmodule.c',
                                        'Src/pcg.c',
                                        'Src/gmres.c',
                                        'Src/minres.c',
@@ -110,14 +122,15 @@ ext_modules = [Extension('spmatrix', ['Src/spmatrixmodule.c']),
                                        'Src/cgs.c'],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
-                         define_macros=f77_defs,
+                         define_macros=f77_defs + numerix_macro,
                          extra_compile_args=compily,
                          extra_link_args=linky),
-               Extension('precon',  [os.path.join('Src', 'preconmodule.c')],
+               Extension(package_name + '.precon',  [os.path.join('Src', 'preconmodule.c')],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
-                         define_macros=f77_defs,extra_link_args=linky),
-               Extension('superlu', [os.path.join('Src', 'superlumodule.c'),
+                         define_macros=f77_defs + numerix_macro,
+                         extra_link_args=linky),
+               Extension(package_name + '.superlu', [os.path.join('Src', 'superlumodule.c'),
                                      "superlu/dcolumn_bmod.c",
                                      "superlu/dcolumn_dfs.c",
                                      "superlu/dcomplex.c",
@@ -161,15 +174,16 @@ ext_modules = [Extension('spmatrix', ['Src/spmatrixmodule.c']),
                                      "superlu/sp_preorder.c",
                                      "superlu/util.c",
                                      "superlu/xerbla.c"],
-                         define_macros=superlu_defs,
+                         define_macros=superlu_defs + numerix_macro,
                          include_dirs=["superlu"],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,extra_link_args=linky),
-               Extension('jdsym', [os.path.join('Src', 'jdsymmodule.c')],
+               Extension(package_name + '.jdsym', [os.path.join('Src', 'jdsymmodule.c')],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
-                         define_macros=f77_defs,extra_link_args=linky),
-               Extension('umfpack', sources=[os.path.join('Src', 'umfpackmodule.c'),
+                         define_macros=f77_defs + numerix_macro,
+                         extra_link_args=linky),
+               Extension(package_name + '.umfpack', sources=[os.path.join('Src', 'umfpackmodule.c'),
                                      'amd/amd_aat.c',
                                      'amd/amd_1.c',
                                      'amd/amd_2.c',
@@ -265,23 +279,25 @@ ext_modules = [Extension('spmatrix', ['Src/spmatrixmodule.c']),
                                      'umfpack/umfpack_save_numeric.c',
                                      'umfpack/umfpack_load_symbolic.c',
                                      'umfpack/umfpack_save_symbolic.c'],
-                         define_macros=umfpack_defs, include_dirs=umfpack_include_dirs,
-                         libraries=umfpack_libraries, library_dirs=umfpack_library_dirs)
+                         define_macros=umfpack_defs + numerix_macro,
+                         include_dirs=umfpack_include_dirs,
+                         libraries=umfpack_libraries,
+                         library_dirs=umfpack_library_dirs)
                
                                      
                ]
 
-execfile(os.path.join('Lib', 'pysparse_version.py'))
+execfile(os.path.join('Lib', '__init__.py'))
 
 setup(name = 'pysparse',
-      version = version,
+      version = __version__,
       description = 'Python Sparse Matrix Package',
       author = 'Roman Geus',
       author_email = 'roman@geus.ch',
       license = 'BSD style',
       url = 'http://www.geus.ch',
-      packages = [''],
-      package_dir = {'': 'Lib'},
+      packages = [package_name],
+      package_dir = {package_name: 'Lib'},
       include_dirs = ['Include'],
       headers = glob.glob(os.path.join ("Include","pysparse","*.h")),
       ext_modules = ext_modules

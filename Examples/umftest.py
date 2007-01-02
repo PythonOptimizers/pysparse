@@ -1,7 +1,7 @@
-import spmatrix
-import umfpack
+from pysparse import spmatrix
+from pysparse import umfpack
 import Numeric
-import poisson
+from pysparse import poisson
 
 l = spmatrix.ll_mat(5, 5)
 l[0,0] = 2.0

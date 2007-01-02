@@ -1,8 +1,8 @@
 import unittest
 import math, random
-import spmatrix
-import spmatrix_util
-import poisson
+from pysparse import spmatrix
+from pysparse import spmatrix_util
+from pysparse import poisson
 import Numeric, RandomArray
 
 def llmat_isEqual(aMat, bMat):

@@ -1,4 +1,4 @@
-import spmatrix, jdsym, itsolvers
+from pysparse import spmatrix, jdsym, itsolvers
 from Numeric import zeros, dot, allclose, multiply
 from math import sqrt
 import RandomArray

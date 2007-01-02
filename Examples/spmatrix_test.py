@@ -1,7 +1,6 @@
-import spmatrix
 import Numeric
 import traceback
-import spmatrix_util
+from pysparse import spmatrix_util, spmatrix
 
 def printMatrix(M):
     n, m = M.shape

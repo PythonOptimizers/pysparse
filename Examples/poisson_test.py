@@ -1,8 +1,8 @@
 import Numeric
 import math
-import spmatrix
-import itsolvers
-import precon
+from pysparse import spmatrix
+from pysparse import itsolvers
+from pysparse import precon
 import time
 
 def poisson2d(n):
@@ -143,5 +143,5 @@ print 'norm(b - A*x) = %g' % math.sqrt(Numeric.dot(r, r))
 
 # ---------------------------------------------------------------------------------------
 
-import jdsym
+from pysparse import jdsym
 jdsym.jdsym(S, None, None, 5, 0.0, 1e-8, 100, itsolvers.qmrs, clvl=1)

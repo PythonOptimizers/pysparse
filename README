@@ -30,9 +30,10 @@ Installation
 
 1. Install Numerical Python
 
-   - Download NumPy from http://www.pfdubois.com/numpy/
+   - Download NumPy from http://www.numpy.org/
 
-     PySparse was tested with NumPy versions 20.x and 21.0
+     PySparse was tested with NumPy version 1.0
+     Pysparse works with both the new "numpy" and the old "Numeric".
 
    - Unpack and Install the NumPy package
 
@@ -54,6 +55,9 @@ Installation
    Set the library_dirs_list, libraries_list, superlu_defs, f77_defs
    variables according to your local configuration. Examples for
    several architectures are provided.
+
+   Change the "use_numpy" flag to False in setup.py when using the old
+   "Numeric".
 
 3. Install PySparse
 

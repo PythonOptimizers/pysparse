@@ -75,19 +75,19 @@ solve(b, x) solves the linear system A*x = b with a zero initial guess
                         
 if __name__ == '__main__':
     import math
-    import Numeric
+    import numpy
     import precon, poisson
 
     A = poisson.poisson2d_sym(100)
     n = A.shape[0];
-    b = Numeric.ones(n, 'd'); b = b / math.sqrt(Numeric.dot(b, b))
-    x = Numeric.zeros(n, 'd')
+    b = numpy.ones(n, 'd'); b = b / math.sqrt(numpy.dot(b, b))
+    x = numpy.zeros(n, 'd')
 
     def resid(A, b, x):
         r = x.copy()
         A.matvec(x, r)
         r = b - r
-        return math.sqrt(Numeric.dot(r, r))
+        return math.sqrt(numpy.dot(r, r))
     
     solver = Pcg(A, 1e-10, 300)
     solver.solve(b, x)
