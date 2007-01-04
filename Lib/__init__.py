@@ -1,4 +1,4 @@
-__version__ = '0.34.032-numpy'
+__version__ = '1.0'
 
 try:
     import spmatrix
