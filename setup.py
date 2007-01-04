@@ -15,12 +15,11 @@ compily=[]
 
 ## numpy / Numeric settings
 use_numpy=True
+package_name = 'pysparse'
 if use_numpy:
     numerix_macro = [('NUMPY', '1')]
-    package_name = 'pysparse_numpy'
 else:
     numerix_macro = []
-    package_name = 'pysparse_Numeric'
 
 
 umfpack_defs = [('DINT', 1), ('NBLAS', 1)] # most basic configuration, no BLAS
