@@ -176,7 +176,7 @@ The following code creates an empty 5$\times$5 matrix \texttt{A}, sets
 all diagonal elements to their respective row/column index and then
 copies the value of \texttt{A[0,0]} to \texttt{A[2,1]}.
 \begin{pyinline}
->>> import spmatrix
+>>> from pysparse import spmatrix
 >>> A = spmatrix.ll_mat(5, 5)
 >>> for i in range(5):
 ...     A[i,i] = i+1
@@ -618,11 +618,11 @@ class diag_prec:
     def __init__(self, A):
         self.shape = A.shape
         n = self.shape[0]
-        self.dinv = Numeric.zeros(n, 'd')
+        self.dinv = numpy.zeros(n, 'd')
         for i in xrange(n):
             self.dinv[i] = 1.0 / A[i,i]
     def precon(self, x, y):
-        Numeric.multiply(x, self.dinv, y)
+        numpy.multiply(x, self.dinv, y)
 \end{pycode}
 So,
 \begin{pyinline}
@@ -760,11 +760,12 @@ all entries equal to one.
 
 \noindent The Python solution for this task looks as follows:
 \begin{pycode}
-import Numeric, spmatrix, precon, itsolvers
+from pysparse import spmatrix, precon, itsolvers
+import numpy
 n = 300
 L = poisson2d_sym_blk(n)
-b = Numeric.ones(n*n, 'd')
-x = Numeric.zeros(n*n, 'd')
+b = numpy.ones(n*n, 'd')
+x = numpy.zeros(n*n, 'd')
 info, iter, relres = itsolvers.pcg(L.to_sss(), b, x, 1e-12, 2000)
 \end{pycode}
 The code makes use of the Python function \texttt{poisson2d\_sym\_blk},
@@ -772,11 +773,12 @@ which was defined in Section~\ref{sec:python:spmatrix}.
 
 \noindent Incorporating e.g.\ a SSOR preconditioner is straight-forward:
 \begin{pycode}
-import Numeric, spmatrix, precon, itsolvers
+from pysparse import spmatrix, precon, itsolvers
+import numpy
 n = 300
 L = poisson2d_sym_blk(n)
-b = Numeric.ones(n*n, 'd')
-x = Numeric.zeros(n*n, 'd')
+b = numpy.ones(n*n, 'd')
+x = numpy.zeros(n*n, 'd')
 S = L.to_sss()
 Kssor = precon.ssor(S)
 info, iter, relres = itsolvers.pcg(S, b, x, 1e-12, 2000, Kssor)
@@ -975,7 +977,7 @@ associated eigenvalues to an accuracy of $10^{-10}$.  We set
 \textit{strategy}${}=1$ to avoid convergence to the high-dimensional
 null space of ($\mat{A}$, $\mat{M}$).
 \begin{pycode}
-import spmatrix, itsolvers, jdsym, precon
+from pysparse import spmatrix, itsolvers, jdsym, precon
 
 A = spmatrix.ll_mat_from_mtx('edge6x3x5_A.mtx')
 M = spmatrix.ll_mat_from_mtx('edge6x3x5_B.mtx')
@@ -1091,11 +1093,12 @@ all one entries.
 
 \noindent The Python solution for this task looks as follows:
 \begin{pycode}
-import Numeric, spmatrix, superlu
+from pysparse import spmatrix, superlu
+import numpy 
 n = 100
 L = poisson2d_sym_blk(n)
-b = Numeric.ones(n*n, 'd')
-x = Numeric.zeros(n*n, 'd')
+b = numpy.ones(n*n, 'd')
+x = numpy.zeros(n*n, 'd')
 LU = superlu.factorize(L.to_csr(), diag_pivot_thresh=0.0)
 LU.solve(b, x)
 \end{pycode}
