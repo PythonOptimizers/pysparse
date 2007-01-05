@@ -1,3 +1,10 @@
+1.0
+--------------------------------------------------------------------------------
+Moved modules inside "pysparse" name space.
+
+Updated to use the new numpy, but still compatible with the old Numeric.
+
+
 0.34.032
 ---------------------------------------------------------------------------------
 Fixed a memory leak in ll_mat.keys(). (Reported by c chui)
