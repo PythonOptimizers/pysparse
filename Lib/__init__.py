@@ -1,4 +1,5 @@
-__version__ = '1.0'
+import os
+execfile(os.path.join(__path__[0], '__version__.py'))
 
 try:
     import spmatrix

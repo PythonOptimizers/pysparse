@@ -286,7 +286,7 @@ ext_modules = [Extension(package_name + '.spmatrix', ['Src/spmatrixmodule.c'],
                                      
                ]
 
-execfile(os.path.join('Lib', '__init__.py'))
+execfile(os.path.join('Lib', '__version__.py'))
 
 setup(name = 'pysparse',
       version = __version__,
