@@ -16,7 +16,7 @@
 #endif
 
 #define PY_ARRAY_UNIQUE_SYMBOL spmatrix
-#include "Numeric/arrayobject.h"
+//#include "Numeric/arrayobject.h"
 
 #define INCREASE_FACTOR   1.5	/* increase rate for memory reallocation of ll_mat arrays */
 #define PPRINT_ROW_THRESH 500	/* row threshold for choosing between print formats */

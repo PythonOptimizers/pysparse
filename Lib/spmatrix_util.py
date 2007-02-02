@@ -1,6 +1,5 @@
 import math, random
 import spmatrix
-import pysparse_version
 
 def bytesToString(n):
     if n < 1024:
@@ -63,7 +62,8 @@ def exportVtk(mat, fileName):
     # write VTK file
     f = open(fileName, 'w')
     f.write('# vtk DataFile Version 3.0\n')
-    comment = 'generated using pysparse-%s\n' % (pysparse_version.version, )
+    import pysparse
+    comment = 'generated using pysparse-%s\n' % (pysparse.__version__, )
     f.write(comment[:256])
     f.write('ASCII\n\n')
     f.write('DATASET STRUCTURED_POINTS\n')

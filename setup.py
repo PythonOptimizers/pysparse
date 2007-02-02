@@ -14,7 +14,16 @@ linky=[]
 compily=[]
 
 ## numpy / Numeric settings
-use_numpy=True
+try:
+    import numpy
+    use_numpy = True
+except:
+    try:
+        import Numeric
+        use_numpy = False
+    except:
+        raise ImportError, "Failed to import either numpy or Numeric"
+
 package_name = 'pysparse'
 if use_numpy:
     numerix_macro = [('NUMPY', '1')]

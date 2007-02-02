@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 import unittest
-from pysparse import sparray
+from pysparse.sparray import sparray
 
 class test_sparray(unittest.TestCase):
     def testinit(self):

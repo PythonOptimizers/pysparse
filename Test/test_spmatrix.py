@@ -3,7 +3,9 @@ import math, random
 from pysparse import spmatrix
 from pysparse import spmatrix_util
 from pysparse import poisson
-import Numeric, RandomArray
+import numpy
+import numpy.oldnumeric.random_array as RandomArray
+##import Numeric, RandomArray
 
 def llmat_isEqual(aMat, bMat):
     if aMat.issym and not bMat.issym:
@@ -116,7 +118,7 @@ class LLMatPoissonTestCase(unittest.TestCase):
 class LLMatDeleteRowColsTestCase(unittest.TestCase):
     
     def setUp(self):
-        import Numeric
+        import numpy
         
         self.n = 30
         self.P = poisson.poisson1d(self.n)
@@ -127,9 +129,9 @@ class LLMatDeleteRowColsTestCase(unittest.TestCase):
         self.I = spmatrix.ll_mat_sym(self.n)
         for i in range(self.n):
             self.I[i,i] = -1.0
-        self.mask = Numeric.zeros(self.n**2, 'l')
+        self.mask = numpy.zeros(self.n**2, 'l')
         self.mask[self.n/2*self.n:(self.n/2 + 1)*self.n] = 1
-        self.mask1 = Numeric.zeros(self.n**2, 'l')
+        self.mask1 = numpy.zeros(self.n**2, 'l')
         self.mask1[(self.n/2 + 1)*self.n:(self.n/2 + 2)*self.n] = 1
 
     def testDeleteRowColsSym(self):
@@ -204,15 +206,15 @@ class LLMatMatMul(unittest.TestCase):
               A = spmatrix_util.ll_mat_rand(n, k, 0.9)
               B = spmatrix_util.ll_mat_rand(k, m, 0.4)
               C = spmatrix.matrixmultiply(A, B)
-              t = Numeric.zeros(k, 'd')
-              y1 = Numeric.zeros(n, 'd')
-              y2 = Numeric.zeros(n, 'd')
+              t = numpy.zeros(k, 'd')
+              y1 = numpy.zeros(n, 'd')
+              y2 = numpy.zeros(n, 'd')
               for s in range(10):
                   x = RandomArray.random((m, ))
                   C.matvec(x, y1)
                   B.matvec(x, t)
                   A.matvec(t, y2)
-                  self.failUnless(math.sqrt(Numeric.dot(y1 - y2, y1 - y2)) < eps * n*m*k)
+                  self.failUnless(math.sqrt(numpy.dot(y1 - y2, y1 - y2)) < eps * n*m*k)
               
 if __name__ == '__main__':
     unittest.main()
