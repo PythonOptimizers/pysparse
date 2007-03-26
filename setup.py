@@ -27,9 +27,10 @@ except:
 package_name = 'pysparse'
 if use_numpy:
     numerix_macro = [('NUMPY', '1')]
+    numerix_include_dirs = [numpy.get_include()]
 else:
     numerix_macro = []
-
+    numerix_include_dirs = []
 
 umfpack_defs = [('DINT', 1), ('NBLAS', 1)] # most basic configuration, no BLAS
 umfpack_libraries = []
@@ -306,7 +307,7 @@ setup(name = 'pysparse',
       url = 'http://www.geus.ch',
       packages = [package_name],
       package_dir = {package_name: 'Lib'},
-      include_dirs = ['Include'],
+      include_dirs = ['Include'] + numerix_include_dirs,
       headers = glob.glob(os.path.join ("Include","pysparse","*.h")),
       ext_modules = ext_modules
       )
