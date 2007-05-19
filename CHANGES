@@ -1,3 +1,9 @@
+Fixed to locate numpy header files correctly
+
+Automate installation of numpy (no flags to change in setup.py)
+
+Removed some Numeric imports
+
 Moved version number from __init__.py to __version__.py
 
 1.0
