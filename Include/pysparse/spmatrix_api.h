@@ -195,7 +195,7 @@ static void **SpMatrix_API;
   
 #define import_spmatrix() \
 { \
-  PyObject *spmatrix = PyImport_ImportModule("spmatrix"); \
+  PyObject *spmatrix = PyImport_ImportModule("pysparse.spmatrix"); \
   if (spmatrix != NULL) { \
     PyObject *module_dict = PyModule_GetDict(spmatrix); \
     PyObject *c_api_object = PyDict_GetItemString(module_dict, "_C_API"); \
