@@ -71,6 +71,10 @@ Availability:
 
 #include "umfpack.h"
 #include "pysparse/spmatrix.h"
+#include "pysparse/ll_mat.h"
+
+#define SYMMETRIC 1    /* Symmetric SpMatrix */
+#define GENERAL   0    /* General   SpMatrix */
 
 /***********************************************************************
  * UMFPackObject definition
@@ -147,6 +151,114 @@ UMFPack_getlists(UMFPackObject *self, PyObject *args) {
     if (tupleret != NULL)
       PyObject_Del(tupleret);
     return PyErr_NoMemory();
+}
+
+static char lu_doc[] = "self.lu()\n\
+    Returns L and U factors, permutation and scaling information.\n\n\
+    Use: (L, U, P, Q, R, do_recip) = self.lu().\n\
+    The original matrix A is factorized into\n\
+         L U = P R A Q\n\
+    where L is unit lower triangular,\n\
+          U is upper triangular,\n\
+          P and Q are permutation matrices,\n\
+          R is a row-scaling diagonal matrix such that\n\
+           the i-th row of A has been divided    by R[i] if do_recip = True,\n\
+           the i-th row of A has been multiplied by R[i] if do_recip = False.\n\
+    \n\
+    L and U are returned as ll_mat sparse matrices.\n\
+    P, Q and R are returned as NumPy arrays.\
+";
+
+static PyObject *UMFPack_Lu(UMFPackObject *self, PyObject *args) {
+
+  int     nrow, ncol, do_recip, lnz, unz, nz_udiag, status, i, j;
+  int    *Li, *Uj, *Lp, *Lj, *Up, *Ui;
+  double *Lx, *Ux, *D;
+  void   *Numeric = self->Numeric;
+
+  PyArrayObject *P,    *Q,    *R;
+  npy_int       *pval, *qval;
+  npy_double                  *rval;
+  npy_intp       dp[1], dq[1], dr[1];
+
+  PyObject      *Lmat,    *Umat;
+  int            ldims[2], udims[2];
+
+  /* Obtain number of nonzeros in factors */
+  status = umfpack_di_get_lunz(&lnz, &unz, &nrow, &ncol, &nz_udiag, Numeric);
+
+  if( status != UMFPACK_OK ) {
+      switch(status) {
+        case UMFPACK_ERROR_invalid_Numeric_object:
+            PyErr_SetString(PyExc_SystemError,
+                            "Get_Lunz:: Invalid Numeric object");
+            return NULL;
+        case UMFPACK_ERROR_argument_missing:
+            PyErr_SetString(PyExc_SystemError,
+                            "Get_Lunz:: Invalid arguments");
+            return NULL;
+      }
+  }
+
+  /* Allocate memory to hold factors */
+  Lp = (int *)calloc(nrow+1, sizeof(int));
+  Lj = (int *)calloc(lnz, sizeof(int));
+  Lx = (double *)calloc(lnz, sizeof(double));
+
+  Up = (int *)calloc(ncol+1, sizeof(int));
+  Ui = (int *)calloc(unz, sizeof(int));
+  Ux = (double *)calloc(unz, sizeof(double));
+
+  dp[0] = nrow; dq[0] = ncol; dr[0] = nrow;
+  P = (PyArrayObject *)PyArray_SimpleNew(1, dp, NPY_INT);
+  pval = (npy_int *)P->data;
+  
+  Q = (PyArrayObject *)PyArray_SimpleNew(1, dq, NPY_INT);
+  qval = (npy_int *)Q->data;
+
+  D = NULL; /* Force diagonal terms into U */
+
+  R = (PyArrayObject *)PyArray_SimpleNew(1, dr, NPY_DOUBLE);
+  rval = (npy_double *)R->data;
+
+  /* Retrieve factors, permutation vectors and row scaling */
+  status = umfpack_di_get_numeric(Lp, Lj, Lx, Up, Ui, Ux, pval, qval, D,
+                                  &do_recip, rval, Numeric);
+
+  if( status != UMFPACK_OK ) {
+      switch(status) {
+          case UMFPACK_ERROR_out_of_memory:
+            PyErr_SetString(PyExc_SystemError, "Get_Numeric:: out of memory");
+            return NULL;
+          case UMFPACK_ERROR_invalid_Numeric_object:
+            PyErr_SetString(PyExc_SystemError,
+                            "Get_Numeric:: Numeric object is invalid");
+            return NULL;
+      }
+  }
+
+  /* Create LL_Mat structure for factor L and populate it */
+  ldims[0] = nrow; ldims[1] = fmin(nrow,ncol);
+  Lmat = SpMatrix_NewLLMatObject( ldims, GENERAL, lnz );
+
+  for( i=0; i<nrow+1; i++ )
+    for( j=Lp[i]; j<Lp[i+1]; j++ )
+        SpMatrix_LLMatSetItem((LLMatObject *)Lmat, i, Lj[j], Lx[j]);
+
+  free( Lp ); free( Lj ); free( Lx );
+
+  /* Create LL_Mat structure for factor U and populate it */
+  udims[0] = fmin(nrow,ncol); udims[1] = ncol;
+  Umat = SpMatrix_NewLLMatObject( udims, GENERAL, unz );
+
+  for( j=0; j<ncol+1; j++ )
+      for( i=Up[j]; i<Up[j+1]; i++ )
+          SpMatrix_LLMatSetItem((LLMatObject *)Umat, Ui[i], j, Ux[i]);
+
+  free( Up ); free( Ui ); free( Ux );
+  
+  /* Return output data */
+  return Py_BuildValue( "OOOOOi", Lmat, Umat, P, Q, R, do_recip );
 }
 
 static char solve_doc[] = "self.solve(b, x, systype)\n\
@@ -241,6 +353,7 @@ UMFPack_solve(UMFPackObject *self, PyObject *args) {
 PyMethodDef UMFPack_methods[] = {
   {"solve", (PyCFunction)UMFPack_solve, METH_VARARGS, solve_doc},
   {"getlists", (PyCFunction)UMFPack_getlists, METH_VARARGS, getlists_doc},
+  {"lu", (PyCFunction)UMFPack_Lu, METH_VARARGS, lu_doc},
   {NULL, NULL}			/* sentinel */
 };
 
