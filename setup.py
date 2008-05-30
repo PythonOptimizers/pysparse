@@ -9,6 +9,10 @@ import sys
 library_dirs_list= []
 libraries_list = ['lapack', 'blas', 'g2c']
 superlu_defs = [('USE_VENDOR_BLAS',1)]
+if sys.platform = 'win32':
+    superlu_defs += [('NO_TIMER', 1)]
+
+
 f77_defs = []
 linky=[]
 compily=[]
