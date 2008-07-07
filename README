@@ -40,13 +40,6 @@ Installation
      Refer to the documentation provided in the NumPy package for
      installation hints.
 
-     CAUTION: On 64-bit machines the NumPy distribution will not work
-     together with PySparse, since NumPy uses a non-standard datatype
-     to store Fortran integers. I have submitted a patch to the NumPy
-     developers, that fixes this. Hopefully this patch will be
-     incorporated in future releases (> 21.0) of NumPy. Please contact
-     me, if you need the 64-bit patch.
-
 2. Customise the setup.py file
 
    PySparse is needs to link against the BLAS and LAPACK libraries,
