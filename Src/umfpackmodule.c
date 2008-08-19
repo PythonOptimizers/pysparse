@@ -82,12 +82,12 @@ Availability:
 
 typedef struct UMFPackObject {
   PyObject_VAR_HEAD
-  int n;
-  int nnz;
-  double *val;		/* pointer to array of values */
-  int *row;			/* pointer to array of indices */
-  int *ind;			/* pointer to array of indices */
-  void *Numeric;
+  int     n;
+  int     nnz;
+  double *val;	                /* pointer to array of values */
+  int    *row;			/* pointer to array of indices */
+  int    *ind;			/* pointer to array of indices */
+  void   *Numeric;
   double *Control;
   double *Info;
 } UMFPackObject;
@@ -151,6 +151,32 @@ UMFPack_getlists(UMFPackObject *self, PyObject *args) {
     if (tupleret != NULL)
       PyObject_Del(tupleret);
     return PyErr_NoMemory();
+}
+
+static char lunz_doc[] = "self.lunz(): Returns number of nonzeros in factors\n";
+
+static PyObject *UMFPack_Lunz(UMFPackObject *self, PyObject *args) {
+
+  int     nrow, ncol, lnz, unz, nz_udiag, status;
+  void   *Numeric = self->Numeric;
+
+  /* Obtain number of nonzeros in factors */
+  status = umfpack_di_get_lunz(&lnz, &unz, &nrow, &ncol, &nz_udiag, Numeric);
+
+  if( status != UMFPACK_OK ) {
+      switch(status) {
+        case UMFPACK_ERROR_invalid_Numeric_object:
+            PyErr_SetString(PyExc_SystemError,
+                            "Get_Lunz:: Invalid Numeric object");
+            return NULL;
+        case UMFPACK_ERROR_argument_missing:
+            PyErr_SetString(PyExc_SystemError,
+                            "Get_Lunz:: Invalid arguments");
+            return NULL;
+      }
+  }
+
+  return Py_BuildValue("iii", lnz, unz, nz_udiag);
 }
 
 static char lu_doc[] = "self.lu()\n\
@@ -323,27 +349,27 @@ UMFPack_solve(UMFPackObject *self, PyObject *args) {
   }
 
   status = umfpack_di_solve(sys, self->ind, self->row, self->val,
-                             (double *)x->data, (double *)b->data, self->Numeric,
-                             self->Control, self->Info);
+                            (double *)x->data, (double *)b->data,
+                            self->Numeric, self->Control, self->Info);
 
-  switch(status) {
-    case UMFPACK_WARNING_singular_matrix:
-      PyErr_SetString(PyExc_SystemError, "singular matrix");
-      return NULL;
-    case UMFPACK_ERROR_out_of_memory:
-      PyErr_SetString(PyExc_SystemError, "insufficient memory");
-      return NULL;
-    case UMFPACK_ERROR_argument_missing:
-      PyErr_SetString(PyExc_SystemError, "one or more argument missing");
-      return NULL;
-    case UMFPACK_ERROR_invalid_system:
-      PyErr_SetString(PyExc_SystemError, "matrix is not square");
-      return NULL;
-    case UMFPACK_ERROR_invalid_Numeric_object:
-      PyErr_SetString(PyExc_SystemError, "invalid Numeric object");
-      return NULL;
+  switch( status ) {
+  case UMFPACK_WARNING_singular_matrix:
+    PyErr_SetString(PyExc_SystemError, "singular matrix");
+    return NULL;
+  case UMFPACK_ERROR_out_of_memory:
+    PyErr_SetString(PyExc_SystemError, "insufficient memory");
+    return NULL;
+  case UMFPACK_ERROR_argument_missing:
+    PyErr_SetString(PyExc_SystemError, "one or more argument missing");
+    return NULL;
+  case UMFPACK_ERROR_invalid_system:
+    PyErr_SetString(PyExc_SystemError, "matrix is not square");
+    return NULL;
+  case UMFPACK_ERROR_invalid_Numeric_object:
+    PyErr_SetString(PyExc_SystemError, "invalid Numeric object");
+    return NULL;
   }
-
+  
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -353,6 +379,7 @@ UMFPack_solve(UMFPackObject *self, PyObject *args) {
 PyMethodDef UMFPack_methods[] = {
   {"solve", (PyCFunction)UMFPack_solve, METH_VARARGS, solve_doc},
   {"getlists", (PyCFunction)UMFPack_getlists, METH_VARARGS, getlists_doc},
+  {"lunz", (PyCFunction)UMFPack_Lunz, METH_VARARGS, lunz_doc},
   {"lu", (PyCFunction)UMFPack_Lu, METH_VARARGS, lu_doc},
   {NULL, NULL}			/* sentinel */
 };
@@ -464,7 +491,7 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
   UMFPackObject *self;
   void *Symbolic;
   struct llColIndex *colidx;
-  int i, validx, curridx, status;
+  int i, validx, curridx, status, nrow, ncol;
 
   if (SpMatrix_LLMatBuildColIndex(&colidx, matrix, 1) == 1)
     return NULL;
@@ -534,13 +561,13 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
   validx = 0;
   for (i=0; i < self->n; i++) {
     self->ind[i] = validx;
-    for (curridx=colidx->root[i]; curridx != -1; curridx = colidx->link[curridx]) {
+    for (curridx=colidx->root[i]; curridx != -1; curridx=colidx->link[curridx]){
       self->val[validx] = matrix->val[curridx];
       self->row[validx++] = colidx->row[curridx];
     }
 
     if (matrix->issym) {
-      for (curridx=matrix->root[i]; curridx != -1; curridx = matrix->link[curridx]) {
+      for (curridx=matrix->root[i]; curridx != -1; curridx=matrix->link[curridx]){
         if (i != matrix->col[curridx]) {
           self->val[validx] = matrix->val[curridx];
           self->row[validx++] = matrix->col[curridx];

@@ -9,13 +9,20 @@ import sys
 library_dirs_list= []
 libraries_list = ['lapack', 'blas', 'g2c']
 superlu_defs = [('USE_VENDOR_BLAS',1)]
-if sys.platform = 'win32':
+if sys.platform == 'win32':
     superlu_defs += [('NO_TIMER', 1)]
-
 
 f77_defs = []
 linky=[]
 compily=[]
+
+# Specify whether to link against user's SuperLU library
+use_users_superlu = True
+if use_users_superlu:  # Specify library location and name
+    superlu_src_dir= '/Users/dpo/local/LinearAlgebra/SuperLU/SuperLU_3.1/SRC'
+    superlu_library_dirs_list = ['/Users/dpo/local/LinearAlgebra/SuperLU/SuperLU_3.1']
+    superlu_libraries_list = ['superlu_3.1']
+    superlu_include_dirs = ['/Users/dpo/local/LinearAlgebra/SuperLU/SuperLU_3.1/SRC']
 
 ## numpy / Numeric settings
 try:
@@ -106,7 +113,8 @@ elif sys.platform == 'darwin':
         linky=["-faltivec","-framework","vecLib","-bundle_loader","/sw/bin/python"]
     else:
         # Apple python
-        linky=["-faltivec","-framework","vecLib"]
+        #linky=["-faltivec","-framework","Accelerate"]
+        linky=["-framework","Accelerate"]
         # The python Framework build is compiled with (and propagates to all library builds) the 
         # '-fno-common' flag. Nobody seems to know why.
         # (c.f. <https://sourceforge.net/tracker/?func=detail&atid=105470&aid=768306&group_id=5470>)
@@ -143,54 +151,6 @@ ext_modules = [Extension(package_name + '.spmatrix', ['Src/spmatrixmodule.c'],
                          libraries=libraries_list,
                          define_macros=f77_defs + numerix_macro,
                          extra_link_args=linky),
-               Extension(package_name + '.superlu', [os.path.join('Src', 'superlumodule.c'),
-                                     "superlu/dcolumn_bmod.c",
-                                     "superlu/dcolumn_dfs.c",
-                                     "superlu/dcomplex.c",
-                                     "superlu/scomplex.c",
-                                     "superlu/dcopy_to_ucol.c",
-                                     "superlu/dgscon.c",
-                                     "superlu/dgsequ.c",
-                                     "superlu/dgsrfs.c",
-                                     "superlu/dgssv.c",
-                                     "superlu/dgssvx.c",
-                                     "superlu/dgstrf.c",
-                                     "superlu/dgstrs.c",
-                                     "superlu/dlacon.c",
-                                     "superlu/dlamch.c",
-                                     "superlu/dlangs.c",
-                                     "superlu/dlaqgs.c",
-                                     "superlu/dmemory.c",
-                                     "superlu/colamd.c",
-                                     "superlu/dpanel_bmod.c",
-                                     "superlu/dpanel_dfs.c",
-                                     "superlu/dpivotL.c",
-                                     "superlu/dpivotgrowth.c",
-                                     "superlu/dpruneL.c",
-                                     "superlu/dreadhb.c",
-                                     "superlu/dsnode_bmod.c",
-                                     "superlu/dsnode_dfs.c",
-                                     "superlu/dsp_blas2.c",
-                                     "superlu/dsp_blas3.c",
-                                     "superlu/superlu_timer.c",
-                                     "superlu/dutil.c",
-                                     "superlu/dzsum1.c",
-                                     "superlu/get_perm_c.c",
-                                     "superlu/icmax1.c",
-                                     "superlu/izmax1.c",
-                                     "superlu/lsame.c",
-                                     "superlu/memory.c",
-                                     "superlu/mmd.c",
-                                     "superlu/relax_snode.c",
-                                     "superlu/sp_coletree.c",
-                                     "superlu/sp_ienv.c",
-                                     "superlu/sp_preorder.c",
-                                     "superlu/util.c",
-                                     "superlu/xerbla.c"],
-                         define_macros=superlu_defs + numerix_macro,
-                         include_dirs=["superlu"],
-                         library_dirs=library_dirs_list,
-                         libraries=libraries_list,extra_link_args=linky),
                Extension(package_name + '.jdsym', [os.path.join('Src', 'jdsymmodule.c')],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
@@ -299,6 +259,68 @@ ext_modules = [Extension(package_name + '.spmatrix', ['Src/spmatrixmodule.c'],
                
                                      
                ]
+
+if not use_users_superlu:
+    ext_modules += [ Extension(package_name + '.superlu',
+                             [os.path.join('Src', 'superlumodule.c'),
+                                     "superlu/dcolumn_bmod.c",
+                                     "superlu/dcolumn_dfs.c",
+                                     "superlu/dcomplex.c",
+                                     "superlu/scomplex.c",
+                                     "superlu/dcopy_to_ucol.c",
+                                     "superlu/dgscon.c",
+                                     "superlu/dgsequ.c",
+                                     "superlu/dgsrfs.c",
+                                     "superlu/dgssv.c",
+                                     "superlu/dgssvx.c",
+                                     "superlu/dgstrf.c",
+                                     "superlu/dgstrs.c",
+                                     "superlu/dlacon.c",
+                                     "superlu/dlamch.c",
+                                     "superlu/dlangs.c",
+                                     "superlu/dlaqgs.c",
+                                     "superlu/dmemory.c",
+                                     "superlu/colamd.c",
+                                     "superlu/dpanel_bmod.c",
+                                     "superlu/dpanel_dfs.c",
+                                     "superlu/dpivotL.c",
+                                     "superlu/dpivotgrowth.c",
+                                     "superlu/dpruneL.c",
+                                     "superlu/dreadhb.c",
+                                     "superlu/dsnode_bmod.c",
+                                     "superlu/dsnode_dfs.c",
+                                     "superlu/dsp_blas2.c",
+                                     "superlu/dsp_blas3.c",
+                                     "superlu/superlu_timer.c",
+                                     "superlu/dutil.c",
+                                     "superlu/dzsum1.c",
+                                     "superlu/get_perm_c.c",
+                                     "superlu/icmax1.c",
+                                     "superlu/izmax1.c",
+                                     "superlu/lsame.c",
+                                     "superlu/memory.c",
+                                     "superlu/mmd.c",
+                                     "superlu/relax_snode.c",
+                                     "superlu/sp_coletree.c",
+                                     "superlu/sp_ienv.c",
+                                     "superlu/sp_preorder.c",
+                                     "superlu/util.c",
+                                     "superlu/xerbla.c"],
+                         define_macros=superlu_defs + numerix_macro,
+                         include_dirs=["superlu"],
+                         library_dirs=library_dirs_list,
+                         libraries=libraries_list,extra_link_args=linky) ]
+else:
+    src_files = ['superlu_timer.c', 'util.c', 'memory.c', 'get_perm_c.c', 'mmd.c', 'sp_coletree.c', 'sp_preorder.c', 'sp_ienv.c', 'relax_snode.c', 'heap_relax_snode.c', 'colamd.c', 'lsame.c', 'xerbla.c', 'dlacon.c', 'dlamch.c', 'dgssv.c', 'dgssvx.c', 'dsp_blas2.c', 'dsp_blas3.c', 'dgscon.c', 'dlangs.c', 'dgsequ.c', 'dlaqgs.c', 'dpivotgrowth.c', 'dgsrfs.c', 'dgstrf.c', 'dgstrs.c', 'dcopy_to_ucol.c', 'dsnode_dfs.c', 'dsnode_bmod.c', 'dpanel_dfs.c', 'dpanel_bmod.c', 'dreadhb.c', 'dcolumn_dfs.c', 'dcolumn_bmod.c', 'dpivotL.c', 'dpruneL.c', 'dmemory.c', 'dutil.c']
+    src_files = map(lambda s: os.path.join(superlu_src_dir, s), src_files)
+    src_files = [os.path.join('Src', 'superlu3module.c')] + src_files
+    ext_modules += [ Extension(package_name + '.superlu',
+                         src_files,
+                         define_macros=superlu_defs + numerix_macro,
+                         include_dirs=superlu_include_dirs,
+                         library_dirs=library_dirs_list,
+                         libraries=libraries_list,
+                         extra_link_args=linky) ]
 
 execfile(os.path.join('Lib', '__version__.py'))
 
