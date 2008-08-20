@@ -17,12 +17,16 @@ linky=[]
 compily=[]
 
 # Specify whether to link against user's SuperLU library
-use_users_superlu = True
-if use_users_superlu:  # Specify library location and name
-    superlu_src_dir= '/Users/dpo/local/LinearAlgebra/SuperLU/SuperLU_3.1/SRC'
-    superlu_library_dirs_list = ['/Users/dpo/local/LinearAlgebra/SuperLU/SuperLU_3.1']
-    superlu_libraries_list = ['superlu_3.1']
-    superlu_include_dirs = ['/Users/dpo/local/LinearAlgebra/SuperLU/SuperLU_3.1/SRC']
+use_users_superlu = False
+if use_users_superlu:
+    # Specify location of include files
+    superlu_include_dirs = ['/usr/local/include/SuperLU_3.1']
+    # AND specify one of the following (set other one to ''):
+    # Specify location of source files (overrides linking existing library)
+    superlu_src_dir = '/usr/local/src/SuperLU_3.1/SRC'
+    # OR specify location of precompiled library
+    superlu_lib_dir = ['/usr/local/lib']
+    superlu_libraries = ['superlu_3.1']
 
 ## numpy / Numeric settings
 try:
@@ -311,9 +315,14 @@ if not use_users_superlu:
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,extra_link_args=linky) ]
 else:
-    src_files = ['superlu_timer.c', 'util.c', 'memory.c', 'get_perm_c.c', 'mmd.c', 'sp_coletree.c', 'sp_preorder.c', 'sp_ienv.c', 'relax_snode.c', 'heap_relax_snode.c', 'colamd.c', 'lsame.c', 'xerbla.c', 'dlacon.c', 'dlamch.c', 'dgssv.c', 'dgssvx.c', 'dsp_blas2.c', 'dsp_blas3.c', 'dgscon.c', 'dlangs.c', 'dgsequ.c', 'dlaqgs.c', 'dpivotgrowth.c', 'dgsrfs.c', 'dgstrf.c', 'dgstrs.c', 'dcopy_to_ucol.c', 'dsnode_dfs.c', 'dsnode_bmod.c', 'dpanel_dfs.c', 'dpanel_bmod.c', 'dreadhb.c', 'dcolumn_dfs.c', 'dcolumn_bmod.c', 'dpivotL.c', 'dpruneL.c', 'dmemory.c', 'dutil.c']
-    src_files = map(lambda s: os.path.join(superlu_src_dir, s), src_files)
-    src_files = [os.path.join('Src', 'superlu3module.c')] + src_files
+    if superlu_src_dir.strip() != '':
+        src_files = ['superlu_timer.c', 'util.c', 'memory.c', 'get_perm_c.c', 'mmd.c', 'sp_coletree.c', 'sp_preorder.c', 'sp_ienv.c', 'relax_snode.c', 'heap_relax_snode.c', 'colamd.c', 'lsame.c', 'xerbla.c', 'dlacon.c', 'dlamch.c', 'dgssv.c', 'dgssvx.c', 'dsp_blas2.c', 'dsp_blas3.c', 'dgscon.c', 'dlangs.c', 'dgsequ.c', 'dlaqgs.c', 'dpivotgrowth.c', 'dgsrfs.c', 'dgstrf.c', 'dgstrs.c', 'dcopy_to_ucol.c', 'dsnode_dfs.c', 'dsnode_bmod.c', 'dpanel_dfs.c', 'dpanel_bmod.c', 'dreadhb.c', 'dcolumn_dfs.c', 'dcolumn_bmod.c', 'dpivotL.c', 'dpruneL.c', 'dmemory.c', 'dutil.c']
+        src_files = map(lambda s: os.path.join(superlu_src_dir, s), src_files)
+        src_files += [os.path.join('Src', 'superlu3module.c')]
+    else:
+        src_files = [os.path.join('Src', 'superlu3module.c')]
+        library_dirs_list += superlu_lib_dir
+        libraries_list += superlu_libraries
     ext_modules += [ Extension(package_name + '.superlu',
                          src_files,
                          define_macros=superlu_defs + numerix_macro,
