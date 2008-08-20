@@ -33,11 +33,14 @@ __docformat__ = 'restructuredtext'
 
 import pysparseMatrix as psm
 import numpy
+import resource
 
 from directSolver import PysparseDirectSolver
 from pysparse     import umfpack
-from nlpy_timing  import cputime
 from string       import upper
+
+def cputime():
+    return resource.getrusage(resource.RUSAGE_SELF)[0]
 
 class PysparseUmfpackSolver( PysparseDirectSolver ):
     """
@@ -87,7 +90,7 @@ class PysparseUmfpackSolver( PysparseDirectSolver ):
             kwargs['scale'] = 'UMFPACK_SCALE_' + scale
         
         self.type = numpy.float
-        self.nrow, self.ncol = A._getShape()
+        self.nrow, self.ncol = A.getShape()
         t = cputime()
         self.LU = umfpack.factorize(A.matrix, **kwargs)
         self.factorizationTime = cputime() - t
@@ -152,6 +155,6 @@ class PysparseUmfpackSolver( PysparseDirectSolver ):
 
         """
         (L, U, self.P, self.Q, self.R, self.do_recip) = self.LU.lu()
-        self.L = psm._PysparseMatrix(matrix=L)
-        self.U = psm._PysparseMatrix(matrix=U)
+        self.L = psm.PysparseMatrix(matrix=L)
+        self.U = psm.PysparseMatrix(matrix=U)
         return

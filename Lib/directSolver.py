@@ -15,5 +15,6 @@ class PysparseDirectSolver:
         return
 
     def solve(self, b, **kwargs):
+        raise NotImplementedError
         return
 

@@ -50,14 +50,14 @@
 __docformat__ = 'restructuredtext'
 
 from pysparse import spmatrix
-from sparseMatrix import _SparseMatrix
+from sparseMatrix import SparseMatrix
 import numpy
 
-class _PysparseMatrix(_SparseMatrix):
+class PysparseMatrix(SparseMatrix):
     
     """
-    _PysparseMatrix class wrapper for pysparse.
-    _PysparseMatrix is always NxN.
+    PysparseMatrix class wrapper for pysparse.
+    PysparseMatrix is always NxN.
     Allows basic python operations __add__, __sub__ etc.
     Facilitate matrix populating in an easy way.
 
@@ -65,7 +65,7 @@ class _PysparseMatrix(_SparseMatrix):
 
     def __init__(self, **kwargs):
         """
-        Creates a `_PysparseMatrix`.
+        Creates a `PysparseMatrix`.
 
         :Currently accepted keywords include:
 
@@ -73,7 +73,8 @@ class _PysparseMatrix(_SparseMatrix):
         - `ncol`: The number of columns of the matrix
         - `bandwidth`: The bandwidth (if creating a band matrix)
         - `matrix`: The starting `spmatrix` if there is one
-        - `sizeHint`: A guess on the number of nonzero elements of the matrix.
+        - `sizeHint`: A guess on the number of nonzero elements of the matrix
+        - `symmetric`: A boolean indicating whether the matrix is symmetric.
         """
 
         nrow = kwargs.get('nrow', 0)
@@ -81,7 +82,7 @@ class _PysparseMatrix(_SparseMatrix):
         bandwidth = kwargs.get('bandwidth', 0)
         matrix = kwargs.get('matrix', None)
         sizeHint = kwargs.get('sizeHint', 0)
-        symmetric = kwargs.get('symmetric', False)
+        symmetric = 'symmetric' in kwargs and kwargs['symmetric']
 
         if matrix is not None:
             self.matrix = matrix
@@ -107,11 +108,11 @@ class _PysparseMatrix(_SparseMatrix):
     def getNnz(self):
         return self.matrix.nnz
 
-    def _getMatrix(self):
+    def getMatrix(self):
         return self.matrix
     
     def copy(self):
-        return _PysparseMatrix(matrix = self.matrix.copy())
+        return PysparseMatrix(matrix = self.matrix.copy())
         
     def __coerce__(self, other): return self, other
     
@@ -119,7 +120,7 @@ class _PysparseMatrix(_SparseMatrix):
         if name == 'nnz':
             return self.getNnz()
         elif name == 'shape':
-            return self._getShape()
+            return self.getShape()
         msg = 'No such attribute: %s' % name
         raise ValueError, msg
 
@@ -128,26 +129,26 @@ class _PysparseMatrix(_SparseMatrix):
         if type(m) is type(0) or type(m) is type(0.):
             return m
         else:
-            return _PysparseMatrix(matrix = m, symmetric=self.matrix.issym)
+            return PysparseMatrix(matrix = m, symmetric=self.matrix.issym)
 
     def __iadd__(self, other):
         # To implement  L += K
-        return self._iadd(self._getMatrix(), other)
+        return self._iadd(self.getMatrix(), other)
         
     def _iadd(self, L, other, sign = 1):
         if other != 0:
             if self.isSymmetric() and not other.isSymmetric():
                 L.generalize()
-            L.shift(sign, other._getMatrix())
+            L.shift(sign, other.getMatrix())
         return self
 
     def __add__(self, other):
         """
         Add two sparse matrices
         
-            >>> L = _PysparseMatrix(size = 3)
+            >>> L = PysparseMatrix(size = 3)
             >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
-            >>> print L + _PysparseIdentityMatrix(3)
+            >>> print L + PysparseIdentityMatrix(size = 3)
              1.000000  10.000000   3.000000  
                 ---     4.141593      ---    
              2.500000      ---     1.000000  
@@ -160,10 +161,10 @@ class _PysparseMatrix(_SparseMatrix):
             >>> print L + 3
             Traceback (most recent call last):
             ...
-            AttributeError: 'int' object has no attribute '_getMatrix'
+            AttributeError: 'int' object has no attribute 'getMatrix'
         """
 
-        if self._getShape() != other._getShape():
+        if self.getShape() != other.getShape():
             raise TypeError, 'Only sparse matrices of same size may be added'
         if other is 0:
             return self
@@ -171,12 +172,12 @@ class _PysparseMatrix(_SparseMatrix):
             L = self.matrix.copy()
             if self.isSymmetric() and not other.isSymmetric():
                 L.generalize()
-            L.shift(1, other._getMatrix())
-            return _PysparseMatrix(matrix = L)
+            L.shift(1, other.getMatrix())
+            return PysparseMatrix(matrix = L)
         
     def __sub__(self, other):
 
-        if self._getShape() != other._getShape():
+        if self.getShape() != other.getShape():
             raise TypeError, 'Only sparse matrices of same size may be subtracted'
 
         if other is 0:
@@ -185,20 +186,20 @@ class _PysparseMatrix(_SparseMatrix):
             L = self.matrix.copy()
             if self.isSymmetric() and not other.isSymmetric():
                 L.generalize()
-            L.shift(-1, other._getMatrix())
-            return _PysparseMatrix(matrix = L)
+            L.shift(-1, other.getMatrix())
+            return PysparseMatrix(matrix = L)
 
     def __isub__(self, other):
         # To implement L -= K
-        return self._iadd(self._getMatrix(), other, -1)
+        return self._iadd(self.getMatrix(), other, -1)
 
     def __mul__(self, other):
         """
         Multiply a sparse matrix by another sparse matrix
         
-            >>> L1 = _PysparseMatrix(size = 3)
+            >>> L1 = PysparseMatrix(size = 3)
             >>> L1.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
-            >>> L2 = _PysparseIdentityMatrix(size = 3)
+            >>> L2 = PysparseIdentityMatrix(size = 3)
             >>> L2.put((4.38,12357.2,1.1), (2,1,0), (1,0,2))
             
             >>> tmp = numpy.array(((1.23572000e+05, 2.31400000e+01, 3.00000000e+00),
@@ -224,17 +225,17 @@ class _PysparseMatrix(_SparseMatrix):
         """
         N = self.matrix.shape[1]
 
-        if isinstance(other, _PysparseMatrix):
-            if N != other._getShape()[0]:
+        if isinstance(other, PysparseMatrix):
+            if N != other.getShape()[0]:
                 raise TypeError, 'Matrices dimensions do not match for product'
 
-            return _PysparseMatrix(matrix = spmatrix.matrixmultiply(self.matrix, other._getMatrix()))
+            return PysparseMatrix(matrix = spmatrix.matrixmultiply(self.matrix, other.getMatrix()))
         else:
             shape = numpy.shape(other)
             if shape == ():
                 L = spmatrix.ll_mat(N, N, N)
                 L.put(other * numpy.ones(N))
-                return _PysparseMatrix(matrix = spmatrix.matrixmultiply(self.matrix, L))
+                return PysparseMatrix(matrix = spmatrix.matrixmultiply(self.matrix, L))
             elif shape == (N,):
                 y = numpy.empty(N) #other.copy()
                 self.matrix.matvec(other, y)
@@ -243,7 +244,6 @@ class _PysparseMatrix(_SparseMatrix):
                 raise TypeError, 'Cannot multiply objects'
             
     def __rmul__(self, other):
-        print 'calling __rmul__'
         if type(numpy.ones(1)) == type(other):
             y = numpy.empty(numpy.shape(other)) #other.copy()
             self.matrix.matvec_transp(other, y)
@@ -251,14 +251,14 @@ class _PysparseMatrix(_SparseMatrix):
         else:
             return self * other
             
-    def _getShape(self):
+    def getShape(self):
         return self.matrix.shape
         
     def put(self, vector, id1, id2):
         """
         Put elements of `vector` at positions of the matrix corresponding to (`id1`, `id2`)
         
-            >>> L = _PysparseMatrix(size = 3)
+            >>> L = PysparseMatrix(size = 3)
             >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
             >>> print L
                 ---    10.000000   3.000000  
@@ -271,7 +271,7 @@ class _PysparseMatrix(_SparseMatrix):
         """
         Put elements of `vector` along diagonal of matrix
         
-            >>> L = _PysparseMatrix(size = 3)
+            >>> L = PysparseMatrix(size = 3)
             >>> L.putDiagonal((3.,10.,numpy.pi))
             >>> print L
              3.000000      ---        ---    
@@ -284,8 +284,8 @@ class _PysparseMatrix(_SparseMatrix):
                 ---        ---     3.141593  
         """
         if type(vector) in [type(1), type(1.)]:
-            ids = numpy.arange(self._getShape()[0])
-            tmp = numpy.zeros((self._getShape()[0],), 'd')
+            ids = numpy.arange(self.getShape()[0])
+            tmp = numpy.zeros((self.getShape()[0],), 'd')
             tmp[:] = vector
             self.put(tmp, ids, ids)
         else:
@@ -298,14 +298,14 @@ class _PysparseMatrix(_SparseMatrix):
         return vector
 
     def takeDiagonal(self):
-        ids = numpy.arange(self._getShape()[0])
+        ids = numpy.arange(self.getShape()[0])
         return self.take(ids, ids)
 
     def addAt(self, vector, id1, id2):
         """
         Add elements of `vector` to the positions in the matrix corresponding to (`id1`,`id2`)
         
-            >>> L = _PysparseMatrix(size = 3)
+            >>> L = PysparseMatrix(size = 3)
             >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
             >>> L.addAt((1.73,2.2,8.4,3.9,1.23), (1,2,0,0,1), (2,2,0,0,2))
             >>> print L
@@ -317,8 +317,8 @@ class _PysparseMatrix(_SparseMatrix):
 
     def addAtDiagonal(self, vector):
         if type(vector) in [type(1), type(1.)]:
-            ids = numpy.arange(self._getShape()[0])
-            tmp = numpy.empty((self._getShape()[0],), 'd')
+            ids = numpy.arange(self.getShape()[0])
+            tmp = numpy.empty((self.getShape()[0],), 'd')
             tmp[:] = vector
             self.addAt(tmp, ids, ids)
         else:
@@ -326,7 +326,7 @@ class _PysparseMatrix(_SparseMatrix):
             self.addAt(vector, ids, ids)
 
     def getNumpyArray(self):
-        shape = self._getShape()
+        shape = self.getShape()
         indices = numpy.indices(shape)
         numMatrix = self.take(indices[0].ravel(), indices[1].ravel())
         return numpy.reshape(numMatrix, shape)
@@ -344,7 +344,7 @@ class _PysparseMatrix(_SparseMatrix):
         self.matrix.export_mtx(filename)
     
 
-class _PysparseIdentityMatrix(_PysparseMatrix):
+class PysparseIdentityMatrix(PysparseMatrix):
     """
     Represents a sparse identity matrix for pysparse.
     """
@@ -352,17 +352,17 @@ class _PysparseIdentityMatrix(_PysparseMatrix):
         """
         Create a sparse matrix with '1' in the diagonal
         
-            >>> print _PysparseIdentityMatrix(size = 3)
+            >>> print PysparseIdentityMatrix(size = 3)
              1.000000      ---        ---    
                 ---     1.000000      ---    
                 ---        ---     1.000000  
         """
-        _PysparseMatrix.__init__(self, nrow=size, ncol=size,
-                                 bandwidth=1, symmetric=True)
+        PysparseMatrix.__init__(self, nrow=size, ncol=size,
+                                bandwidth=1, symmetric=True)
         ids = numpy.arange(size)
         self.put(numpy.ones(size), ids, ids)
 
-class _PysparseSpDiagsMatrix(_PysparseMatrix):
+class PysparseSpDiagsMatrix(PysparseMatrix):
     """
     Represents a banded matrix with specified diagonals.
     """
@@ -374,7 +374,7 @@ class _PysparseSpDiagsMatrix(_PysparseMatrix):
 
             >>> from numpy import ones
             >>> e = ones(5)
-            >>> print _PysparseSpDiagsMatrix(size=5, vals=(-2*e,e,2*e), pos=(-1,0,1))
+            >>> print PysparseSpDiagsMatrix(size=5, vals=(-2*e,e,2*e), pos=(-1,0,1))
 
         Note that since the pos[k]-th diagonal has size-|pos[k]| elements, only
         that many first elements of vals[k] will be inserted.
@@ -389,8 +389,8 @@ class _PysparseSpDiagsMatrix(_PysparseMatrix):
         nz = sum(diags)
         kwargs.pop('bandwidth', True)
         kwargs.pop('sizeHint', True)
-        _PysparseMatrix.__init__(self, nrow=size, ncol=size,
-                                 bandwidth=bw, sizeHint=nz, **kwargs)
+        PysparseMatrix.__init__(self, nrow=size, ncol=size,
+                                bandwidth=bw, sizeHint=nz, **kwargs)
         
         # Insert elements on specified diagonals
         ndiags = len(pos)

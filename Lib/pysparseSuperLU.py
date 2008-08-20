@@ -29,10 +29,13 @@ __docformat__ = 'restructuredtext'
 
 import pysparseMatrix as psm
 import numpy
+import resource
 
 from directSolver import PysparseDirectSolver
 from pysparse  import superlu
-from nlpy_timing  import cputime
+
+def cputime():
+    return resource.getrusage(resource.RUSAGE_SELF)[0]
 
 class PysparseSuperLUSolver( PysparseDirectSolver ):
     """
@@ -83,7 +86,7 @@ class PysparseSuperLUSolver( PysparseDirectSolver ):
         PysparseDirectSolver.__init__(self, A, **kwargs)
 
         self.type = numpy.float
-        self.nrow, self.ncol = A._getShape()
+        self.nrow, self.ncol = A.getShape()
         t = cputime()
         self.LU = superlu.factorize(A.matrix.to_csr(), **kwargs)
         self.factorizationTime = cputime() - t
@@ -122,4 +125,4 @@ class PysparseSuperLUSolver( PysparseDirectSolver ):
         """
         Not yet available.
         """
-        return None
+        raise NotImplementedError

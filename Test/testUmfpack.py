@@ -1,7 +1,7 @@
 import math, unittest
 import numpy
 from pysparse import poisson
-from pysparse.pysparseMatrix import _PysparseMatrix, _PysparseIdentityMatrix, _PysparseSpDiagsMatrix
+from pysparse.pysparseMatrix import PysparseMatrix, PysparseIdentityMatrix, PysparseSpDiagsMatrix
 from pysparse.pysparseUmfpack import PysparseUmfpackSolver
 
 import sys
@@ -17,9 +17,9 @@ class SpDiagsTestCase(unittest.TestCase):
     def setUp(self):
         self.n = 10000
         self.e = numpy.ones(self.n)
-        self.A = _PysparseSpDiagsMatrix(size=self.n,
-                                        vals=(-2*self.e,self.e,2*self.e),
-                                        pos=(-1,0,1))
+        self.A = PysparseSpDiagsMatrix(size=self.n,
+                                       vals=(-2*self.e,self.e,2*self.e),
+                                       pos=(-1,0,1))
         self.b = self.A * self.e
         self.tol = 100*macheps()
         self.LU = None
@@ -72,7 +72,7 @@ class SpDiagsTestCase(unittest.TestCase):
 class Poisson1dTestCase(unittest.TestCase):
     def setUp(self):
         self.n = 50000
-        self.B = _PysparseMatrix( matrix=poisson.poisson1d(self.n) )
+        self.B = PysparseMatrix( matrix=poisson.poisson1d(self.n) )
         
         self.x_exact = numpy.ones(self.n)/math.sqrt(self.n)
         self.normx = 1.0/math.sqrt(self.n)
@@ -135,7 +135,7 @@ class Poisson1dTestCase(unittest.TestCase):
 class Poisson2dTestCase(unittest.TestCase):
     def setUp(self):
         self.n = 200
-        self.B = _PysparseMatrix( matrix=poisson.poisson2d(self.n) )
+        self.B = PysparseMatrix( matrix=poisson.poisson2d(self.n) )
         
         self.x_exact = numpy.ones(self.n*self.n)/self.n
         self.normx = 1.0/self.n
