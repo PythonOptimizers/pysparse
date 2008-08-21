@@ -17,7 +17,7 @@ linky=[]
 compily=[]
 
 # Specify whether to link against user's SuperLU library
-use_users_superlu = True
+use_users_superlu = False
 if use_users_superlu:
     # Specify location of include files
     superlu_include_dirs = ['/usr/local/include/SuperLU_3.1']
