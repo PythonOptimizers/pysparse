@@ -223,7 +223,7 @@ class PysparseMatrix(SparseMatrix):
 
             
         """
-        N = self.matrix.shape[1]
+        M, N = self.getShape()
 
         if isinstance(other, PysparseMatrix):
             if N != other.getShape()[0]:
@@ -237,15 +237,17 @@ class PysparseMatrix(SparseMatrix):
                 L.put(other * numpy.ones(N))
                 return PysparseMatrix(matrix = spmatrix.matrixmultiply(self.matrix, L))
             elif shape == (N,):
-                y = numpy.empty(N) #other.copy()
+                y = numpy.empty(M) #other.copy()
                 self.matrix.matvec(other, y)
                 return y
             else:
                 raise TypeError, 'Cannot multiply objects'
             
     def __rmul__(self, other):
-        if type(numpy.ones(1)) == type(other):
-            y = numpy.empty(numpy.shape(other)) #other.copy()
+        # Compute  other * A  which is really  A^T * other
+        if type(numpy.ones(1.0)) == type(other):
+            M, N = self.getShape()
+            y = numpy.empty(N) #other.copy()
             self.matrix.matvec_transp(other, y)
             return y
         else:

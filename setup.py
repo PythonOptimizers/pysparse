@@ -17,16 +17,16 @@ linky=[]
 compily=[]
 
 # Specify whether to link against user's SuperLU library
-use_users_superlu = False
+use_users_superlu = True
 if use_users_superlu:
     # Specify location of include files
-    superlu_include_dirs = ['/usr/local/include/SuperLU_3.1']
+    superlu_include_dirs = ['/Users/dpo/local/LinearAlgebra/SuperLU/SuperLU_3.1/SRC']
     # AND specify one of the following (set other one to ''):
     # Specify location of source files (overrides linking existing library)
-    superlu_src_dir = '/usr/local/src/SuperLU_3.1/SRC'
+    superlu_src_dir = '/Users/dpo/local/LinearAlgebra/SuperLU/SuperLU_3.1/SRC'
     # OR specify location of precompiled library
-    superlu_lib_dir = ['/usr/local/lib']
-    superlu_libraries = ['superlu_3.1']
+    superlu_lib_dir = ['']
+    superlu_libraries = ['']
 
 ## numpy / Numeric settings
 try:
