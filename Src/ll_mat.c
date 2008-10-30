@@ -25,6 +25,8 @@
 
 #define MAX(A,B) ( (A) > (B) ? (A) : (B) )
 
+static PyObject *LLMat_Find(LLMatObject *self, PyObject *args);
+
 
 /*************************************************************************************/
 /*  R o u t i n e s   f o r   b u i l d i n g   d a t a   s t r u c t u r e   f o r  */
@@ -1125,11 +1127,14 @@ LLMat_update_add_at(LLMatObject *self, PyObject *args) {
   double v;
   int lenb,i;
 
+  /*
   if (self->issym) 
     {
       PyErr_SetString(SpMatrix_ErrorObject, "method not allowed for symmetric matrices");
       return NULL;
     }
+  */
+
   if (!PyArg_ParseTuple(args, "OOO", &bIn,&id1in,&id2in))
     return NULL;
 
@@ -1147,9 +1152,11 @@ LLMat_update_add_at(LLMatObject *self, PyObject *args) {
   if (id2 == NULL)
     goto fail;
   
+  /*
   if(self->dim[0]!=self->dim[1]){
     PyErr_SetString(PyExc_IndexError, "dim[0] and dim[1] are different sizes");
     goto fail;}
+  */
 
   if (lenb < 0 ) {
     PyErr_SetString(PyExc_IndexError, "vector b is a negative size");
@@ -1695,10 +1702,12 @@ LLMat_take(LLMatObject *self, PyObject *args) {
 	goto fail;
   }
   
+  /*
   if (self->dim[0] != self->dim[1]){
       PyErr_SetString(PyExc_IndexError, "dim[0] and dim[1] are different sizes");
       goto fail;
   }
+  */
   
   if (lenb < 0 ) {
       PyErr_SetString(PyExc_IndexError, "vector b is a negative size");
@@ -1803,10 +1812,12 @@ LLMat_put(LLMatObject *self, PyObject *args) {
 	  goto fail;
     }
     
+    /*
     if (self->dim[0] != self->dim[1]){
 	PyErr_SetString(PyExc_IndexError, "dim[0] and dim[1] are different sizes");
 	goto fail;
     }
+    */
     
     if (lenb < 0 ) {
 	PyErr_SetString(PyExc_IndexError, "vector b is a negative size");
@@ -2115,33 +2126,77 @@ LLMat_delete_rowcols(LLMatObject *self, PyObject* args){
 #undef MASK
 }
 
+static char LLMat_Find_Doc[] = "Get LL matrix in coord format (val,irow,jcol).";
+
+static PyObject *LLMat_Find( LLMatObject *self, PyObject *args ) {
+
+    /* Convert an LL matrix into coordinate format */
+
+    PyArrayObject *a_row, *a_col, *a_val; /* Matrix in coordinate format */
+    int            dmat[1];               /* Dimension descriptor */
+    int           *pi, *pj;           /* Intermediate pointers to matrix data */
+    double        *pv;
+    int            i, k, elem;
+
+    dmat[0] = self->nnz;
+
+    /* Allocate numarrays */
+    a_row = (PyArrayObject *)PyArray_SimpleNew( 1, dmat, NPY_INT32 );
+    a_col = (PyArrayObject *)PyArray_SimpleNew( 1, dmat, NPY_INT32 );
+    a_val = (PyArrayObject *)PyArray_SimpleNew( 1, dmat, NPY_FLOAT64 );
+
+    pi = (int *)a_row->data;
+    pj = (int *)a_col->data;
+    pv = (double *)a_val->data;
+
+    elem = 0;
+    for( i = 0; i < self->dim[0]; i++ ) {
+      k = self->root[i];
+      while( k != -1 ) {
+        pi[ elem ] = i;
+        pj[ elem ] = self->col[k];
+        pv[ elem ] = self->val[k];
+        k = self->link[k];
+        elem++;
+      }
+    }
+
+    return Py_BuildValue( "OOO",
+              PyArray_Return( a_val ),
+              PyArray_Return( a_row ),
+              PyArray_Return( a_col ) );
+}
+
+
 /*********************************/
 /*  O b j e c t   m e t h o d s  */
 /*********************************/
 
 PyMethodDef LLMat_methods[] = {
-  {"matvec",          (PyCFunction)LLMat_matvec,          METH_VARARGS, LLMat_matvec_doc},
-  {"matvec_transp",   (PyCFunction)LLMat_matvec_transp,   METH_VARARGS, LLMat_matvec_transp_doc},
-  {"to_csr",          (PyCFunction)LLMat_to_csr,          METH_VARARGS, to_csr_doc},
-  {"to_sss",          (PyCFunction)LLMat_to_sss,          METH_VARARGS, to_sss_doc},
-  {"generalize",      (PyCFunction)LLMat_generalize,      METH_VARARGS, LLMat_generalize_doc},
-  {"compress",        (PyCFunction)LLMat_compress,        METH_VARARGS, LLMat_compress_doc},
-  {"export_mtx",      (PyCFunction)LLMat_export_mtx,      METH_VARARGS, export_mtx_doc},
-  {"copy",            (PyCFunction)LLMat_copy,            METH_VARARGS, copy_doc},
-  {"norm",            (PyCFunction)LLMat_norm,            METH_VARARGS, LLMat_norm_doc},
-  {"shift",           (PyCFunction)LLMat_shift,           METH_VARARGS, shift_doc},
-  {"scale",           (PyCFunction)LLMat_scale,           METH_VARARGS, scale_doc},
-  {"keys",            (PyCFunction)LLMat_keys,            METH_VARARGS, keys_doc},
-  {"values",          (PyCFunction)LLMat_values,          METH_VARARGS, values_doc},
-  {"items",           (PyCFunction)LLMat_items,           METH_VARARGS, items_doc},
+  {"matvec",        (PyCFunction)LLMat_matvec,        METH_VARARGS, LLMat_matvec_doc},
+  {"matvec_transp", (PyCFunction)LLMat_matvec_transp, METH_VARARGS, LLMat_matvec_transp_doc},
+  {"to_csr",        (PyCFunction)LLMat_to_csr,        METH_VARARGS, to_csr_doc},
+  {"to_sss",        (PyCFunction)LLMat_to_sss,        METH_VARARGS, to_sss_doc},
+  {"generalize",    (PyCFunction)LLMat_generalize,    METH_VARARGS, LLMat_generalize_doc},
+  {"compress",      (PyCFunction)LLMat_compress,      METH_VARARGS, LLMat_compress_doc},
+  {"export_mtx",    (PyCFunction)LLMat_export_mtx,    METH_VARARGS, export_mtx_doc},
+  {"copy",          (PyCFunction)LLMat_copy,          METH_VARARGS, copy_doc},
+  {"norm",          (PyCFunction)LLMat_norm,          METH_VARARGS, LLMat_norm_doc},
+  {"shift",         (PyCFunction)LLMat_shift,         METH_VARARGS, shift_doc},
+  {"scale",         (PyCFunction)LLMat_scale,         METH_VARARGS, scale_doc},
+  {"keys",          (PyCFunction)LLMat_keys,          METH_VARARGS, keys_doc},
+  {"values",        (PyCFunction)LLMat_values,        METH_VARARGS, values_doc},
+  {"items",         (PyCFunction)LLMat_items,         METH_VARARGS, items_doc},
+  {"put",           (PyCFunction)LLMat_put,           METH_VARARGS, LLMat_put_doc},
+  {"take",          (PyCFunction)LLMat_take,          METH_VARARGS, LLMat_take_doc},
+  { "find",         (PyCFunction)LLMat_Find, METH_VARARGS, LLMat_Find_Doc  },
   {"update_add_mask", (PyCFunction)LLMat_update_add_mask, METH_VARARGS, update_add_mask_doc},
   {"update_add_mask_sym", (PyCFunction)LLMat_update_add_mask_sym, METH_VARARGS, update_add_mask_sym_doc},
-  {"delete_rows",     (PyCFunction)LLMat_delete_rows,     METH_VARARGS, LLMat_delete_rows_doc},
-  {"delete_cols",     (PyCFunction)LLMat_delete_cols,     METH_VARARGS, LLMat_delete_cols_doc},
-  {"delete_rowcols",  (PyCFunction)LLMat_delete_rowcols,  METH_VARARGS, LLMat_delete_rowcols_doc},
-  {"update_add_at",  (PyCFunction)LLMat_update_add_at,  METH_VARARGS, update_add_at_doc},
-  {"put",             (PyCFunction)LLMat_put,             METH_VARARGS, LLMat_put_doc},
-  {"take",            (PyCFunction)LLMat_take,            METH_VARARGS, LLMat_take_doc},
+  {"delete_rows",   (PyCFunction)LLMat_delete_rows,     METH_VARARGS, LLMat_delete_rows_doc},
+  {"delete_cols",   (PyCFunction)LLMat_delete_cols,     METH_VARARGS, LLMat_delete_cols_doc},
+  {"delete_rowcols", (PyCFunction)LLMat_delete_rowcols,  METH_VARARGS, LLMat_delete_rowcols_doc},
+  {"update_add_at", (PyCFunction)LLMat_update_add_at,  METH_VARARGS, update_add_at_doc},
+
   {NULL, NULL}			/* sentinel */
 };
 
@@ -2837,3 +2892,4 @@ LLMat_dot(PyObject *self, PyObject *args)
   Py_DECREF(matC);
   return NULL;
 }
+

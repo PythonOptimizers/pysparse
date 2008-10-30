@@ -148,7 +148,7 @@ SpMatrix_GetItem(PyObject *op, int i, int j) {
   PyObject *fo;
   double d;
 
-  index = Py_BuildValue("(ii)", i, i);
+  index = Py_BuildValue("(ii)", i, j);
   assert(index);
   fo = PyObject_GetItem(op, index);
   Py_DECREF(index);

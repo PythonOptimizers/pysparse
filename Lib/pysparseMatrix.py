@@ -83,6 +83,15 @@ class PysparseMatrix(SparseMatrix):
         matrix = kwargs.get('matrix', None)
         sizeHint = kwargs.get('sizeHint', 0)
         symmetric = 'symmetric' in kwargs and kwargs['symmetric']
+        size = kwargs.get('size',0)
+        if size > 0:
+            if nrow > 0 or ncol > 0:
+                if size != nrow or size != ncol:
+                    msg =  'size argument was given but does not match '
+                    msg += 'nrow or ncol'
+                raise ValueError, msg
+            else:
+                nrow = ncol = size
 
         if matrix is not None:
             self.matrix = matrix
@@ -95,10 +104,9 @@ class PysparseMatrix(SparseMatrix):
                 self.matrix = spmatrix.ll_mat_sym(nrow, sizeHint)
             else:
                 if sizeHint is None:
-                    size = min(nrow,ncol)
-                    sizeHint = size
+                    sizeHint = min(nrow,ncol)
                     if bandwidth > 0:
-                        sizeHint = bandwidth * (2*size-bandwidth-1)/2
+                        sizeHint = bandwidth * (2*sizeHint-bandwidth-1)/2
                 self.matrix = spmatrix.ll_mat(nrow, ncol, sizeHint)
 
     def isSymmetric(self):
@@ -124,12 +132,21 @@ class PysparseMatrix(SparseMatrix):
         msg = 'No such attribute: %s' % name
         raise ValueError, msg
 
+    def __repr__(self):
+        if self.nnz > 0: return self.matrix.__repr__()
+
     def __getitem__(self, index):
         m = self.matrix[index]
         if type(m) is type(0) or type(m) is type(0.):
             return m
         else:
             return PysparseMatrix(matrix = m, symmetric=self.matrix.issym)
+
+    def __setitem__(self, index, value):
+        if type(value) is type(self):
+            self.matrix[index] = value.matrix
+        else:
+            self.matrix[index] = value
 
     def __iadd__(self, other):
         # To implement  L += K
@@ -144,7 +161,7 @@ class PysparseMatrix(SparseMatrix):
 
     def __add__(self, other):
         """
-        Add two sparse matrices
+        Add two sparse matrices, return a new sparse matrix
         
             >>> L = PysparseMatrix(size = 3)
             >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
@@ -159,16 +176,23 @@ class PysparseMatrix(SparseMatrix):
              2.500000      ---        ---    
             
             >>> print L + 3
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'int' object has no attribute 'getMatrix'
+                ---    13.000000   6.000000  
+                ---     6.141593      ---    
+             5.500000      ---        ---    
         """
 
-        if self.getShape() != other.getShape():
-            raise TypeError, 'Only sparse matrices of same size may be added'
-        if other is 0:
+        if other is 0 or other is 0.0:
             return self
-        else:
+        elif type(other) in [type(1), type(1.0)]:
+            # Add give value to all elements of sparse matrix in nonzero pattern
+            L = self.copy()
+            val, irow, jcol = L.find()
+            L.matrix.update_add_at( other*numpy.ones(val.shape), irow, jcol)
+            return L
+        elif type(self) is type(other):
+            if self.getShape() != other.getShape():
+                msg = 'Only sparse matrices of the same size may be added'
+                raise TypeError, msg
             L = self.matrix.copy()
             if self.isSymmetric() and not other.isSymmetric():
                 L.generalize()
@@ -199,7 +223,8 @@ class PysparseMatrix(SparseMatrix):
         
             >>> L1 = PysparseMatrix(size = 3)
             >>> L1.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
-            >>> L2 = PysparseIdentityMatrix(size = 3)
+            >>> L2 = PysparseMatrix(size = 3)
+            >>> L2.put(numpy.ones(3), numpy.arange(3), numpy.arange(3))
             >>> L2.put((4.38,12357.2,1.1), (2,1,0), (1,0,2))
             
             >>> tmp = numpy.array(((1.23572000e+05, 2.31400000e+01, 3.00000000e+00),
@@ -255,6 +280,9 @@ class PysparseMatrix(SparseMatrix):
             
     def getShape(self):
         return self.matrix.shape
+
+    def find(self):
+        return self.matrix.find()
         
     def put(self, vector, id1, id2):
         """
@@ -377,6 +405,11 @@ class PysparseSpDiagsMatrix(PysparseMatrix):
             >>> from numpy import ones
             >>> e = ones(5)
             >>> print PysparseSpDiagsMatrix(size=5, vals=(-2*e,e,2*e), pos=(-1,0,1))
+             1.000000   2.000000      ---        ---        ---    
+            -2.000000   1.000000   2.000000      ---        ---    
+                ---    -2.000000   1.000000   2.000000      ---    
+                ---        ---    -2.000000   1.000000   2.000000  
+                ---        ---        ---    -2.000000   1.000000  
 
         Note that since the pos[k]-th diagonal has size-|pos[k]| elements, only
         that many first elements of vals[k] will be inserted.

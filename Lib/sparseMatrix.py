@@ -76,9 +76,9 @@ class SparseMatrix:
         s = ""
         cellWidth = 11
         shape = self.getShape()
-        for j in range(shape[1]):
-            for i in range(shape[0]):
-                v = self[j,i]
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                v = self[i,j]
                 if v == 0:
                     s += "---".center(cellWidth)
                 else:
