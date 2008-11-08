@@ -54,28 +54,31 @@ from sparseMatrix import SparseMatrix
 import numpy
 
 class PysparseMatrix(SparseMatrix):
-    
     """
-    PysparseMatrix class wrapper for pysparse.
-    PysparseMatrix is always NxN.
-    Allows basic python operations __add__, __sub__ etc.
-    Facilitate matrix populating in an easy way.
+    A PysparseMatrix is a class wrapper for the pysparse spmatrix sparse matrix
+    type. This class facilitates matrix populating and allows intuitive
+    operations on sparse matrices and vectors. 
 
+    :Currently accepted keywords include:
+
+    +-------------+------------------------------------------------------------+
+    | `nrow`      | The number of rows of the matrix                           |
+    +-------------+------------------------------------------------------------+
+    | `ncol`      | The number of columns of the matrix                        |
+    +-------------+------------------------------------------------------------+
+    | `size`      | The common number of rows and columns, for a square matrix |
+    +-------------+------------------------------------------------------------+
+    | `bandwidth` | The bandwidth (if creating a band matrix)                  |
+    +-------------+------------------------------------------------------------+
+    | `matrix`    | The starting `spmatrix` if there is one                    |
+    +-------------+------------------------------------------------------------+
+    | `sizeHint`  | A guess on the number of nonzero elements of the matrix    |
+    +-------------+------------------------------------------------------------+
+    | `symmetric` | A boolean indicating whether the matrix is symmetric.      |
+    +-------------+------------------------------------------------------------+
     """
 
     def __init__(self, **kwargs):
-        """
-        Creates a `PysparseMatrix`.
-
-        :Currently accepted keywords include:
-
-        - `nrow`: The number of rows of the matrix
-        - `ncol`: The number of columns of the matrix
-        - `bandwidth`: The bandwidth (if creating a band matrix)
-        - `matrix`: The starting `spmatrix` if there is one
-        - `sizeHint`: A guess on the number of nonzero elements of the matrix
-        - `symmetric`: A boolean indicating whether the matrix is symmetric.
-        """
 
         nrow = kwargs.get('nrow', 0)
         ncol = kwargs.get('ncol', 0)
@@ -110,19 +113,24 @@ class PysparseMatrix(SparseMatrix):
                 self.matrix = spmatrix.ll_mat(nrow, ncol, sizeHint)
 
     def isSymmetric(self):
+        "Returns True is `self` is a symmetric matrix or False otherwise"
         if self.matrix.issym: return True
         return False
 
     def getNnz(self):
+        "Returns the number of nonzero elements of `self`"
         return self.matrix.nnz
 
     def getMatrix(self):
+        "Returns the underlying ll_mat sparse matrix of `self`"
         return self.matrix
     
     def copy(self):
+        "Returns a (deep) copy of a sparse matrix"
         return PysparseMatrix(matrix = self.matrix.copy())
         
-    def __coerce__(self, other): return self, other
+    def __coerce__(self, other):
+        return self, other
     
     def __getattr__(self, name):
         if name == 'nnz':
@@ -201,12 +209,12 @@ class PysparseMatrix(SparseMatrix):
         
     def __sub__(self, other):
 
-        if self.getShape() != other.getShape():
-            raise TypeError, 'Only sparse matrices of same size may be subtracted'
-
-        if other is 0:
-            return self
+        if type(other) in [type(1), type(1.0)]:
+            return self.__add__(-other)
         else:
+            if self.getShape() != other.getShape():
+                msg = 'Only sparse matrices of the same size may be subtracted'
+                raise TypeError, msg
             L = self.matrix.copy()
             if self.isSymmetric() and not other.isSymmetric():
                 L.generalize()
@@ -215,7 +223,7 @@ class PysparseMatrix(SparseMatrix):
 
     def __isub__(self, other):
         # To implement L -= K
-        return self._iadd(self.getMatrix(), other, -1)
+        return self._iadd(self.getMatrix(), other, sign=-1)
 
     def __mul__(self, other):
         """
@@ -254,15 +262,17 @@ class PysparseMatrix(SparseMatrix):
             if N != other.getShape()[0]:
                 raise TypeError, 'Matrices dimensions do not match for product'
 
-            return PysparseMatrix(matrix = spmatrix.matrixmultiply(self.matrix, other.getMatrix()))
+            p = spmatrix.matrixmultiply(self.matrix, other.getMatrix())
+            return PysparseMatrix(matrix=p)
         else:
             shape = numpy.shape(other)
             if shape == ():
                 L = spmatrix.ll_mat(N, N, N)
                 L.put(other * numpy.ones(N))
-                return PysparseMatrix(matrix = spmatrix.matrixmultiply(self.matrix, L))
+                p = spmatrix.matrixmultiply(self.matrix, L)
+                return PysparseMatrix(matrix=p)
             elif shape == (N,):
-                y = numpy.empty(M) #other.copy()
+                y = numpy.empty(M)
                 self.matrix.matvec(other, y)
                 return y
             else:
@@ -272,21 +282,34 @@ class PysparseMatrix(SparseMatrix):
         # Compute  other * A  which is really  A^T * other
         if type(numpy.ones(1.0)) == type(other):
             M, N = self.getShape()
-            y = numpy.empty(N) #other.copy()
+            y = numpy.empty(N)
             self.matrix.matvec_transp(other, y)
             return y
         else:
             return self * other
             
     def getShape(self):
+        "Returns the shape (`nrow`,`ncol`) of a sparse matrix"
         return self.matrix.shape
 
     def find(self):
+        """
+        Returns three Numpy arrays to describe the sparsity pattern of `self`
+        in so-called coordinate (or triplet) format:
+
+            >>> L = PysparseMatrix(size = 3)
+            >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
+            >>> L.find()
+                (array([ 10.        ,   3.        ,   3.14159265,   2.5       ]),
+                 array([0, 0, 1, 2]),
+                 array([1, 2, 1, 0]))
+        """
         return self.matrix.find()
         
     def put(self, vector, id1, id2):
         """
-        Put elements of `vector` at positions of the matrix corresponding to (`id1`, `id2`)
+        Put elements of `vector` at positions of the matrix
+        corresponding to (`id1`, `id2`)
         
             >>> L = PysparseMatrix(size = 3)
             >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
@@ -294,8 +317,16 @@ class PysparseMatrix(SparseMatrix):
                 ---    10.000000   3.000000  
                 ---     3.141593      ---    
              2.500000      ---        ---    
+            >>> L.put(2*numpy.pi, arange(3), arange(3))
+             6.283185  10.000000   3.000000  
+                ---     6.283185      ---    
+             2.500000      ---     6.283185  
         """
-        self.matrix.put(vector, id1, id2)
+        if type(vector) in [type(1), type(1.0)]:
+            m, n = self.getShape()
+            self.matrix.put(vector*numpy.ones(n), id1, id2)
+        else:
+            self.matrix.put(vector, id1, id2)
 
     def putDiagonal(self, vector):
         """
@@ -377,46 +408,44 @@ class PysparseMatrix(SparseMatrix):
 class PysparseIdentityMatrix(PysparseMatrix):
     """
     Represents a sparse identity matrix for pysparse.
+
+        >>> print PysparseIdentityMatrix(size = 3)
+            1.000000      ---        ---    
+               ---     1.000000      ---    
+               ---        ---     1.000000  
     """
     def __init__(self, size):
-        """
-        Create a sparse matrix with '1' in the diagonal
-        
-            >>> print PysparseIdentityMatrix(size = 3)
-             1.000000      ---        ---    
-                ---     1.000000      ---    
-                ---        ---     1.000000  
-        """
+
         PysparseMatrix.__init__(self, nrow=size, ncol=size,
                                 bandwidth=1, symmetric=True)
         ids = numpy.arange(size)
         self.put(numpy.ones(size), ids, ids)
 
+
 class PysparseSpDiagsMatrix(PysparseMatrix):
     """
     Represents a banded matrix with specified diagonals.
-    """
-    def __init__(self, size, vals, pos, **kwargs):
-        """
-        Example:
-        Create a tridiagonal matrix with 1's on the diagonal, 2's above the
-        diagonal, and -2's below the diagonal.
 
-            >>> from numpy import ones
-            >>> e = ones(5)
-            >>> print PysparseSpDiagsMatrix(size=5, vals=(-2*e,e,2*e), pos=(-1,0,1))
+    *Example:* Create a tridiagonal matrix with 1's on the diagonal, 2's above
+    the diagonal, and -2's below the diagonal.
+
+        >>> from numpy import ones
+        >>> e = ones(5)
+        >>> print PysparseSpDiagsMatrix(size=5, vals=(-2*e,e,2*e), pos=(-1,0,1))
              1.000000   2.000000      ---        ---        ---    
             -2.000000   1.000000   2.000000      ---        ---    
                 ---    -2.000000   1.000000   2.000000      ---    
                 ---        ---    -2.000000   1.000000   2.000000  
                 ---        ---        ---    -2.000000   1.000000  
 
-        Note that since the pos[k]-th diagonal has size-|pos[k]| elements, only
-        that many first elements of vals[k] will be inserted.
+    Note that since the `pos[k]`-th diagonal has `size-|pos[k]|` elements, only
+    that many first elements of `vals[k]` will be inserted.
 
-        If the banded matrix is requested to be symmetric, elements above the
-        main diagonal are not inserted.
-        """
+    If the banded matrix is requested to be symmetric, elements above the
+    main diagonal are not inserted.
+    """
+    def __init__(self, size, vals, pos, **kwargs):
+
         if type(pos) in [ type(()), type([]) ]: pos = numpy.array(pos)
 
         bw = max(numpy.abs(pos))

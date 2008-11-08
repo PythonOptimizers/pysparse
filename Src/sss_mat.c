@@ -193,11 +193,13 @@ static int SSSMat_length(SSSMatObject *self) {
  */
 static PyObject *
 SSSMat_subscript(SSSMatObject *self, PyObject *idx) {
-  int type, start0, stop0, start1, stop1;
+  int type, start0, stop0, step0, len0, start1, stop1, step1, len1;
   int dim[2];
 
   dim[0] = dim[1] = self->n;
-  if ((type = LLMat_parse_index(idx, dim, &start0, &stop0, &start1, &stop1)) == -1)
+  if ((type = LLMat_parse_index(idx, dim,
+                                &start0, &stop0, &step0, &len0,
+                                &start1, &stop1, &step1, &len1)) == -1)
     return NULL;
   if (type == 1)
     return getitem(self, start0, start1);
@@ -208,7 +210,7 @@ SSSMat_subscript(SSSMatObject *self, PyObject *idx) {
 }
 
 static PyMappingMethods SSSMat_as_mapping = {
-    (inquiry)SSSMat_length,	/*mp_length*/
+    (lenfunc)SSSMat_length,	/*mp_length*/
     (binaryfunc)SSSMat_subscript, /*mp_subscript*/
     (objobjargproc)0,
 };
