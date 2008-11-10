@@ -1,8 +1,9 @@
 .. Description of the higher-level PysparseMatrix class
+.. versionadded:: 1.0.1
 
-============================
-Python Sparse Matrix Classes
-============================
+==================================
+Higher-Level Sparse Matrix Classes
+==================================
 
 The :mod:`PysparseMatrix` module
 --------------------------------
