@@ -253,8 +253,6 @@ class PysparseMatrix(SparseMatrix):
             >>> tmp = numpy.array((7.5, 16.28318531,  3.))  
             >>> numpy.allclose(numpy.array((1,2,3),'d') * L1, tmp) ## The multiplication is broken. Numpy is calling __rmul__ for every element instead of with  the whole array.
             1
-
-            
         """
         M, N = self.getShape()
 
@@ -289,12 +287,12 @@ class PysparseMatrix(SparseMatrix):
             return self * other
             
     def getShape(self):
-        "Returns the shape (`nrow`,`ncol`) of a sparse matrix"
+        "Returns the shape ``(nrow,ncol)`` of a sparse matrix"
         return self.matrix.shape
 
     def find(self):
         """
-        Returns three Numpy arrays to describe the sparsity pattern of `self`
+        Returns three Numpy arrays to describe the sparsity pattern of ``self``
         in so-called coordinate (or triplet) format:
 
             >>> L = PysparseMatrix(size = 3)
@@ -308,8 +306,8 @@ class PysparseMatrix(SparseMatrix):
         
     def put(self, vector, id1, id2):
         """
-        Put elements of `vector` at positions of the matrix
-        corresponding to (`id1`, `id2`)
+        Put elements of ``vector`` at positions of the matrix
+        corresponding to ``(id1, id2)``
         
             >>> L = PysparseMatrix(size = 3)
             >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
@@ -330,7 +328,7 @@ class PysparseMatrix(SparseMatrix):
 
     def putDiagonal(self, vector):
         """
-        Put elements of `vector` along diagonal of matrix
+        Put elements of ``vector`` along diagonal of matrix
         
             >>> L = PysparseMatrix(size = 3)
             >>> L.putDiagonal((3.,10.,numpy.pi))
@@ -354,17 +352,28 @@ class PysparseMatrix(SparseMatrix):
             self.put(vector, ids, ids)
 
     def take(self, id1, id2):
+        """
+        Extract elements at positions ``(irow[i], jcol[i])`` and place them in
+        the array ``val``. In other words::
+
+            for i in range(len(val)): val[i] = A[irow[i],jcol[i]]
+
+        """
         vector = numpy.zeros(len(id1), 'd')
         self.matrix.take(vector, id1, id2)
         return vector
 
     def takeDiagonal(self):
+        """
+        Extract the diagonal of a matrix and place it in a Numpy array.
+        """
         ids = numpy.arange(self.getShape()[0])
         return self.take(ids, ids)
 
     def addAt(self, vector, id1, id2):
         """
-        Add elements of `vector` to the positions in the matrix corresponding to (`id1`,`id2`)
+        Add elements of ``vector`` to the positions in the matrix corresponding
+        to ``(id1,id2)``
         
             >>> L = PysparseMatrix(size = 3)
             >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
@@ -377,6 +386,10 @@ class PysparseMatrix(SparseMatrix):
         self.matrix.update_add_at(vector, id1, id2)
 
     def addAtDiagonal(self, vector):
+        """
+        Add the components of vector ``vector`` to the diagonal elements of the
+        matrix.
+        """
         if type(vector) in [type(1), type(1.)]:
             ids = numpy.arange(self.getShape()[0])
             tmp = numpy.empty((self.getShape()[0],), 'd')
@@ -387,6 +400,9 @@ class PysparseMatrix(SparseMatrix):
             self.addAt(vector, ids, ids)
 
     def getNumpyArray(self):
+        """
+        Convert a sparse matrix to a dense Numpy matrix.
+        """
         shape = self.getShape()
         indices = numpy.indices(shape)
         numMatrix = self.take(indices[0].ravel(), indices[1].ravel())

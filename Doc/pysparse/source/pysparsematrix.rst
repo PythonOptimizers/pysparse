@@ -5,7 +5,7 @@
 Higher-Level Sparse Matrix Classes
 ==================================
 
-The :mod:`PysparseMatrix` module
+The :mod:`pysparseMatrix` module
 --------------------------------
 
 .. automodule:: pysparseMatrix

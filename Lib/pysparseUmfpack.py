@@ -1,27 +1,29 @@
 """
 A framework for solving sparse linear systems of equations using an LU
 factorization, by means of the unsymmetric multifrontal sparse LU factorization
-package UMFPACK.
+package UMFPACK ([D04a]_, [D04b]_, [DD99]_, [DD97]_).
 
 This package is appropriate for factorizing sparse square unsymmetric or
 rectangular matrices.
 
-See http://www.cise.ufl.edu/research/sparse/umfpack for more information.
+See [UMF]_ for more information.
 
-References:
+**References:**
 
-- T. A. Davis, *A column pre-ordering strategy for the unsymmetric-pattern
-  multifrontal method*, ACM Transactions on Mathematical Software, **30**(2),
-  pp. 165-195, 2004.
-- T. A. Davis, *Algorithm 832: UMFPACK, an unsymmetric-pattern multifrontal
-  method*, ACM Transactions on Mathematical Software, **30**(2), pp. 196-199,
-  2004.
-- T. A. Davis and I. S. Duff, *A combined unifrontal/multifrontal method for
-  unsymmetric sparse matrices*, ACM Transactions on Mathematical Software,
-  **25**(1), pp. 1-19, 1999.
-- T. A. Davis and I. S. Duff, *An unsymmetric-pattern multifrontal method for
-  sparse LU factorization*, SIAM Journal on Matrix Analysis and Applications,
-  **18**(1), pp. 140-158, 1997.
+.. [D04a] T. A. Davis, *A column pre-ordering strategy for the
+          unsymmetric-pattern multifrontal method*, ACM Transactions on
+          Mathematical Software, 30(2), pp. 165-195, 2004.
+.. [D04b] T. A. Davis, *Algorithm 832: UMFPACK, an unsymmetric-pattern
+          multifrontal method*, ACM Transactions on Mathematical Software,
+          30(2), pp. 196-199, 2004.
+.. [DD99] T. A. Davis and I. S. Duff, *A combined unifrontal/multifrontal
+          method for unsymmetric sparse matrices*, ACM Transactions on
+          Mathematical Software, 25(1), pp. 1-19, 1999.
+.. [DD97] T. A. Davis and I. S. Duff, *An unsymmetric-pattern multifrontal
+          method for sparse LU factorization*, SIAM Journal on Matrix Analysis
+          and Applications, 18(1), pp. 140-158, 1997.
+.. [UMF] http://www.cise.ufl.edu/research/sparse/umfpack
+
 """
 
 # To look into:
@@ -48,32 +50,83 @@ class PysparseUmfpackSolver( PysparseDirectSolver ):
     the factorization of full-rank n-by-m matrices. Only matrices with real
     coefficients are currently supported.
 
-    The input matrix A should be supplied as a PysparseMatrix instance.
+    :parameters:
 
-    Currently accepted keywords include
+        :A: A PysparseMatrix instance representing the matrix to be factorized.
 
-    `strategy`
-      string that specifies what kind of ordering and pivoting strategy UMFPACK
-      should use. Valid values are 'auto', 'unsymmetric', 'symmetric' and
-      '2by2'. Default: 'auto'
+    :keywords:
 
-    `tol2by2`
-      tolerance for the 2 by 2 strategy. Default: 0.1
+       :strategy: string that specifies what kind of ordering and pivoting
+                  strategy UMFPACK should use. Valid values are 'auto',
+                  'unsymmetric', 'symmetric' and '2by2'. Default: 'auto'
 
-    `scale`
-      string that specifies the scaling UMFPACK should use. Valid values are
-      'none', 'sum', and 'max'. Default: 'sum'.
+       :tol2by2: tolerance for the 2 by 2 strategy. Default: 0.1
 
-    `tolpivot`
-      relative pivot tolerance for threshold partial pivoting with row
-      interchanges. Default: 0.1
+       :scale: string that specifies the scaling UMFPACK should use. Valid
+               values are 'none', 'sum', and 'max'. Default: 'sum'.
 
-    `tolsympivot`
-      if diagonal pivoting is attempted, this parameter is used to control when
-      the diagonal is selected in a given pivot column. Default: 0.0
+       :tolpivot: relative pivot tolerance for threshold partial pivoting with
+                  row interchanges. Default: 0.1
 
-    `irstep`
-      number of iterative refinement steps to attempt. Default: 2
+       :tolsympivot: if diagonal pivoting is attempted, this parameter is used
+                     to control when the diagonal is selected in a given pivot
+                     column. Default: 0.0
+
+       :irstep: number of iterative refinement steps to attempt. Default: 2
+
+    .. attribute:: LU
+
+       An :class:`umfpack_context` object encapsulating the factorization.
+
+    .. attribute:: sol
+
+       The solution of the linear system after a call to :meth:`solve`.
+
+    .. attribute:: L
+
+       The L factor of the input matrix.
+
+    .. attribute:: U
+
+       The U factor of the input matrix.
+
+    .. attribute:: P
+
+       The row permutation used for the factorization.
+
+    .. attribute:: Q
+
+       The column permutation used for the factorization.
+
+    .. attribute:: R
+
+       The row scaling used during the factorization. See the documentation
+       of :meth:`fetch_factors`.
+
+    .. attribute:: factorizationTime
+
+       The CPU time to perform the factorization.
+
+    .. attribute:: solutionTime
+
+       The CPU time to perform the forward and backward sweeps.
+
+    .. attribute:: do_recip
+
+       Nature of the row scaling. See :meth:`fetch_factors`.
+
+    .. attribute:: lnz
+
+       The number of nonzero elements in the factor L.
+
+    .. attribute:: unz
+
+       The number of nonzero elements in the factor U from which the diagonal
+       was removed.
+
+    .. attribute:: nz_udiag
+ 
+       The number of nonzero elements on the diagonal of the factor U.
     """
     def __init__(self, A, **kwargs):
         PysparseDirectSolver.__init__(self, A, **kwargs)
@@ -99,28 +152,28 @@ class PysparseUmfpackSolver( PysparseDirectSolver ):
         self.L = self.U = None
         self.P = self.Q = self.R = None
         self.do_recip = False
+        self.lnz = self.unz = self.nz_udiag = None
         return
 
     def solve(self, rhs, method='UMFPACK_A'):
         """
-        `solve(rhs)`:
         Solve the linear system  ``A x = rhs``, where ``A`` is the input matrix
         and ``rhs`` is a Numpy vector of appropriate dimension. The result is
-        placed in the ``sol`` member of the class instance.
+        placed in the :attr:`sol` member of the class instance.
 
         The optional ``method`` argument specifies the type of system being
         solved:
         
-        - ``"UMFPACK_A"``    : Solve A x = b     (default)
-        - ``"UMFPACK_At"``   : Solve A^t x = b
-        - ``"UMFPACK_Pt_L"`` : Solve P^T L x = b
-        - ``"UMFPACK_L"``    : Solve L x = b
-        - ``"UMFPACK_Lt_P"`` : Solve L^t P x = b
-        - ``"UMFPACK_Lt"``   : Solve L^t x = b
-        - ``"UMFPACK_U_Qt"`` : Solve U Q^t x = b
-        - ``"UMFPACK_U"``    : Solve U x = b
-        - ``"UMFPACK_Q_Ut"`` : Solve Q U^t x = b
-        - ``"UMFPACK_Ut"``   : Solve U^t x = b
+        - ``"UMFPACK_A"``    : Solve :math:`\mathbf{A} x = b`     (default)
+        - ``"UMFPACK_At"``   : Solve :math:`\mathbf{A}^T x = b`
+        - ``"UMFPACK_Pt_L"`` : Solve :math:`\mathbf{P}^T \mathbf{L} x = b`
+        - ``"UMFPACK_L"``    : Solve :math:`\mathbf{L} x = b`
+        - ``"UMFPACK_Lt_P"`` : Solve :math:`\mathbf{L}^T \mathbf{P} x = b`
+        - ``"UMFPACK_Lt"``   : Solve :math:`\mathbf{L}^T x = b`
+        - ``"UMFPACK_U_Qt"`` : Solve :math:`\mathbf{U} \mathbf{Q}^T x = b`
+        - ``"UMFPACK_U"``    : Solve :math:`\mathbf{U} x = b`
+        - ``"UMFPACK_Q_Ut"`` : Solve :math:`\mathbf{Q} \mathbf{U}^T x = b`
+        - ``"UMFPACK_Ut"``   : Solve :math:`\mathbf{U}^T x = b`
 
         """
         if self.sol is None: self.sol = numpy.empty(self.ncol, self.type)
@@ -131,18 +184,18 @@ class PysparseUmfpackSolver( PysparseDirectSolver ):
 
     def fetch_lunz(self):
         """
-        `fetch_lunz()`:
         Retrieve the number of nonzeros in the factors. The results are stored
-        in the members ``lnz``, ``unz`` and ``nz_udiag`` of the class instance.
+        in the members :attr:`lnz`, :attr:`unz` and :attr:`nz_udiag` of the
+        class instance.
         """
         self.lnz, self.unz, self.nz_udiag = self.LU.lunz()
 
     def fetch_factors(self):
         """
-        `fetch_factors()`:
         Retrieve the L and U factors of the input matrix along with the
         permutation matrices P and Q and the row scaling matrix R such that
-          P R A Q = L U.
+ 
+        .. math:: \mathbf{P R A Q} = \mathbf{L U}.
 
         The matrices P, R and Q are stored as Numpy arrays. L and U are stored
         as PysparseMatrix instances and are lower triangular and upper

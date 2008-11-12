@@ -408,8 +408,9 @@ matrix-vector multiplication.
       are double precision, rank-1 NumPy arrays of appropriate size. For
       ``sss_mat`` objects ``matvec_transp`` is equivalent to ``matvec``.
 
+
 Example: 2D-Poisson matrix
---------------------------
+==========================
 
 This section illustrates the use of the ``spmatrix`` module to
 build the well known 2D-Poisson matrix resulting from a :math:`n \times n`
@@ -469,7 +470,7 @@ blocks.::
 
 
 Performance comparison with Matlab
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==================================
 
 .. note ::
    These are Roman Gueus' tests. I am not sure on which type of machine they
@@ -562,7 +563,7 @@ The performance difference between Python's ``poisson2d_sym`` and
 
 
 Vectorization
-^^^^^^^^^^^^^
+=============
 
 The ``put`` method of ``ll_mat`` objects allows us to operate on entire arrays
 at a time. This is advantageous because the loop over the elements of an array

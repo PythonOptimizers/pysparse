@@ -51,7 +51,7 @@ The ``superlu`` module exports a single function, called ``factorize``.
 
                      (default: 2).
 
-   :rtype: an object of type ``superlu_context``. This object encapsulates
+   :rtype: an object of type :class:`superlu_context`. This object encapsulates
            the L and U factors of ``A`` (see below).
 
 .. note::
@@ -60,13 +60,12 @@ The ``superlu`` module exports a single function, called ``factorize``.
    version 3.0 and above, the default value of ``permc_spec`` is 3.
 
 
-*TODO: Give the extra parameters for version 3.x*
-
-
 ``superlu_context`` Object Attributes and Methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: superlu_context
+
+   An abstract encapsulation of the LU factorization of a matrix by SuperLU.
 
    .. attribute:: shape 
 
@@ -156,8 +155,6 @@ factorization as a preconditioner in any of the iterative methods of the
     K = ILU_Precon(A)
     info, niter, relres = itsolvers.pcg(A, b, x, 1e-12, 2000, K)
 
-
-
 .. note::
 
    Note that the 2D Poisson matrix is symmetric and positive definite, although
@@ -168,7 +165,102 @@ factorization as a preconditioner in any of the iterative methods of the
    library.
 
 
-
 The :mod:`umfpack` Module
 -------------------------
 
+*TODO*
+
+Higher-Level Python Interfaces
+==============================
+
+The Abstract :mod:`directSolver` Module
+---------------------------------------
+
+.. automodule:: directSolver
+
+.. autoclass:: PysparseDirectSolver
+   :show-inheritance: 
+   :members: 
+   :inherited-members: 
+   :undoc-members:
+
+The :mod:`pysparseSuperLU` Module: A Higher-Level SuperLU Interface
+-------------------------------------------------------------------
+
+.. automodule:: pysparseSuperLU
+
+.. autoclass:: PysparseSuperLUSolver
+   :show-inheritance: 
+   :members: 
+   :inherited-members: 
+   :undoc-members:
+
+Example: The 2D Poisson System with SuperLU
+-------------------------------------------
+
+The solution of a 2D Poisson system with :class:`PysparseSuperLUSolver` may look
+like this::
+
+     from pysparse.pysparseMatrix import PysparseMatrix
+     from pysparse.pysparseSuperLU import PysparseSuperLUSolver
+
+     from poisson_vec import poisson2d_sym_blk_vec
+     from numpy import ones
+     from numpy.linalg import norm
+
+     n = 200
+     A = PysparseMatrix( matrix=poisson2d_sym_blk_vec(n) )
+     x_exact = ones(n*n)/n
+     b = A * x_exact
+     LU = PysparseSuperLUSolver(A)
+     LU.solve(b)
+     print 'Factorization time: ', LU.factorizationTime
+     print 'Solution time: ', LU.solutionTime
+     print 'Error: ', norm(LU.sol - x_exact)/norm(x_exact)
+
+The above script produces the output::
+
+    Factorization time:  0.494116
+    Solution time:  0.017096
+    Error: 2.099685128150953e-14
+
+Note that this example uses the vectorized Poisson constructors
+of :ref:`spmatrix-page`.
+
+
+The :mod:`pysparseUmfpack` Module: A Higher-Level UMFPACK Interface
+-------------------------------------------------------------------
+
+.. automodule:: pysparseUmfpack
+
+.. autoclass:: PysparseUmfpackSolver
+   :show-inheritance: 
+   :members: 
+   :inherited-members: 
+   :undoc-members:
+
+Example: The 2D Poisson System with UMFPACK
+-------------------------------------------
+
+The solution of a 2D Poisson system with :class:`PysparseUmfpackSolver` may look
+like this::
+
+     from poisson_vec import poisson2d_sym_blk_vec
+     from numpy import ones
+     from numpy.linalg import norm
+
+     n = 200
+     A = PysparseMatrix( matrix=poisson2d_sym_blk_vec(n) )
+     x_exact = ones(n*n)/n
+     b = A * x_exact
+     LU = PysparseUmfpackSolver(A)
+     LU.solve(b)
+     print 'Factorization time: ', LU.factorizationTime
+     print 'Solution time: ', LU.solutionTime
+     print 'Error: ', norm(LU.sol - x_exact)/norm(x_exact)
+
+This script produces the output::
+
+     Factorization time:  0.520043
+     Solution time:  0.031086
+     Error: 1.10998989668e-15

@@ -1,11 +1,13 @@
 /**
  * Alternate Sphinx design
  * Originally created by Armin Ronacher for Werkzeug, adapted by Georg Brandl.
+ * Minor adaptations: D. Orban.
  */
 
 body {
-    font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', sans-serif;
-    font-size: 14px;
+    /*font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', sans-serif;*/
+    font-family: Verdana, Arial, 'Bitstream Vera Sans', Helvetica, sans-serif;
+    font-size: 13px;
     letter-spacing: -0.01em;
     line-height: 150%;
     text-align: center;
@@ -16,7 +18,7 @@ body {
     border: 1px solid #aaa;
 
     margin: 0px 80px 0px 80px;
-    min-width: 740px;
+    min-width: 700px;
 }
 
 a {
@@ -29,7 +31,8 @@ a:hover {
 }
 
 pre {
-    font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    /*font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;*/
+    font-family: monospace;
     font-size: 0.95em;
     letter-spacing: 0.015em;
     padding: 0.5em;
@@ -53,7 +56,8 @@ table.highlighttable td {
 }
 
 cite, code, tt {
-    font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    /*font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;*/
+    font-family: monospace;
     font-size: 0.95em;
     letter-spacing: 0.01em;
 }
@@ -226,6 +230,7 @@ div.sphinxsidebar {
     width: 210px;
     float: right;
     text-align: left;
+    font-size: 11px;
     /* margin-left: -100%; */
 }
 

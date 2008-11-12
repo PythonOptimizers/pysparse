@@ -25,6 +25,9 @@ Let's illustrate the calling conventions, using the PCG method.
 
 .. function:: info, iter, relres = pcg(A, b, x, tol, maxit[, K])
 
+   Solve a linear system ``A x = b`` with the preconditioned conjugate gradient
+   algorithm.
+
    :parameters:
 
         :A: The coefficient matrix of the linear system of equations. ``A``
