@@ -12,15 +12,15 @@ See [SLU]_ for more information.
 
 .. [DEGLL99] J. W. Demmel, S. C. Eisenstat, J. R. Gilbert, X. S. Li and
              J. W. H. Liu, *A supernodal approach to sparse partial pivoting*,
-             SIAM Journal on Matrix Analysis and Applications 20(3),
+             SIAM Journal on Matrix Analysis and Applications **20**\ (3),
              pp. 720-755, 1999.
 .. [DGL99] J. W. Demmel, J. R. Gilbert and X. S. Li,
            *An Asynchronous Parallel Supernodal Algorithm for Sparse Gaussian
            Elimination*, SIAM Journal on Matrix Analysis and Applications
-           20(4), pp. 915-952, 1999.
+           **20**\ (4), pp. 915-952, 1999.
 .. [LD03] X. S. Li and J. W. Demmel, *SuperLU_DIST: A Scalable
           Distributed-Memory Sparse Direct Solver for Unsymmetric Linear
-          Systems*, ACM Transactions on Mathematical Software 29(2),
+          Systems*, ACM Transactions on Mathematical Software **29**\ (2),
           pp. 110-140, 2003.
 .. [SLU] http://crd.lbl.gov/~xiaoye/SuperLU
 

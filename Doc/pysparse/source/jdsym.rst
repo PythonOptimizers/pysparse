@@ -28,6 +28,9 @@ The module exports a single function:
 
 .. function:: jdsym(A, M, K, kmax, tau, jdtol, itmax, linsolver, **kwargs)
 
+   Implements Jacobi-Davidson iterative method to identify a given number of
+   eigenvalues near a target value.
+
    :parameters:
 
         :A: the matrix :math:`\mathbf{A}` in :eq:`eq:python:2` or

@@ -12,16 +12,16 @@ See [UMF]_ for more information.
 
 .. [D04a] T. A. Davis, *A column pre-ordering strategy for the
           unsymmetric-pattern multifrontal method*, ACM Transactions on
-          Mathematical Software, 30(2), pp. 165-195, 2004.
+          Mathematical Software, **30**\ (2), pp. 165-195, 2004.
 .. [D04b] T. A. Davis, *Algorithm 832: UMFPACK, an unsymmetric-pattern
           multifrontal method*, ACM Transactions on Mathematical Software,
-          30(2), pp. 196-199, 2004.
+          **30**\ (2), pp. 196-199, 2004.
 .. [DD99] T. A. Davis and I. S. Duff, *A combined unifrontal/multifrontal
           method for unsymmetric sparse matrices*, ACM Transactions on
-          Mathematical Software, 25(1), pp. 1-19, 1999.
+          Mathematical Software, **25**\ (1), pp. 1-19, 1999.
 .. [DD97] T. A. Davis and I. S. Duff, *An unsymmetric-pattern multifrontal
           method for sparse LU factorization*, SIAM Journal on Matrix Analysis
-          and Applications, 18(1), pp. 140-158, 1997.
+          and Applications, **18**\ (1), pp. 140-158, 1997.
 .. [UMF] http://www.cise.ufl.edu/research/sparse/umfpack
 
 """

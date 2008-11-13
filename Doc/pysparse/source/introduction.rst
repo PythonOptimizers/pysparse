@@ -7,14 +7,17 @@ Introduction to Pysparse
 PySparse extends the Python interpreter by a set of sparse matrix types holding
 double precision values. PySparse also includes modules that implement
 
-- iterative Krylov methods for solving linear systems of equations,
+- Iterative Krylov methods for solving linear systems of equations,
 - Diagonal (Jacobi) and SSOR preconditioners,
-- interfaces to direct solvers for sparse linear systems of equations (SuperLU
+- Interfaces to direct solvers for sparse linear systems of equations (SuperLU
   and UMFPACK),
-- a Jacobi-Davidson eigenvalue solver for the symmetric, generalised matrix
-  eigenvalue problem (JDSYM).
+- A Jacobi-Davidson eigenvalue solver for the symmetric, generalised matrix
+  eigenvalue problem (JDSYM),
+- Low-level C classes to represent and manipulate sparse matrices,
+- High-level Python classes with operator overloading to perform usual
+  operations on matrices.
 
-The above modules are implemented as C extension modules for maximum
+Most of the above modules are implemented as C extension modules for maximum
 performance.
 
 PySparse uses `NumPy <http://numpy.scipy.org>`_ for handling dense vectors and

@@ -11,8 +11,6 @@ Pysparse documentation
 
 .. module:: pysparse
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
 
@@ -37,7 +35,14 @@ installing the TeX fonts. Please refer to
 `http://www.math.union.edu/~dpvc/jsMath/users/welcome.html
 <http://www.math.union.edu/~dpvc/jsMath/users/welcome.html>`_.
 
-Indices and tables
+
+TODO List
+=========
+
+.. todolist::
+
+
+Indices and Tables
 ==================
 
 * :ref:`genindex`

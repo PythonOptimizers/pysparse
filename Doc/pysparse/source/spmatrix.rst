@@ -37,8 +37,8 @@ manipulated. Their purpose is to support efficient matrix-vector
 multiplications.
 
 
-``spmatrix`` module functions
------------------------------
+:mod:`spmatrix` module functions
+--------------------------------
 
 .. function:: ll_mat(n, m, sizeHint=1000)
 
@@ -140,13 +140,17 @@ Write operations to slices are also possible:
     ll_mat(general, [5,5], [(0,0): -1, (1,1): -1, (2,1): 1, 
     (2,2): 3, (3,3): 4, (4,4): 5])
 
-*TODO: Mention fancy indexing*
+.. todo:: Mention fancy indexing
 
 
 ``ll_mat`` Object Attributes and Methods
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: ll_mat
+
+   A general sparse matrix class in linked-list format which also allows the
+   representation of symmetric matrices. Only the lower triangle of a symmetric
+   matrix is kept in memory for efficiency.
 
    .. attribute:: shape
 
@@ -215,7 +219,7 @@ Write operations to slices are also possible:
 
    .. method:: copy()
 
-      Returns a new ``ll_mat`` object, that represents a copy of the ``ll_mat``
+      Returns a new ``ll_mat`` object that is a (deep) copy of the ``ll_mat``
       object :math:`\mathbf{A}`. So::
 
           >>> B = A.copy()
@@ -282,7 +286,7 @@ Write operations to slices are also possible:
       rank-1 arrays. Their length corresponds to the order of
       matrix :math:`\mathbf{B}`.
 
-   .. method:: update_add_at(val, irow, jcol):
+   .. method:: update_add_at(val, irow, jcol)
 
       Add in place the elements of the vector ``val`` at the indices given by
       the two arrays ``irow`` and ``jcol``. The operation is equivalent to::
@@ -306,11 +310,11 @@ Write operations to slices are also possible:
      if ``p='fro'``, the Frobenius norm is returned.
 
      .. note::
-        The 1 and infinity norm are not implemented for symmetric matrices.
+        The 1 and infinity norm are not yet implemented for symmetric matrices.
 
    .. method:: keys()
 
-      Return a list of tuples (i,j) of the nonzero matrix entries.
+      Return a list of tuples ``(i,j)`` of the nonzero matrix entries.
 
    .. method:: values()
 
@@ -318,12 +322,13 @@ Write operations to slices are also possible:
 
    .. method:: items()
 
-      Return a list of tuples (indices, value) of the nonzero entries keys and
-      values. The indices are themselves tuples (i,j) of row and column values.
+      Return a list of tuples ``(indices, value)`` of the nonzero entries keys
+      and values. The indices are themselves tuples ``(i,j)`` of row and column
+      values.
 
    .. method:: scale(sigma)
 
-      Scale each element in the matrix by the constant sigma.
+      Scale each element in the matrix by the constant ``sigma``.
 
    .. method:: take(val, irow, jcol)
 
@@ -342,7 +347,7 @@ Write operations to slices are also possible:
    .. method:: delete_rows(mask)
 
       Delete rows in place. If ``mask[i] == 0``, the ``i``-th row is
-      deleted. This operation does not simple zero out rows, they are *removed*,
+      deleted. This operation does not simply zero out rows, they are *removed*,
       i.e., the resulting matrix is *smaller*.
 
    .. method:: delete_cols(mask)
@@ -357,12 +362,12 @@ Write operations to slices are also possible:
    .. method:: find()
 
       Returns a triple ``(val,irow,jcol)`` of Numpy arrays containing the matrix
-      in coordinate format, there is a nonzero element with value ``val[i]`` in
+      in coordinate format. There is a nonzero element with value ``val[i]`` in
       position ``(irow[i],jcol[i])``.
 
 
-``csr_mat`` and ``sss_mat`` Objects
------------------------------------
+:class:`csr_mat` and :class:`sss_mat` Objects
+---------------------------------------------
 
 ``csr_mat`` objects represent matrices stored in the CSR format, which are
 described in :ref:`formats-page`.  ``sss_mat`` objects represent matrices stored
@@ -378,11 +383,21 @@ the ``link`` array is not needed.
 access matrix entries or sub-matrices.  Again, their purpose is to provide fast
 matrix-vector multiplication.
 
-``csr_mat`` and ``sss_mat`` Object Attributes and Methods
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:class:`csr_mat` and :class:`sss_mat` Object Attributes and Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: csr_mat
+
+   A general sparse matrix class in compressed sparse row format which also
+   allows the representation of symmetric matrices. Only the lower triangle of
+   a symmetric matrix is kept in memory for efficiency.
+
+
 .. class:: sss_mat
+
+   A general sparse matrix class in sparse skyline format which also allows the
+   representation of symmetric matrices. Only the lower triangle of a symmetric
+   matrix is kept in memory for efficiency.
 
    .. attribute:: shape
 
@@ -414,7 +429,9 @@ Example: 2D-Poisson matrix
 
 This section illustrates the use of the ``spmatrix`` module to
 build the well known 2D-Poisson matrix resulting from a :math:`n \times n`
-square grid.::
+square grid::
+
+       from pysparse import spmatrix
 
        def poisson2d(n):
            n2 = n*n
@@ -431,10 +448,10 @@ square grid.::
                       L[k,k-n] = -1
                    if j < n-1:
                       L[k,k+n] = -1
-       return L
+           return L
 
 Using the symmetric variant of the ``ll_mat`` object, this gets
-even shorter.::
+even shorter::
 
      def poisson2d_sym(n):
          n2 = n*n
@@ -447,11 +464,11 @@ even shorter.::
                     L[k,k-1] = -1
                  if j > 0:
                     L[k,k-n] = -1
-     return L
+         return L
 
 To illustrate the use of the slice notation to address sub-matrices,
 let's build the 2D Poisson matrix using the diagonal and off-diagonal
-blocks.::
+blocks::
 
         def poisson2d_sym_blk(n):
             n2 = n*n
@@ -466,100 +483,7 @@ blocks.::
             for i in range(0, n*n, n):
                 L[i:i+n,i:i+n] = P
                 if i > 0: L[i:i+n,i-n:i] = I
-        return L
-
-
-Performance comparison with Matlab
-==================================
-
-.. note ::
-   These are Roman Gueus' tests. I am not sure on which type of machine they
-   were performed. In the next section, we implement the above Poisson
-   constructors by taking advantage of vectorization and run updated
-   comparisons.
-
-Let's compare the performance of three python codes above with the
-following Matlab functions:
-
-The Matlab function ``poisson2d`` is equivalent to the Python
-function with the same name
-
-.. code-block:: matlab
-
-   function L = poisson2d(n)
-            L = sparse(n*n);
-            for i = 1:n
-                for j = 1:n
-                    k = i + n*(j-1);
-                    L(k,k) = 4;
-                    if i > 1, L(k,k-1) = -1; end
-                    if i < n, L(k,k+1) = -1; end
-                    if j > 1, L(k,k-n) = -1; end
-                    if j < n, L(k,k+n) = -1; end
-                end
-            end
-
-The function ``poisson2d_blk`` is an adaption of the Python function
-``poisson2d_sym_blk`` (except for exploiting the symmetry, which is not
-directly supported in Matlab).
-
-.. code-block:: matlab
-
-   function L = poisson2d_blk(n)
-            e = ones(n,1);
-            P = spdiags([-e 4*e -e], [-1 0 1], n, n);
-            I = -speye(n);
-            L = sparse(n*n);
-            for i = 1:n:n*n
-                L(i:i+n-1,i:i+n-1) = P;
-                if i > 1, L(i:i+n-1,i-n:i-1) = I; end
-                if i < n*n - n, L(i:i+n-1,i+n:i+2*n-1) = I; end
-            end
-
-The function ``poisson2d_kron`` demonstrates one of the most efficient 
-ways to generate the 2D Poisson matrix in Matlab.
-
-.. code-block:: matlab
-
-   function L = poisson2d_kron(n)
-            e = ones(n,1);
-            P = spdiags([-e 2*e -e], [-1 0 1], n, n);
-            L = kron(P, speye(n)) + kron(speye(n), P);
-
-.. _python-vs-matlab:
-
-   **Table.** Performance comparison of Python and Matlab functions to generate
-   the 2D Poisson matrix. The execution times are given in seconds. Matlab
-   version 6.0 Release 12 was used for these timings.
-
-+------------------------------+-------+--------+---------+----------------+
-| Function                     | n=100 |  n=300 |   n=500 | n=1000         |
-+------------------------------+-------+--------+---------+----------------+
-| Python ``poisson2d``         |  0.44 |   4.11 |   11.34 |  45.50         |
-+------------------------------+-------+--------+---------+----------------+
-| Python ``poisson2d_sym``     |  0.26 |   2.34 |   6.55  |  26.33         |
-+------------------------------+-------+--------+---------+----------------+
-| Python ``poisson2d_sym_blk`` |  0.03 |   0.21 |   0.62  |  2.22          |
-+------------------------------+-------+--------+---------+----------------+
-| Matlab ``poisson2d``         | 28.19 | 3464.9 | 38859.0 | :math:`\infty` |
-+------------------------------+-------+--------+---------+----------------+
-| Matlab ``poisson2d_blk``     | 6.85  | 309.20 | 1912.1  | :math:`\infty` |
-+------------------------------+-------+--------+---------+----------------+
-| Matlab ``poisson2d_kron``    | 0.21  | 2.05   | 6.23    | 29.96          |
-+------------------------------+-------+--------+---------+----------------+
-
-The execution times reported in Table python-vs-matlab_ clearly
-show, that the Python implementation is superior to the Matlab
-implementation. If the fastest versions are compared for both languages, Python
-is approximately 10 times faster. Comparing the straight forward ``poisson2d``
-versions, one is struck by the result that, the Matlab function is incredibly
-slow. The Python version is more than three orders of magnitude faster!
-
-.. This result really raises the doubt, whether Matlab's sparse matrix format is
-.. appropriately chosen.
-
-The performance difference between Python's ``poisson2d_sym`` and
-  ``poisson2d_sym_blk`` indicates, that a lot of time is spent parsing indices.
+            return L
 
 
 Vectorization
@@ -618,7 +542,8 @@ And similarly in the symmetric version::
         return L
 
 The time differences to construct matrices with and without vectorization can be
-dramatic:
+dramatic. The following timings were generated on a 2.4GHz Intel Core2 Duo
+processor:
 
 .. sourcecode:: ipython
 
@@ -705,3 +630,123 @@ of ``find`` and ``put``, at the expense of memory consumption.
    10 loops, best of 3: 246 ms per loop
 
 The two best timings coinciding is a pure coincidence.
+
+
+Matlab Implementation
+=====================
+
+Let's compare the performance of three python codes above with the
+following Matlab functions:
+
+The Matlab function ``poisson2d`` is equivalent to the Python
+function with the same name
+
+.. code-block:: matlab
+
+   function L = poisson2d(n)
+            L = sparse(n*n);
+            for i = 1:n
+                for j = 1:n
+                    k = i + n*(j-1);
+                    L(k,k) = 4;
+                    if i > 1, L(k,k-1) = -1; end
+                    if i < n, L(k,k+1) = -1; end
+                    if j > 1, L(k,k-n) = -1; end
+                    if j < n, L(k,k+n) = -1; end
+                end
+            end
+
+The function ``poisson2d_blk`` is an adaption of the Python function
+``poisson2d_sym_blk`` (except for exploiting the symmetry, which is not
+directly supported in Matlab).
+
+.. code-block:: matlab
+
+   function L = poisson2d_blk(n)
+            e = ones(n,1);
+            P = spdiags([-e 4*e -e], [-1 0 1], n, n);
+            I = -speye(n);
+            L = sparse(n*n);
+            for i = 1:n:n*n
+                L(i:i+n-1,i:i+n-1) = P;
+                if i > 1, L(i:i+n-1,i-n:i-1) = I; end
+                if i < n*n - n, L(i:i+n-1,i+n:i+2*n-1) = I; end
+            end
+
+The function ``poisson2d_kron`` demonstrates one of the most efficient 
+ways to generate the 2D Poisson matrix in Matlab.
+
+.. code-block:: matlab
+
+   function L = poisson2d_kron(n)
+            e = ones(n,1);
+            P = spdiags([-e 2*e -e], [-1 0 1], n, n);
+            L = kron(P, speye(n)) + kron(speye(n), P);
+
+The Matlab functions above were place in a Matlab script names ``poisson.m``
+which takes ``n`` as argument. It then calls ``poisson2d``, ``poisson2d_blk``
+and ``poisson2d_kron`` successively, surrounding each call by ``tic`` and
+``toc``. The tests were performed on a 2.4GHz Intel Core2 Duo running Matlab
+7.6.0.324 (R2008a).
+
+The results are as follows::
+
+   >> poisson(100)
+   poisson2d      Elapsed time is 1.731940 seconds.
+   poisson2d_blk  Elapsed time is 0.804837 seconds.
+   poisson2d_kron Elapsed time is 0.019118 seconds.
+
+   >> poisson(300)
+   poisson2d      Elapsed time is 145.979044 seconds.
+   poisson2d_blk  Elapsed time is 32.785585 seconds.
+   poisson2d_kron Elapsed time is 0.215165 seconds.
+
+   >> poisson(500)
+   poisson2d      Elapsed time is 2318.512099 seconds.
+   poisson2d_blk  Elapsed time is 292.355093 seconds.
+   poisson2d_kron Elapsed time is 0.627137 seconds.
+
+   >> poisson(1000)
+   poisson2d_kron Elapsed time is 2.317660 seconds.
+
+
+It is striking to see how slow the straightforward ``poisson2d``
+version is in Matlab. As we see in the next section, the Python version is
+faster by several orders of magnitude.
+
+
+Comparison with Matlab
+======================
+
+Here, we summarize the above results by giving timing ratios between the Python
+and Matlab Poisson constructors. First, consider the simple ``Poisson2D``
+function.
+
++-------+---------+--------+------------+---------------+-------------------+
+| ``n`` | Matlab  | Python | Python_vec | Matlab/Python | Matlab/Python_vec |
++-------+---------+--------+------------+---------------+-------------------+
+| 100   |    1.73 | 0.0382 | 0.00811    | 45.53         | 216.25            |
++-------+---------+--------+------------+---------------+-------------------+
+| 300   |  145.98 | 0.3520 | 0.0448     | 414.72        | 3258.5            |
++-------+---------+--------+------------+---------------+-------------------+
+| 500   | 2318.51 | 0.9800 | 0.1100     | 2365.8        | 21077.0           |
++-------+---------+--------+------------+---------------+-------------------+
+| 1000  | ---     | 4.02   | 0.398      | ---           | ---               |
++-------+---------+--------+------------+---------------+-------------------+
+
+Unfortunately, since Matlab does not explicitly support symmetric matrices, we
+cannot compare the other functions. For information only, we compare the block
+version of the Python constructor with the Kronecker-product version of the
+Matlab constructor since those are the fastest.
+
++-------+---------+------------+-------------------+
+| ``n`` | Matlab  | Python_vec | Matlab/Python_vec |
++-------+---------+------------+-------------------+
+| 100   | 0.01912 | 0.0028     | 6.83              |
++-------+---------+------------+-------------------+
+| 300   | 0.2152  | 0.0219     | 9.83              |
++-------+---------+------------+-------------------+
+| 500   | 0.6271  | 0.0654     | 9.59              |
++-------+---------+------------+-------------------+
+| 1000  | 2.318   | 0.246      | 9.42              |
++-------+---------+------------+-------------------+

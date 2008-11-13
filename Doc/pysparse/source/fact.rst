@@ -168,7 +168,7 @@ factorization as a preconditioner in any of the iterative methods of the
 The :mod:`umfpack` Module
 -------------------------
 
-*TODO*
+.. todo:: Document the umfpack module.
 
 Higher-Level Python Interfaces
 ==============================
