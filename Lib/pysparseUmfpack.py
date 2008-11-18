@@ -29,7 +29,6 @@ See [UMF]_ for more information.
 # To look into:
 #  - wrap up other useful methods of UMFPACK
 #  - allow other data types
-#  - rely on user-installed UMFPACK library?
 
 __docformat__ = 'restructuredtext'
 
@@ -71,8 +70,6 @@ class PysparseUmfpackSolver( PysparseDirectSolver ):
        :tolsympivot: if diagonal pivoting is attempted, this parameter is used
                      to control when the diagonal is selected in a given pivot
                      column. Default: 0.0
-
-       :irstep: number of iterative refinement steps to attempt. Default: 2
 
     .. attribute:: LU
 
@@ -155,30 +152,46 @@ class PysparseUmfpackSolver( PysparseDirectSolver ):
         self.lnz = self.unz = self.nz_udiag = None
         return
 
-    def solve(self, rhs, method='UMFPACK_A'):
+    def solve(self, rhs, **kwargs):
         """
-        Solve the linear system  ``A x = rhs``, where ``A`` is the input matrix
-        and ``rhs`` is a Numpy vector of appropriate dimension. The result is
+        Solve the linear system  ``A x = rhs``. The result is
         placed in the :attr:`sol` member of the class instance.
-
-        The optional ``method`` argument specifies the type of system being
-        solved:
         
-        - ``"UMFPACK_A"``    : Solve :math:`\mathbf{A} x = b`     (default)
-        - ``"UMFPACK_At"``   : Solve :math:`\mathbf{A}^T x = b`
-        - ``"UMFPACK_Pt_L"`` : Solve :math:`\mathbf{P}^T \mathbf{L} x = b`
-        - ``"UMFPACK_L"``    : Solve :math:`\mathbf{L} x = b`
-        - ``"UMFPACK_Lt_P"`` : Solve :math:`\mathbf{L}^T \mathbf{P} x = b`
-        - ``"UMFPACK_Lt"``   : Solve :math:`\mathbf{L}^T x = b`
-        - ``"UMFPACK_U_Qt"`` : Solve :math:`\mathbf{U} \mathbf{Q}^T x = b`
-        - ``"UMFPACK_U"``    : Solve :math:`\mathbf{U} x = b`
-        - ``"UMFPACK_Q_Ut"`` : Solve :math:`\mathbf{Q} \mathbf{U}^T x = b`
-        - ``"UMFPACK_Ut"``   : Solve :math:`\mathbf{U}^T x = b`
+        :parameters:
+           :rhs: a Numpy vector of appropriate dimension.
 
+        :keywords:
+           :method: specifies the type of system being solved:
+        
+                    +-------------------+--------------------------------------+
+                    |``"UMFPACK_A"``    | :math:`\mathbf{A} x = b` (default)   |
+                    +-------------------+--------------------------------------+
+                    |``"UMFPACK_At"``   | :math:`\mathbf{A}^T x = b`           |
+                    +-------------------+--------------------------------------+
+                    |``"UMFPACK_Pt_L"`` | :math:`\mathbf{P}^T \mathbf{L} x = b`|
+                    +-------------------+--------------------------------------+
+                    |``"UMFPACK_L"``    | :math:`\mathbf{L} x = b`             |
+                    +-------------------+--------------------------------------+
+                    |``"UMFPACK_Lt_P"`` | :math:`\mathbf{L}^T \mathbf{P} x = b`|
+                    +-------------------+--------------------------------------+
+                    |``"UMFPACK_Lt"``   | :math:`\mathbf{L}^T x = b`           |
+                    +-------------------+--------------------------------------+
+                    |``"UMFPACK_U_Qt"`` | :math:`\mathbf{U} \mathbf{Q}^T x = b`|
+                    +-------------------+--------------------------------------+
+                    |``"UMFPACK_U"``    | :math:`\mathbf{U} x = b`             |
+                    +-------------------+--------------------------------------+
+                    |``"UMFPACK_Q_Ut"`` | :math:`\mathbf{Q} \mathbf{U}^T x = b`|
+                    +-------------------+--------------------------------------+
+                    |``"UMFPACK_Ut"``   | :math:`\mathbf{U}^T x = b`           |
+                    +-------------------+--------------------------------------+
+
+           :irsteps: number of iterative refinement steps to attempt. Default: 2
         """
+        method = kwargs.get('method', 'UMFPACK_A')
+        irsteps = kwargs.get('irsteps', 2)
         if self.sol is None: self.sol = numpy.empty(self.ncol, self.type)
         t = cputime()
-        self.LU.solve(rhs, self.sol, method)
+        self.LU.solve(rhs, self.sol, method, irsteps)
         self.solutionTime = cputime() - t
         return
 

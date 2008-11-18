@@ -264,7 +264,7 @@ static PyObject *newSuperLUObject(int n, CSRMatObject *matrix, PyObject *issym,
 
   //print_int_vec("\nperm_c", n, self->perm_c);
 
-  printf("Factorizing with drop_tol = %g\n", drop_tol);
+  //printf("Factorizing with drop_tol = %g\n", drop_tol);
   /* Perform factorization (perm_c and perm_r are swapped because our matrix
    * is stored in compressed-row format and not in compressed-column format! */
   dgstrf(&self->options, &AC, drop_tol, relax, panel_size,

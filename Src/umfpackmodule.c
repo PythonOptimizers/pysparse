@@ -84,9 +84,9 @@ typedef struct UMFPackObject {
   PyObject_VAR_HEAD
   int     n;
   int     nnz;
-  double *val;	                /* pointer to array of values */
-  int    *row;			/* pointer to array of indices */
-  int    *ind;			/* pointer to array of indices */
+  double *val;                  /* pointer to array of values */
+  int    *row;          /* pointer to array of indices */
+  int    *ind;          /* pointer to array of indices */
   void   *Numeric;
   double *Control;
   double *Info;
@@ -198,7 +198,7 @@ static char lu_doc[] = "self.lu()\n\
 static PyObject *UMFPack_Lu(UMFPackObject *self, PyObject *args) {
 
   int     nrow, ncol, do_recip, lnz, unz, nz_udiag, status, i, j;
-  int    *Li, *Uj, *Lp, *Lj, *Up, *Ui;
+  int    *Lp, *Lj, *Up, *Ui;
   double *Lx, *Ux, *D;
   void   *Numeric = self->Numeric;
 
@@ -287,7 +287,7 @@ static PyObject *UMFPack_Lu(UMFPackObject *self, PyObject *args) {
   return Py_BuildValue( "OOOOOi", Lmat, Umat, P, Q, R, do_recip );
 }
 
-static char solve_doc[] = "self.solve(b, x, systype)\n\
+static char solve_doc[] = "self.solve(b, x, method, irsteps)\n\
 \n\
 solves linear system of equations.\n\
 \n\
@@ -295,8 +295,8 @@ parameters\n\
 ----------\n\
 \n\
 b        array, right hand side of equation\n\
-x        array, solution vector\n\
-systype  'UMFPACK_A': solve A   * x == b\n\
+x        array, solution vector\n\n\
+method   'UMFPACK_A': solve A   * x == b\n\
          'UMFPACK_At': solve A^T * x == b\n\
          'UMFPACK_Pt_L': solve P^T * L * x == b\n\
          'UMFPACK_L': solve L * x == b\n\
@@ -306,47 +306,53 @@ systype  'UMFPACK_A': solve A   * x == b\n\
          'UMFPACK_U': solve U * x == b\n\
          'UMFPACK_Q_Ut': solve Q * U^T * x == b\n\
          'UMFPACK_Ut': solve U^T * x == b\n\
+\n\
+irsteps  Number of iterative refinement steps to attempt.\n\
 ";
 
 static PyObject *
 UMFPack_solve(UMFPackObject *self, PyObject *args) {
   PyArrayObject *b, *x;
-  char *systype = "UMFPACK_A";
-  int sys, status;
+  char *method = "UMFPACK_A";
+  int res, sys, irsteps = -1, status;
 
-  if (!PyArg_ParseTuple(args, "O!O!|s",
-			&PyArray_Type, &b,
-			&PyArray_Type, &x,
-			&systype))
-    return NULL;
+  res = PyArg_ParseTuple(args, "O!O!|si",
+                               &PyArray_Type, &b,
+                               &PyArray_Type, &x,
+                               &method, &irsteps);
+  if( !res )
+      return NULL;
 
   SPMATRIX_CHECK_ARR_DIM_SIZE(b, 1, self->n);
   SPMATRIX_CHECK_ARR_DIM_SIZE(x, 1, self->n);
 
-  if (strcmp(systype, "UMFPACK_A") == 0)
+  if (strcmp(method, "UMFPACK_A") == 0)
       sys = UMFPACK_A;
-  else if (strcmp(systype, "UMFPACK_At") == 0)
+  else if (strcmp(method, "UMFPACK_At") == 0)
       sys = UMFPACK_At;
-  else if (strcmp(systype, "UMFPACK_Pt_L") == 0)
+  else if (strcmp(method, "UMFPACK_Pt_L") == 0)
       sys = UMFPACK_Pt_L;
-  else if (strcmp(systype, "UMFPACK_L") == 0)
+  else if (strcmp(method, "UMFPACK_L") == 0)
       sys = UMFPACK_L;
-  else if (strcmp(systype, "UMFPACK_Lt_P") == 0)
+  else if (strcmp(method, "UMFPACK_Lt_P") == 0)
       sys = UMFPACK_Lt_P;
-  else if (strcmp(systype, "UMFPACK_Lt") == 0)
+  else if (strcmp(method, "UMFPACK_Lt") == 0)
       sys = UMFPACK_Lt;
-  else if (strcmp(systype, "UMFPACK_U_Qt") == 0)
+  else if (strcmp(method, "UMFPACK_U_Qt") == 0)
       sys = UMFPACK_U_Qt;
-  else if (strcmp(systype, "UMFPACK_U") == 0)
+  else if (strcmp(method, "UMFPACK_U") == 0)
       sys = UMFPACK_U;
-  else if (strcmp(systype, "UMFPACK_Q_Ut") == 0)
+  else if (strcmp(method, "UMFPACK_Q_Ut") == 0)
       sys = UMFPACK_Q_Ut;
-  else if (strcmp(systype, "UMFPACK_Ut") == 0)
+  else if (strcmp(method, "UMFPACK_Ut") == 0)
       sys = UMFPACK_Ut;
   else {
-      PyErr_SetString(PyExc_ValueError, "systype");
+      PyErr_SetString(PyExc_ValueError, "method");
       return NULL;
   }
+
+  if( irsteps != -1 )
+      self->Control[UMFPACK_IRSTEP] = irsteps;
 
   status = umfpack_di_solve(sys, self->ind, self->row, self->val,
                             (double *)x->data, (double *)b->data,
@@ -381,7 +387,7 @@ PyMethodDef UMFPack_methods[] = {
   {"getlists", (PyCFunction)UMFPack_getlists, METH_VARARGS, getlists_doc},
   {"lunz", (PyCFunction)UMFPack_Lunz, METH_VARARGS, lunz_doc},
   {"lu", (PyCFunction)UMFPack_Lu, METH_VARARGS, lu_doc},
-  {NULL, NULL}			/* sentinel */
+  {NULL, NULL}          /* sentinel */
 };
 
 
@@ -415,10 +421,10 @@ UMFPack_getattr(UMFPackObject *self, char *name)
     PyObject *list = PyList_New(sizeof(members)/sizeof(char *));
     if (list != NULL) {
       for (i = 0; i < sizeof(members)/sizeof(char *); i ++)
-	PyList_SetItem(list, i, PyString_FromString(members[i]));
+    PyList_SetItem(list, i, PyString_FromString(members[i]));
       if (PyErr_Occurred()) {
-	Py_DECREF(list);
-	list = NULL;
+    Py_DECREF(list);
+    list = NULL;
       }
     }
     return list;
@@ -438,15 +444,15 @@ PyTypeObject UMFPackType = {
   sizeof(UMFPackObject),
   0,
   (destructor)UMFPack_dealloc,   /* tp_dealloc */
-  0,				/* tp_print */
+  0,                /* tp_print */
   (getattrfunc)UMFPack_getattr,  /* tp_getattr */
-  0,				/* tp_setattr */
-  0,				/* tp_compare */
-  0,				/* tp_repr */
-  0,				/* tp_as_number*/
-  0,				/* tp_as_sequence*/
-  0,				/* tp_as_mapping*/
-  0,				/* tp_hash */
+  0,                /* tp_setattr */
+  0,                /* tp_compare */
+  0,                /* tp_repr */
+  0,                /* tp_as_number*/
+  0,                /* tp_as_sequence*/
+  0,                /* tp_as_mapping*/
+  0,                /* tp_hash */
 };
 
 /***********************************************************************
@@ -486,12 +492,12 @@ static void sortcol(int *row, double *val, int n)
 
 static PyObject *
 newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
-                  double tolpivot, double tolsympivot, int irstep)
+                  double tolpivot, double tolsympivot)
 {
   UMFPackObject *self;
   void *Symbolic;
   struct llColIndex *colidx;
-  int i, validx, curridx, status, nrow, ncol;
+  int i, validx, curridx, status;
 
   if (SpMatrix_LLMatBuildColIndex(&colidx, matrix, 1) == 1)
     return NULL;
@@ -549,9 +555,6 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
 
   if (tolsympivot != -1)
     self->Control[UMFPACK_SYM_PIVOT_TOLERANCE] = tolsympivot;
-
-  if (irstep != -1)
-    self->Control[UMFPACK_IRSTEP] = irstep;
 
   self->Info = (double *)PyMem_Malloc(UMFPACK_INFO * sizeof(double));
   if (self->Info == NULL) {
@@ -621,7 +624,7 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
 
   umfpack_di_free_symbolic(&Symbolic);
 
-  return self;
+  return (PyObject *)self;
 
   failmemory:
     SpMatrix_LLMatDestroyColIndex(&colidx);
@@ -674,8 +677,6 @@ tolpivot            relative pivot tolerance for threshold partial\n\
 tolsympivot         if diagonal pivoting is attempted then this\n\
                     parameter is used to control when the diagonal\n\
                     is selected in a given pivot column.\n\
-\n\
-irstep              number of iterative refinement steps to attempt.\
 ";
 
 static PyObject *
@@ -686,20 +687,18 @@ factorize(PyObject *self, PyObject *args, PyObject *keywds) {
   char *scale="UMFPACK_SCALE_SUM";
   double tolpivot = 0.1;
   double tolsympivot = 0.0;
-  int irstep = 2;
   int res;
-  int strategyval, scaleval;
+  int strategyval = UMFPACK_STRATEGY_AUTO, scaleval = UMFPACK_SCALE_SUM;
 
-  static char *kwlist[] = {"", "strategy", "tol2by2", "scale", "tolpivot", "tolsympivot", "irstep", NULL};
+  static char *kwlist[] = {"", "strategy", "tol2by2", "scale", "tolpivot", "tolsympivot", NULL};
 
-  res = PyArg_ParseTupleAndKeywords(args, keywds, "O!|sdsddi", kwlist, 
-					&LLMatType, &matrix,
-					&strategy,
-					&tol2by2,
-					&scale,
-					&tolpivot,
-					&tolsympivot,
-                              &irstep);
+  res = PyArg_ParseTupleAndKeywords(args, keywds, "O!|sdsdd", kwlist, 
+                    &LLMatType, &matrix,
+                    &strategy,
+                    &tol2by2,
+                    &scale,
+                    &tolpivot,
+                    &tolsympivot);
   if (!res)
     return NULL;
 
@@ -719,7 +718,7 @@ factorize(PyObject *self, PyObject *args, PyObject *keywds) {
   if (strcmp("UMFPACK_SCALE_MAX", scale) == 0)
     scaleval = UMFPACK_SCALE_MAX;
 
-  return newUMFPackObject(matrix, strategyval, tol2by2, scaleval, tolpivot, tolsympivot, irstep);
+  return newUMFPackObject(matrix, strategyval, tol2by2, scaleval, tolpivot, tolsympivot);
 }
 
 
@@ -727,7 +726,7 @@ factorize(PyObject *self, PyObject *args, PyObject *keywds) {
  */
 static PyMethodDef precon_methods[] = {
   {"factorize", (PyCFunction)factorize, METH_VARARGS|METH_KEYWORDS, factorize_doc},
-  {NULL, NULL}	/* sentinel */
+  {NULL, NULL}  /* sentinel */
 };
 
 

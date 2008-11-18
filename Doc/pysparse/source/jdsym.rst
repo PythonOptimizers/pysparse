@@ -103,6 +103,11 @@ The module exports a single function:
 Example: Maxwell Problem
 ------------------------
 
+.. todo:: Update the timings below.
+
+.. warning:: The timings below are Roman's old benchmarks. We should run them
+   again.
+
 The following code illustrates the use of the ``jdsym`` module.  Two
 matrices :math:`\mathbf{A}` and :math:`\mathbf{M}` are read from files. A Jacobi
 preconditioner from :math:`\mathbf{A} - \tau\mathbf{M}` is built. Then the JDSYM

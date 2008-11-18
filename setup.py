@@ -17,16 +17,50 @@ linky=[]
 compily=[]
 
 # Specify whether to link against user's SuperLU library
-use_users_superlu = False
+use_users_superlu = False #True
+umfpack_defs = [('DINT', 1), ('NBLAS', 1)] # No BLAS. Ok if using your system's BLAS.
+#umfpack_defs = [('DINT', 1), ('CBLAS', 1)] # with atlas c-blas (http://math-atlas.sf.net)
+
 if use_users_superlu:
     # Specify location of include files
-    superlu_include_dirs = ['/Users/dpo/local/LinearAlgebra/SuperLU/SuperLU_3.1/SRC']
-    # AND specify one of the following (set other one to ''):
-    # Specify location of source files (overrides linking existing library)
-    superlu_src_dir = '/Users/dpo/local/LinearAlgebra/SuperLU/SuperLU_3.1/SRC'
-    # OR specify location of precompiled library
+    superlu_include_dirs = ['/Users/dpo/local/linalg/SuperLU/SuperLU_3.1/SRC']
+    # AND specify ONE of the following:
+    # 1) Location of source files (overrides linking with existing library)
+    superlu_src_dir = '/Users/dpo/local/linalg/SuperLU/SuperLU_3.1/SRC'
+    # 2) Location of precompiled library
     superlu_lib_dir = ['']
     superlu_libraries = ['']
+
+# Specify whether to link against user's UMFPACK library
+use_users_umfpack = False #True
+if use_users_umfpack:
+    # Specify location of include files
+    umfpack_include_dirs = ['/Users/dpo/local/linalg/UMFPACK/UMFPACK/Include']
+    # AND specify ONE of the following:
+    # 1) Location of source files (overrides linking with existing library)
+    umfpack_src_dir = '/Users/dpo/local/linalg/UMFPACK/UMFPACK/Source'
+    # 2) Location of precompiled library
+    umfpack_lib_dir = ['']
+    umfpack_libraries = ['']
+
+    # Do the same for AMD
+    amd_include_dirs = ['/Users/dpo/local/linalg/UMFPACK/AMD/Include']
+    # AND specify ONE of the following:
+    # 1) Location of source files (overrides linking with existing library)
+    amd_src_dir = '/Users/dpo/local/linalg/UMFPACK/AMD/Source'
+    # 2) Location of precompiled library
+    amd_lib_dir = ['']
+    amd_libraries = ['']
+    
+else:
+    umfpack_libraries = []
+    umfpack_include_dirs = ['amd', 'umfpack']
+    umfpack_library_dirs = []
+
+    #umfpack_libraries = ['atlas', 'cblas', 'm']
+    #umfpack_include_dirs = ['amd', 'umfpack'] # you may need to set this to find the atlas
+    #umfpack_library_dirs = []
+
 
 ## numpy / Numeric settings
 try:
@@ -47,67 +81,57 @@ else:
     numerix_macro = []
     numerix_include_dirs = []
 
-umfpack_defs = [('DINT', 1), ('NBLAS', 1)] # most basic configuration, no BLAS
-umfpack_libraries = []
-umfpack_include_dirs = ['amd', 'umfpack']
-umfpack_library_dirs = []
+#hostname = socket.gethostname()
+#if hostname in ['bree', 'brokoli', 'givens2', 'givens4', 'nedelec', 'gondor']:
+#    # SuSE Linux 8.x and 9.0
+#    libraries_list = ['lapack', 'blas', 'g2c']
+#elif hostname == 'maxwell':
+#    # AMD Opteron 'x86-64' architecture using ACML
+#    libraries_list = ['acml', 'g2c']
+#    library_dirs_list = ['/opt/acml/gnu64/lib']
+#elif hostname == 'sysiphus':
+#    # Linux RedHat 7.3 2.4.18-10 i686 with atlas Lapack routines
+#    library_dirs_list= ['/hg/u/vasseur/Linux/lib/atlas']
+#    libraries_list = ['lapack', 'f77blas', 'cblas', 'atlas', 'g2c']
+#elif hostname == 'sophokles':
+#    #SunOS sophokles 5.8 Generic_108528-15 sun4u sparc SUNW,Sun-Fire-880
+#    library_dirs_list= ['/hg/s/solaris/8/opt/SUNWspro/lib']
+#    libraries_list = ['F77', 'sunperf', 'fui', 'fsu', 'sunmath']
+#elif hostname == 'sim0':
+#    # Linux sim0 2.2.19-7.0.16enterprise #1 SMP Wed Mar 13 13:23:22 EST 2002 i686 unknown
+#    library_dirs_list = ['/home/geus/linux/lib']
+#    libraries_list = ['lapack', 'blas', 'g2c']
+#elif hostname == 'stardust':
+#    # HP-UX stardust B.11.11 U 9000/800 3761215035 unlimited-user license
+#    library_dirs_list = ['/home/infk/geus/lib/pa20_64']
+#    libraries_list = ['lapack']
+#elif hostname == 'zuse':
+#    # SunOS zuse 5.6 Generic_105181-21 sun4u sparc SUNW,Ultra-Enterprise
+#    library_dirs_list = ['/software/SunOS/5.X/opt/SUNWspro/WS6/lib']
+#    libraries_list = ['F77', 'sunperf', 'fui', 'fsu', 'sunmath']
+#elif hostname == 'Rivendell':
+#    # WinXP, using VC++ and Intel MKL
+#    #
+#    # Uses BLAS and LAPACK from the Intel Math Kernel Library 5.2
+#    # DLL directory must be in the PATH
+#    library_dirs_list = [r'C:\Program Files\Intel\MKL\ia32\lib']
+#    libraries_list = ['mkl_c_dll']
+#    superlu_defs = [("NO_TIMER",1), ("NoChange",1), ('USE_VENDOR_BLAS',1)]
+#    f77_defs = [("NOF77UNDERSCORE",1)]
+#elif hostname == 'nedelec-vmware':
+#    # Win32 using MinGW
+#    libraries_list = ['lapack', 'blas', 'g2c']
+#    superlu_defs = [("NO_TIMER",1), ('USE_VENDOR_BLAS',1)]
+#elif hostname == 'psw283.psi.ch':
+#    # OSF1 psw283.psi.ch V4.0 1530 alpha
+#    library_dirs_list = ['/data/geus/lib']
+#    libraries_list = ['dxml']
 
-#umfpack_defs = [('DINT', 1), ('CBLAS', 1)] # with atlas c-blas (http://math-atlas.sourceforge.net)
-#umfpack_libraries = ['atlas', 'cblas', 'm']
-#umfpack_include_dirs = ['amd', 'umfpack'] # you may need to set this to find the atlas
-#umfpack_library_dirs = []
-
-hostname = socket.gethostname()
-if hostname in ['bree', 'brokoli', 'givens2', 'givens4', 'nedelec', 'gondor']:
-    # SuSE Linux 8.x and 9.0
-    libraries_list = ['lapack', 'blas', 'g2c']
-elif hostname == 'maxwell':
-    # AMD Opteron 'x86-64' architecture using ACML
-    libraries_list = ['acml', 'g2c']
-    library_dirs_list = ['/opt/acml/gnu64/lib']
-elif hostname == 'sysiphus':
-    # Linux RedHat 7.3 2.4.18-10 i686 with atlas Lapack routines
-    library_dirs_list= ['/hg/u/vasseur/Linux/lib/atlas']
-    libraries_list = ['lapack', 'f77blas', 'cblas', 'atlas', 'g2c']
-elif hostname == 'sophokles':
-    #SunOS sophokles 5.8 Generic_108528-15 sun4u sparc SUNW,Sun-Fire-880
-    library_dirs_list= ['/hg/s/solaris/8/opt/SUNWspro/lib']
-    libraries_list = ['F77', 'sunperf', 'fui', 'fsu', 'sunmath']
-elif hostname == 'sim0':
-    # Linux sim0 2.2.19-7.0.16enterprise #1 SMP Wed Mar 13 13:23:22 EST 2002 i686 unknown
-    library_dirs_list = ['/home/geus/linux/lib']
-    libraries_list = ['lapack', 'blas', 'g2c']
-elif hostname == 'stardust':
-    # HP-UX stardust B.11.11 U 9000/800 3761215035 unlimited-user license
-    library_dirs_list = ['/home/infk/geus/lib/pa20_64']
-    libraries_list = ['lapack']
-elif hostname == 'zuse':
-    # SunOS zuse 5.6 Generic_105181-21 sun4u sparc SUNW,Ultra-Enterprise
-    library_dirs_list = ['/software/SunOS/5.X/opt/SUNWspro/WS6/lib']
-    libraries_list = ['F77', 'sunperf', 'fui', 'fsu', 'sunmath']
-elif hostname == 'Rivendell':
-    # WinXP, using VC++ and Intel MKL
-    #
-    # Uses BLAS and LAPACK from the Intel Math Kernel Library 5.2
-    # DLL directory must be in the PATH
-    library_dirs_list = [r'C:\Program Files\Intel\MKL\ia32\lib']
-    libraries_list = ['mkl_c_dll']
-    superlu_defs = [("NO_TIMER",1), ("NoChange",1), ('USE_VENDOR_BLAS',1)]
-    f77_defs = [("NOF77UNDERSCORE",1)]
-elif hostname == 'nedelec-vmware':
-    # Win32 using MinGW
-    libraries_list = ['lapack', 'blas', 'g2c']
-    superlu_defs = [("NO_TIMER",1), ('USE_VENDOR_BLAS',1)]
-elif hostname == 'psw283.psi.ch':
-    # OSF1 psw283.psi.ch V4.0 1530 alpha
-    library_dirs_list = ['/data/geus/lib']
-    libraries_list = ['dxml']
-elif sys.platform == 'darwin':
+if sys.platform == 'darwin':
     superlu_defs = [('USE_VENDOR_BLAS',1)]
     library_dirs_list = ['/System/Library/Frameworks']
     libraries_list = []
     f77_defs = []
-
     
     # the following 'linky' arguments must not be concatenated together into a single
     # string, c.f. <http://mail.python.org/pipermail/distutils-sig/2003-December/003532.html>
@@ -159,8 +183,13 @@ ext_modules = [Extension(package_name + '.spmatrix', ['Src/spmatrixmodule.c'],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
                          define_macros=f77_defs + numerix_macro,
-                         extra_link_args=linky),
-               Extension(package_name + '.umfpack', sources=[os.path.join('Src', 'umfpackmodule.c'),
+                         extra_link_args=linky)
+               ]
+
+# Schedule UMFPACK
+if not use_users_umfpack:
+    ext_modules += [Extension(package_name + '.umfpack',
+                              sources=[os.path.join('Src', 'umfpackmodule.c'),
                                      'amd/amd_aat.c',
                                      'amd/amd_1.c',
                                      'amd/amd_2.c',
@@ -260,10 +289,35 @@ ext_modules = [Extension(package_name + '.spmatrix', ['Src/spmatrixmodule.c'],
                          include_dirs=umfpack_include_dirs,
                          libraries=umfpack_libraries,
                          library_dirs=umfpack_library_dirs)
-               
-                                     
                ]
+else:
+    if umfpack_src_dir.strip() != '':
+        umf_src_files = [ 'umf_2by2.c', 'umf_analyze.c', 'umf_apply_order.c', 'umf_assemble.c', 'umf_blas3_update.c', 'umf_build_tuples.c', 'umf_colamd.c', 'umf_create_element.c', 'umf_dump.c', 'umf_extend_front.c', 'umf_free.c', 'umf_fsize.c', 'umf_garbage_collection.c', 'umf_get_memory.c', 'umf_grow_front.c', 'umf_init_front.c', 'umf_is_permutation.c', 'umf_kernel.c', 'umf_kernel_init.c', 'umf_kernel_wrapup.c', 'umf_local_search.c', 'umf_lsolve.c', 'umf_ltsolve.c', 'umf_malloc.c', 'umf_mem_alloc_element.c', 'umf_mem_alloc_head_block.c', 'umf_mem_alloc_tail_block.c', 'umf_mem_free_tail_block.c', 'umf_mem_init_memoryspace.c', 'umf_multicompile.c', 'umf_realloc.c', 'umf_report_perm.c', 'umf_report_vector.c', 'umf_row_search.c', 'umf_scale.c', 'umf_scale_column.c', 'umf_set_stats.c', 'umf_singletons.c', 'umf_solve.c', 'umf_start_front.c', 'umf_store_lu.c', 'umf_symbolic_usage.c', 'umf_transpose.c', 'umf_triplet.c', 'umf_tuple_lengths.c', 'umf_usolve.c', 'umf_utsolve.c', 'umf_valid_numeric.c', 'umf_valid_symbolic.c', 'umfpack_col_to_triplet.c', 'umfpack_defaults.c', 'umfpack_free_numeric.c', 'umfpack_free_symbolic.c', 'umfpack_get_determinant.c', 'umfpack_get_lunz.c', 'umfpack_get_numeric.c', 'umfpack_get_symbolic.c', 'umfpack_global.c', 'umfpack_load_numeric.c', 'umfpack_load_symbolic.c', 'umfpack_numeric.c', 'umfpack_qsymbolic.c', 'umfpack_report_control.c', 'umfpack_report_info.c', 'umfpack_report_matrix.c', 'umfpack_report_numeric.c', 'umfpack_report_perm.c', 'umfpack_report_status.c', 'umfpack_report_symbolic.c', 'umfpack_report_triplet.c', 'umfpack_report_vector.c', 'umfpack_save_numeric.c', 'umfpack_save_symbolic.c', 'umfpack_scale.c', 'umfpack_solve.c', 'umfpack_symbolic.c', 'umfpack_tictoc.c', 'umfpack_timer.c', 'umfpack_transpose.c', 'umfpack_triplet_to_col.c' ]
+        umf_src_files = map(lambda s: os.path.join(umfpack_src_dir, s), umf_src_files)
+        src_files = umf_src_files + [os.path.join('Src', 'umfpackmodule.c')]
+    else:
+        src_files = [os.path.join('Src', 'umfpackmodule.c')]
+        library_dirs_list += umfpack_lib_dir
+        libraries_list += umfpack_libraries
 
+    if amd_src_dir.strip() != '':
+        amd_src_files = [ 'amd_1.c', 'amd_2.c', 'amd_aat.c', 'amd_control.c', 'amd_defaults.c', 'amd_dump.c', 'amd_global.c', 'amd_info.c', 'amd_order.c', 'amd_post_tree.c', 'amd_postorder.c', 'amd_preprocess.c', 'amd_valid.c' ]
+        amd_src_files = map(lambda s: os.path.join(amd_src_dir, s), amd_src_files)
+        src_files += amd_src_files
+
+    else:
+        library_dirs_list += amd_lib_dir
+        libraries_list += amd_libraries
+
+    ext_modules += [ Extension(package_name + '.umfpack',
+                         src_files,
+                         define_macros=umfpack_defs + numerix_macro,
+                         include_dirs=umfpack_include_dirs + amd_include_dirs,
+                         library_dirs=library_dirs_list,
+                         libraries=libraries_list,
+                         extra_link_args=linky) ]
+
+# Schedule SuperLU
 if not use_users_superlu:
     ext_modules += [ Extension(package_name + '.superlu',
                              [os.path.join('Src', 'superlumodule.c'),

@@ -493,9 +493,6 @@ static int copySubMatrix_FromList(LLMatObject *src, LLMatObject *dst,
   return 0;
 }
 
-//static PyObject *getSubMatrix_FromList(LLMatObject *self,
-//                                       long *irow, int nrow,
-//                                       long *jcol, int ncol) {
 static PyObject *getSubMatrix_FromList(LLMatObject *self,
                                        PyObject *index0, PyObject *index1) {
 

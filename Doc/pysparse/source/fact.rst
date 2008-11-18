@@ -12,12 +12,12 @@ The Low-Level C Modules
 The :mod:`superlu` Module
 -------------------------
 
-The ``superlu`` module interfaces the SuperLU library to make it usable by
+The :mod:`superlu` module interfaces the SuperLU library to make it usable by
 Python code. SuperLU is a software package written in C, that is able to compute
 an LU-factorisation of a general non-symmetric sparse matrix with
 partial pivoting.
 
-The ``superlu`` module exports a single function, called ``factorize``.
+The :mod:`superlu` module exports a single function, called ``factorize``.
 
 .. function:: factorize(A, **kwargs)
 
@@ -60,8 +60,8 @@ The ``superlu`` module exports a single function, called ``factorize``.
    version 3.0 and above, the default value of ``permc_spec`` is 3.
 
 
-``superlu_context`` Object Attributes and Methods
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:class:`superlu_context` Object Attributes and Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: superlu_context
 
@@ -87,8 +87,8 @@ The ``superlu`` module exports a single function, called ``factorize``.
       :math:`\mathbf{A}^T\mathbf{x} = \mathbf{b}` is solved instead.
 
 
-Example: 2D Poisson Matrix
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Example: Solving a 2D Poisson System with SuperLU
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let's now solve the 2D Poisson system :math:`\mathbf{A} \mathbf{x} = \mathbf{1}`
 using an LU factorization. Here, :math:`\mathbf{A}` is the 2D Poisson matrix,
@@ -168,10 +168,125 @@ factorization as a preconditioner in any of the iterative methods of the
 The :mod:`umfpack` Module
 -------------------------
 
-.. todo:: Document the umfpack module.
+The :mod:`umfpack` module interfaces the UMFPACK library to make it usable by
+Python code. UMFPACK is a software package written in C, that is able to compute
+an LU factorization of a general non-symmetric sparse matrix with
+partial pivoting.
+
+.. note:: The major difference with the :mod:`superlu` modules is
+          that :mod:`umfpack` receives a matrix in ``ll_mat`` format instead of
+          `csr_mat` format.
+
+The :mod:`umfpack` module exports a single function, called ``factorize``.
+
+.. function:: factorize(A, **kwargs)
+
+   The factorize function computes an LU-factorisation of the matrix ``A``.
+
+   :parameters:
+
+        :A: A ``ll_mat`` object that represents the matrix to be factorized.
+
+   :keywords:
+
+        :strategy: Pivoting strategy. Possible values are:
+
+                   - "UMFPACK_STRATEGY_AUTO"
+                   - "UMFPACK_STRATEGY_UNSYMMETRIC"
+                   - "UMFPACK_STRATEGY_SYMMETRIC"
+                   - "UMFPACK_STRATEGY_2BY2"
+
+        :tol2by2: Tolerance for the 2-by-2 strategy.
+
+        :scale: Scaling used during factorization. Possible values are:
+
+                - "UMFPACK_SCALE_NONE"
+                - "UMFPACK_SCALE_SUM"
+                - "UMFPACK_SCALE_MAX"
+
+        :tolpivot: Relative pivot tolerance for threshold partial pivoting with
+                   row interchanges.
+
+        :tolsympivot: If diagonal pivoting is attempted, this parameter controls
+                      when the diagonal is selected in a given pivot column.
+
+   :rtype: an object of type :class:`umfpack_context`. This object encapsulates
+           the L and U factors of ``A`` (see below).
+
+:class:`umfpack_context` Object Attributes and Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. class:: umfpack_context
+
+   An abstract encapsulation of the LU factorization of a matrix by UMFPACK.
+
+   .. attribute:: shape 
+
+      A 2-tuple describing the dimension of the  matrix factorized. It is equal
+      to ``A.shape``.
+
+   .. attribute:: nnz
+
+      The ``nnz`` attribute holds the total number of nonzero entries stored in
+      the input matrix. It is equal to ``A.nnz``. To obtain the number of
+      nonzero element in the factors, see :meth:`lunz`.
+
+
+   .. method:: solve(b, x, method, irsteps)
+
+      :parameters:
+
+          :b: The right-hand side of the system :math:`\mathbf{A} x = b` as
+              a Numpy array.
+
+          :x: A Numpy array to hold the solution of :math:`\mathbf{A} x = b`.
+
+          :method: (optional) Different systems may be solved by setting the
+                    ``method`` argument appropriately. See the documentation of
+                    the :class:`pysparseUmfpackSolver` below for more details.
+
+          :irsteps: (optional) The number of iterative refinement steps to
+                    perform.
+
+   .. method:: lu
+
+      Return the factors, permutation and scaling information. See the
+      documentation of the :class:`pysparseUmfpackSolver` below for more
+      details.
+
+   .. method:: lunz
+
+      Return the number of nonzeros in factors, i.e., in :math:`\mathbf{L} +
+      \mathbf{U}`.
+
+Example: Solving a 2D Poisson System with UMFPACK
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We now solve again the 2D Poisson system :math:`\mathbf{A} \mathbf{x} =
+\mathbf{1}` using an LU factorization. Here, :math:`\mathbf{A}` is the 2D
+Poisson matrix, introduced in :ref:`spmatrix-page` and :math:`\mathbf{1}` is
+a vector with all entries equal to one.
+
+The Python solution using UMFPACK looks as follows::
+
+    from pysparse import spmatrix, umfpack
+    import numpy 
+    n = 100
+    A = poisson2d_sym_blk(n)
+    b = numpy.ones(n*n)
+    x = numpy.empty(n*n)
+    LU = umfpack.factorize(A, strategy="UMFPACK_STRATEGY_SYMMETRIC")
+    LU.solve(b, x)
+
+The code makes use of the Python function :func:`poisson2d_sym_blk`, which
+was defined in :ref:`spmatrix-page`.
+
 
 Higher-Level Python Interfaces
 ==============================
+
+This section anticipates on :ref:`pysparseMatrix-page` and shows usage of
+higher-level interfaces to the LU factorization packages.
 
 The Abstract :mod:`directSolver` Module
 ---------------------------------------

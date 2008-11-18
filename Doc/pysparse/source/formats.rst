@@ -16,3 +16,18 @@ Pysparse. It also covers sparse matrix creation, population and conversion.
 - Sparse Skyline format (SSS): a format for symmetric matrices designed to speed
   up matrix-vector products, but not well suited to matrix population and
   manipulation.
+
+Linked-List Format
+------------------
+
+.. todo:: Describe the linked-list format.
+
+Compressed Sparse Row Format
+----------------------------
+
+.. todo:: Describe the compressed sparse row format.
+
+Sparse Skyline Format
+---------------------
+
+.. todo:: Describe the sparse skyline format.

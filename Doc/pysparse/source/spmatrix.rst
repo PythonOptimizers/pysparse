@@ -117,7 +117,6 @@ copies the value of ``A[0,0]`` to ``A[2,1]``::
     ll_mat(general, [5,5], [(0,0): 1, (1,1): 2, (2,1): 1,
     (2,2): 3, (3,3): 4, (4,4): 5])
 
-
 The Python slice notation can be used to conveniently access sub-matrices.
 
     >>> print A[:2,:]     # the first two rows
@@ -140,7 +139,95 @@ Write operations to slices are also possible:
     ll_mat(general, [5,5], [(0,0): -1, (1,1): -1, (2,1): 1, 
     (2,2): 3, (3,3): 4, (4,4): 5])
 
-.. todo:: Mention fancy indexing
+Fancy Indexing
+^^^^^^^^^^^^^^
+
+There is flexibility in the way submatrices of ``ll_mat`` objects can be
+accessed. In particular, rows and columns can be permuted arbitrarily and
+submatrices need not be composed of consecutive rows or indices. Let's look at
+an example. Below, the :func:`poisson1d` function assembles a Poisson matrix. We
+come back to Poisson matrices later in this section. ::
+
+    >>> from pysparse import poisson
+    >>> n = 5
+    >>> A = poisson.poisson1d(n)
+    >>> print A   # Original matrix
+    ll_mat(general, [5,5]):
+     2.000000 -1.000000  --------  --------  -------- 
+    -1.000000  2.000000 -1.000000  --------  -------- 
+     -------- -1.000000  2.000000 -1.000000  -------- 
+     --------  -------- -1.000000  2.000000 -1.000000 
+     --------  --------  -------- -1.000000  2.000000 
+
+    >>> print A[n-1:1:-1,1:n-1]  # Rows 2 through n-1 in reverse order,
+    >>>                          # second through one before last col
+    ll_mat(general, [3,3]):
+     --------  -------- -1.000000
+     -------- -1.000000  2.000000
+    -1.000000  2.000000 -1.000000
+
+    >>> print A[::-1,:]  # Reverse row order
+    ll_mat(general, [5,5]):
+     --------  --------  -------- -1.000000  2.000000 
+     --------  -------- -1.000000  2.000000 -1.000000 
+     -------- -1.000000  2.000000 -1.000000  -------- 
+    -1.000000  2.000000 -1.000000  --------  -------- 
+     2.000000 -1.000000  --------  --------  -------- 
+
+    >>> print A[:,::-1]  # Reverse col order (same as above b/c A is symmetric)
+    ll_mat(general, [5,5]):
+     --------  --------  -------- -1.000000  2.000000 
+     --------  -------- -1.000000  2.000000 -1.000000 
+     -------- -1.000000  2.000000 -1.000000  -------- 
+    -1.000000  2.000000 -1.000000  --------  -------- 
+     2.000000 -1.000000  --------  --------  -------- 
+
+    >>> print A[::-1,::-1]  # Reverse row and col order (same as original matrix)
+    ll_mat(general, [5,5]):
+     2.000000 -1.000000  --------  --------  -------- 
+    -1.000000  2.000000 -1.000000  --------  -------- 
+     -------- -1.000000  2.000000 -1.000000  -------- 
+     --------  -------- -1.000000  2.000000 -1.000000 
+     --------  --------  -------- -1.000000  2.000000
+
+    >>> print A[1:3,3:]   # Rows 1 and 2, cols 3 and up
+    ll_mat(general, [2,2]):
+     --------  -------- 
+    -1.000000  -------- 
+
+    >>> print A[::2,::2]  # Every other row and col
+    ll_mat(general, [3,3]):
+     2.000000  --------  -------- 
+     --------  2.000000  -------- 
+     --------  --------  2.000000 
+
+Keep in mind that as always with Python slices, the final index is never
+included. Note also that slicing always returns a general matrix. Even though it
+might be symmetric, both triangles are stored. Finally, slicing should be
+applied to general matrices. If applied to symmetric matrices, only a partial
+result is returned.
+
+Fancy indexing can also be done with Python lists::
+
+    >>> print A[ [1,4,2,0], ::2]
+    ll_mat(general, [4,3]):
+    -1.000000 -1.000000  -------- 
+     --------  --------  2.000000 
+     --------  2.000000  -------- 
+     2.000000  --------  -------- 
+    >>> p = [1,4,2,0]
+    >>> q = [0,2,4]
+    >>> print A[p,q]
+    ll_mat(general, [4,3]):
+    -1.000000 -1.000000  -------- 
+     --------  --------  2.000000 
+     --------  2.000000  -------- 
+     2.000000  --------  -------- 
+
+.. warning:: For large-scale matrices, fancy indexing is most efficient when
+             both index sets have the same type: two Python slices or two Python
+             lists. When the index sets have different types, index arrays are
+             built internally and this results in a performance hit.
 
 
 ``ll_mat`` Object Attributes and Methods
@@ -718,35 +805,47 @@ faster by several orders of magnitude.
 Comparison with Matlab
 ======================
 
-Here, we summarize the above results by giving timing ratios between the Python
-and Matlab Poisson constructors. First, consider the simple ``Poisson2D``
-function.
+First, consider the simple ``Poisson2D`` function. The :ref:`table below <mpy1>`
+summarizes the results of the previous section by giving timing ratios between
+the Python and Matlab Poisson constructors.
 
-+-------+---------+--------+------------+---------------+-------------------+
-| ``n`` | Matlab  | Python | Python_vec | Matlab/Python | Matlab/Python_vec |
-+-------+---------+--------+------------+---------------+-------------------+
-| 100   |    1.73 | 0.0382 | 0.00811    | 45.53         | 216.25            |
-+-------+---------+--------+------------+---------------+-------------------+
-| 300   |  145.98 | 0.3520 | 0.0448     | 414.72        | 3258.5            |
-+-------+---------+--------+------------+---------------+-------------------+
-| 500   | 2318.51 | 0.9800 | 0.1100     | 2365.8        | 21077.0           |
-+-------+---------+--------+------------+---------------+-------------------+
-| 1000  | ---     | 4.02   | 0.398      | ---           | ---               |
-+-------+---------+--------+------------+---------------+-------------------+
+.. _mpy1:
+.. table:: Matlab vs. Python: Construction of 2D Poisson matrices.
+
+   +-------+---------+--------+------------+---------------+-------------------+
+   | ``n`` | Matlab  | Python | Python_vec | Matlab/Python | Matlab/Python_vec |
+   +=======+=========+========+============+===============+===================+
+   | 100   |    1.73 | 0.0382 | 0.00811    | 45.53         | 216.25            |
+   +-------+---------+--------+------------+---------------+-------------------+
+   | 300   |  145.98 | 0.3520 | 0.0448     | 414.72        | 3258.5            |
+   +-------+---------+--------+------------+---------------+-------------------+
+   | 500   | 2318.51 | 0.9800 | 0.1100     | 2365.8        | 21077.0           |
+   +-------+---------+--------+------------+---------------+-------------------+
+   | 1000  | |inf|   | 4.02   | 0.398      | |inf|         | |inf|             |
+   +-------+---------+--------+------------+---------------+-------------------+
 
 Unfortunately, since Matlab does not explicitly support symmetric matrices, we
 cannot compare the other functions. For information only, we compare the block
 version of the Python constructor with the Kronecker-product version of the
-Matlab constructor since those are the fastest.
+Matlab constructor since those are the fastest. The results are in
+the :ref:`next table <mpy2>`.
 
-+-------+---------+------------+-------------------+
-| ``n`` | Matlab  | Python_vec | Matlab/Python_vec |
-+-------+---------+------------+-------------------+
-| 100   | 0.01912 | 0.0028     | 6.83              |
-+-------+---------+------------+-------------------+
-| 300   | 0.2152  | 0.0219     | 9.83              |
-+-------+---------+------------+-------------------+
-| 500   | 0.6271  | 0.0654     | 9.59              |
-+-------+---------+------------+-------------------+
-| 1000  | 2.318   | 0.246      | 9.42              |
-+-------+---------+------------+-------------------+
+.. _mpy2:
+.. table:: Matlab vs. Python: Construction of 2D Poisson matrices---Fastest
+           methods.
+
+   +-------+---------+------------+-------------------+
+   | ``n`` | Matlab  | Python_vec | Matlab/Python_vec |
+   +=======+=========+============+===================+
+   | 100   | 0.01912 | 0.0028     | 6.83              |
+   +-------+---------+------------+-------------------+
+   | 300   | 0.2152  | 0.0219     | 9.83              |
+   +-------+---------+------------+-------------------+
+   | 500   | 0.6271  | 0.0654     | 9.59              |
+   +-------+---------+------------+-------------------+
+   | 1000  | 2.318   | 0.246      | 9.42              |
+   +-------+---------+------------+-------------------+
+
+.. Shortcuts
+
+.. |inf| replace:: :math:`\infty`
