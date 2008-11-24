@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+{% set title = 'Home Page' %}
+{% block body %}
+<h1>Pysparse</h1>
+
+<p>
+Pysparse is a fast sparse matrix library for Python. It provides several sparse
+matrix storage formats and conversion methods. It also implements a number of
+iterative solvers, preconditioners, and interfaces to efficient factorization
+packages. Both low-level and high-level interfaces are available, each with
+different strengths. The only requirement to install and use Pysparse is <a
+href="http://numpy.scipy.org">Numpy</a>. Be sure to check the <a
+href="{{ pathto('contents') }}">Documentation </a> for examples.
+</p>
+
+<h2>Projects Using Pysparse</h2>
+<ul>
+  <li>
+  <a href="http://www.ctcms.nist.gov/fipy">FiPy</a>: A Finite-Volume PDE Solver
+  for Python
+  </li>
+  <li>
+  <a href="http://nlpy.sf.net">NLPy</a>: A Nonlinear Programming Environment in
+  Python
+  </li>
+  <li>If you use Pysparse, please let us know!</li>
+</ul>
+
+<h2>Documentation</h2>
+<table class="contentstable" align="center" style="margin-left: 30px"><tr>
+  <td width="50%">
+    <p class="biglink"><a class="biglink" href="{{ pathto("contents") }}">Contents</a><br/>
+    <span class="linkdescr">for a complete overview</span></p>
+    <p class="biglink"><a class="biglink" href="{{ pathto("search") }}">Search page</a><br/>
+    <span class="linkdescr">search the documentation</span></p>
+  </td><td width="50%">
+    <p class="biglink"><a class="biglink" href="{{ pathto("genindex") }}">General Index</a><br/>
+    <span class="linkdescr">all functions, classes, terms</span></p>
+    <p class="biglink"><a class="biglink" href="{{ pathto("modindex") }}">Module Index</a><br/>
+    <span class="linkdescr">quick access to all documented modules</span></p>
+  </td></tr>
+</table>
+
+<p>
+The complete documentation is also available in
+<a href="http://pysparse.sf.net/Pysparse.pdf">PDF</a> format.
+</p>
+
+<h2>Get Pysparse</h2>
+<p>
+Pysparse is available in source form from <a
+href="http://sourceforge.net/project/showfiles.php?group_id=101403">SourceForge</a>
+or directly from the CVS repository using
+</p>
+
+<pre>
+  cvs -d:pserver:anonymous@pysparse.cvs.sourceforge.net:/cvsroot/pysparse login
+  cvs -z3 -d:pserver:anonymous@pysparse.cvs.sourceforge.net:/cvsroot/pysparse co -P pysparse</pre>
+
+{% endblock %}

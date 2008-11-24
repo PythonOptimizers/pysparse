@@ -222,7 +222,18 @@ Fancy indexing can also be done with Python lists::
     -1.000000 -1.000000  -------- 
      --------  --------  2.000000 
      --------  2.000000  -------- 
-     2.000000  --------  -------- 
+     2.000000  --------  --------
+
+or with integer Numpy arrays::
+
+   >>> idx0 = numpy.array([1,4,2,0], dtype=numpy.int)
+   >>> idx1 = numpy.array([0,2,4], dtype=numpy.int)
+   >>> print A[idx0,idx1]
+   ll_mat(general, [4,3]):
+   -1.000000 -1.000000  -------- 
+    --------  --------  2.000000 
+    --------  2.000000  -------- 
+    2.000000  --------  --------
 
 .. warning:: For large-scale matrices, fancy indexing is most efficient when
              both index sets have the same type: two Python slices or two Python

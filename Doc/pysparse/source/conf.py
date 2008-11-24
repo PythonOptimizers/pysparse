@@ -31,7 +31,7 @@ import ipython_console_highlighting
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.jsmath']
 extensions += ['sphinx.ext.todo']
 extensions += ['ipython_console_highlighting']
-jsmath_path = '/Users/dpo/local/src/jsMath/easy/load.js'
+jsmath_path = 'jsMath/easy/load.js'  # Under _static/ by default
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -43,7 +43,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'contents'
 
 # General information about the project.
 project = u'Pysparse'
@@ -133,12 +133,14 @@ html_static_path = ['.static']
 # typographically correct entities.
 #html_use_smartypants = True
 
+html_index = 'index.html'
+
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+html_sidebars = {'index' : 'indexsidebar.html'}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
-#html_additional_pages = {}
+html_additional_pages = {'index' : 'index.html'}
 
 # If false, no module index is generated.
 #html_use_modindex = True
@@ -176,7 +178,7 @@ htmlhelp_basename = 'Pysparsedoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', 'Pysparse.tex', ur'Pysparse Documentation',
+  ('contents', 'Pysparse.tex', ur'Pysparse Documentation',
    ur'Roman Geus, Daniel Wheeler and Dominique Orban', 'manual'),
 ]
 

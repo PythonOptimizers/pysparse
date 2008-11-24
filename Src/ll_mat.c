@@ -457,6 +457,25 @@ long* create_indexlist(long *len, long maxlen, PyObject *A) {
     return index;
   }
 
+  /* Numpy array */
+  if( PyArray_Check(A) ) {
+    npy_intp length0 = PyArray_DIM(A, 0);
+    PyObject *iterator0 = PyArray_IterNew(A);
+
+    if( !(index = calloc(length0, sizeof(long))) ) return NULL;
+
+    PyArray_ITER_RESET(iterator0);
+    i = 0;
+
+    while( PyArray_ITER_NOTDONE(iterator0) ) {
+      index[i] = *(long*)PyArray_ITER_DATA(iterator0);
+      PyArray_ITER_NEXT(iterator0);
+      i++;
+    }
+    *len = (int)length0;
+    return index;
+  }
+
   PyErr_SetString(PyExc_TypeError, "Invalid index type");
   return NULL;
 }
@@ -644,6 +663,53 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
     return (PyObject *)dst;
   }
 
+  // Both index sets are Numpy arrays
+  if( PyArray_Check(index0) && PyArray_Check(index1) ) {
+
+    int i, j;
+    long row, col;
+    double val;
+    PyObject *iterator0 = PyArray_IterNew(index0);  // Use iterators because may
+    PyObject *iterator1 = PyArray_IterNew(index1);  // not be contiguous
+    npy_intp length0 = PyArray_DIM(index0, 0);
+    npy_intp length1 = PyArray_DIM(index1, 0);
+
+    dim[0] = length0; dim[1] = length1;
+    dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz);
+    if( !dst ) return NULL;
+
+    PyArray_ITER_RESET(iterator0);
+    i = 0;
+
+    while( PyArray_ITER_NOTDONE(iterator0) ) {
+
+      row = *(long*)PyArray_ITER_DATA(iterator0);
+
+      PyArray_ITER_RESET(iterator1);
+      j = 0;
+
+      while( PyArray_ITER_NOTDONE(iterator1) ) {
+
+        col = *(long*)PyArray_ITER_DATA(iterator1);
+        val = SpMatrix_LLMatGetItem(self, row, col);
+
+        if( SpMatrix_LLMatSetItem(dst, i, j, val) ) {
+          Py_DECREF(dst);
+          PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
+          return NULL;
+        }
+
+        PyArray_ITER_NEXT(iterator1);
+        j++;
+      }
+
+      PyArray_ITER_NEXT(iterator0);
+      i++;
+    }
+
+    return (PyObject *)dst;
+  }
+
   // If we have a mixture of index sets, gather both sets into arrays.
   long *irow, *jcol;
   long  nrow,  ncol;
@@ -738,7 +804,6 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
   if( PySlice_Check(index0) && PySlice_Check(index1) ) {
 
     long i, j, k, row, col, t;
-    int  inslice1;
     Py_ssize_t start0, stop0, step0, length0;
     Py_ssize_t start1, stop1, step1, length1;
     double val;
@@ -846,7 +911,7 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     PyObject *ind;
     double val;
 
-    if( mat->dim[0] != length0 || mat->dim[1] != length0 ) {
+    if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
       PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
       return -1;
     }
@@ -888,6 +953,65 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
           return -1;
         }
       }
+    }
+
+    return 0;
+  }
+
+  // Both index sets are Numpy arrays
+  if( PyArray_Check(index0) && PyArray_Check(index1) ) {
+
+    long i, j, row, col, t;
+    double val;
+    PyObject *iterator0 = PyArray_IterNew(index0);  // Use iterators because may
+    PyObject *iterator1 = PyArray_IterNew(index1);  // not be contiguous
+    npy_intp length0 = PyArray_DIM(index0, 0);
+    npy_intp length1 = PyArray_DIM(index1, 0);
+
+    if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
+      PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
+      return -1;
+    }
+
+    PyArray_ITER_RESET(iterator0);
+    i = 0;
+
+    while( PyArray_ITER_NOTDONE(iterator0) ) {
+
+      row = *(long*)PyArray_ITER_DATA(iterator0);
+
+      PyArray_ITER_RESET(iterator1);
+      j = 0;
+
+      while( PyArray_ITER_NOTDONE(iterator1) ) {
+
+        col = *(long*)PyArray_ITER_DATA(iterator1);
+        val = SpMatrix_LLMatGetItem(mat, i, j);
+
+        if( mat->issym && row < col ) {
+          t = col;
+          col = row;
+          row = t;
+        }
+
+        // Ensure write operation is permitted
+        if( self->issym && row < col ) {
+          PyErr_SetString(SpMatrix_ErrorObject,
+                          "Writing to upper triangle of symmetric matrix");
+          return -1;
+        }
+
+        if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
+          PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
+          return -1;
+        }
+
+        PyArray_ITER_NEXT(iterator1);
+        j++;
+      }
+
+      PyArray_ITER_NEXT(iterator0);
+      i++;
     }
 
     return 0;
