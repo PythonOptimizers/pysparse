@@ -43,7 +43,7 @@ multiplications.
 .. function:: ll_mat(n, m, sizeHint=1000)
 
    Creates a ``ll_mat`` object, that represents a general, all
-   zero :math:`m\times n` matrix. The optional ``sizeHint`` parameter specifies
+   zero :math:`m \times n` matrix. The optional ``sizeHint`` parameter specifies
    the number of non-zero entries for which space is allocated initially.
 
    If the total number of non-zero elements of the final matrix is known
@@ -74,14 +74,14 @@ multiplications.
 
 .. function:: dot(A, B)
 
-   Computes the *dot-product* :math:`\mathbf{C} := \mathbf{A}^T \mathbf{B}` and
+   Computes the *dot-product* :math:`\mathbf{C} := \mathbf{A^T B}` and
    returns the result :math:`\mathbf{C}` as a new ``ll_mat`` object representing
    a general sparse matrix. The parameters :math:`\mathbf{A}`
    and :math:`\mathbf{B}` are expected to be objects of type ``ll_mat``.
 
 
-``ll_mat`` objects
-------------------
+:class:`ll_mat` objects
+-----------------------
 
 ``ll_mat`` objects represent matrices stored in the LL format, which are
 described in :ref:`formats-page`. ``ll_mat`` objects come in two flavours:
@@ -235,14 +235,30 @@ or with integer Numpy arrays::
     --------  2.000000  -------- 
     2.000000  --------  --------
 
+Finally, fancy indexing can be used to assign the same numerical value to
+a submatrix::
+
+    >>> A[:3,:3] = 7   # Assign value 7.0 to a principal submatrix
+    >>> print A
+    ll_mat(general, [5,5]):
+     7.000000  7.000000  7.000000  --------  -------- 
+     7.000000  7.000000  7.000000  --------  -------- 
+     7.000000  7.000000  7.000000 -1.000000  -------- 
+     --------  -------- -1.000000  2.000000 -1.000000 
+     --------  --------  -------- -1.000000  2.000000 
+
+Notice however that although the slice ``[0:3]`` appears to amount to the
+list ``[0,1,2]``, the assignments ``A[:3,:3]=7``, ``A[[0,1,2],[0,1,2]]=7`` and
+``A[:3,[0,1,2]]=7`` produce **very different** results.
+
 .. warning:: For large-scale matrices, fancy indexing is most efficient when
              both index sets have the same type: two Python slices or two Python
              lists. When the index sets have different types, index arrays are
              built internally and this results in a performance hit.
 
 
-``ll_mat`` Object Attributes and Methods
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:class:`ll_mat` Object Attributes and Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: ll_mat
 
@@ -471,8 +487,8 @@ or with integer Numpy arrays::
 described in :ref:`formats-page`.  ``sss_mat`` objects represent matrices stored
 in the SSS format (c.f. :ref:`formats-page`).  The only way to create
 a ``csr_mat`` or a ``sss_mat`` object is by conversion of a ``ll_mat`` object
-using the ``to_csr()`` or the ``to_sss()`` method respectively. The purpose of
-the ``csr_mat`` and the ``to_sss()`` objects is to provide fast matrix-vector
+using the :meth:`to_csr` or the :meth:`to_sss` method respectively. The purpose
+of the ``csr_mat`` and the ``sss_mat`` objects is to provide fast matrix-vector
 multiplications for sparse matrices. In addition, a matrix stored in the CSR or
 SSS format uses less memory than the same matrix stored in the LL format, since
 the ``link`` array is not needed.

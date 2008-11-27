@@ -766,7 +766,7 @@ clear_submatrix(LLMatObject *self,
 	/* add element to free list */
 	self->link[k] = self->free;
 	self->free = k;
-	self->nnz --;
+	self->nnz--;
       } else
 	last = k;
       k = next;
@@ -785,20 +785,22 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
                                  PyObject *index0, PyObject *index1) {
 
   LLMatObject *mat;
+  int other_is_num;
+  double val;
+
+  other_is_num = PyArg_Parse(other, "d;array item must be float", &val);
 
   // Both index sets are a single integer
   if( PyInt_Check(index0) && PyInt_Check(index1) ) {
 
     long row = PyInt_AS_LONG(index0);
     long col = PyInt_AS_LONG(index1);
-    double val;
 
-    if( !PyArg_Parse(other, "d;array item must be float", &val) )
-      return -1;
+    if( !other_is_num ) return -1;
     return SpMatrix_LLMatSetItem(self, row, col, val);
   }
 
-  mat = (LLMatObject *)other;
+  if( !other_is_num ) mat = (LLMatObject *)other;
 
   // Both index sets are Python slices
   if( PySlice_Check(index0) && PySlice_Check(index1) ) {
@@ -806,7 +808,6 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     long i, j, k, row, col, t;
     Py_ssize_t start0, stop0, step0, length0;
     Py_ssize_t start1, stop1, step1, length1;
-    double val;
 
     if( PySlice_GetIndicesEx((PySliceObject*)index0, self->dim[0],
                              &start0, &stop0, &step0, &length0) < 0)
@@ -816,91 +817,74 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
                              &start1, &stop1, &step1, &length1) < 0)
       return -1;
 
-    if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
-      PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
-      return -1;
-    }
-
     //printf("New block of size (%ld,%ld)\n", length0, length1);
 
-    row = start0;
-    i = 0;    // Set row index of first element to be assigned
+    if( other_is_num) {
 
-    // Scan each row in turn
-    while( (step0 > 0 && row < stop0) || (step0 < 0 && row > stop0) ) {
+      // Special case for A[slice,slice] = scalar
+      row = start0;
+      while( (step0 > 0 && row < stop0) || (step0 < 0 && row > stop0) ) {
+        col = start1;
+        while( (step1 > 0 && col < stop1) || (step1 < 0 && col > stop1) ) {
+          if( self->issym && row < col ) {
+            PyErr_SetString(SpMatrix_ErrorObject,
+                            "Writing to upper triangle of symmetric matrix");
+            return -1;
+          }
+          if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
+            PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
+            return -1;
+          }
+          col += step1;
+        }
+        row += step0;
+      }
 
-      // Scan current row in matrix to be assigned
-      for( k = mat->root[i]; k != -1; k = mat->link[k] ) {
+    } else {
+
+      if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
+        PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
+        return -1;
+      }
+
+      row = start0;
+      i = 0;    // Set row index of first element to be assigned
+
+      // Scan each row in turn
+      while( (step0 > 0 && row < stop0) || (step0 < 0 && row > stop0) ) {
+
+        // Scan current row in matrix to be assigned
+        for( k = mat->root[i]; k != -1; k = mat->link[k] ) {
         
-        j = mat->col[k]; // Col index of current nonzero element
-        col = start1 + j * step1; // Col index to be assigned to
+          j = mat->col[k]; // Col index of current nonzero element
+          col = start1 + j * step1; // Col index to be assigned to
 
-        if( mat->issym && row < col ) {  // Swap row and col
-          t = col; col = row; row = t;
+          if( mat->issym && row < col ) {  // Swap row and col
+            t = col; col = row; row = t;
+          }
+
+          // Ensure write operation is permitted
+          if( self->issym && row < col ) {
+            PyErr_SetString(SpMatrix_ErrorObject,
+                            "Writing to upper triangle of symmetric matrix");
+            return -1;
+          }
+          
+          val = SpMatrix_LLMatGetItem(mat, i, j);
+          //printf("  (%ld,%ld) -> (%ld,%ld). Val = %g\n", i,j,row,col,val);
+
+          if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
+            PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
+            return -1;
+          }
         }
 
-        // Ensure write operation is permitted
-        if( self->issym && row < col ) {
-          PyErr_SetString(SpMatrix_ErrorObject,
-                          "Writing to upper triangle of symmetric matrix");
-          return -1;
-        }
-
-        val = SpMatrix_LLMatGetItem(mat, i, j);
-        //printf("  (%ld,%ld) -> (%ld,%ld). Val = %g\n", i, j, row, col, val);
-
-        if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
-          PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
-          return -1;
-        }
-
+        row += step0;  // Move to next row
+        i++;
       }
-
-      row += step0;  // Move to next row
-      i++;
     }
-
     return 0;
   }
-
-    /*
-    row = start0;
-    i = 0;
-    while( (step0 > 0 && row < stop0) || (step0 < 0 && row > stop0) ) {
-      col = start1;
-      j = 0;
-      while( (step1 > 0 && col < stop1) || (step1 < 0 && col > stop1) ) {
-        val = SpMatrix_LLMatGetItem(mat, i, j);
-
-        if( mat->issym && row < col ) {
-          t = col;
-          col = row;
-          row = t;
-        }
-
-        // Ensure write operation is permitted
-        if( self->issym && row < col ) {
-          PyErr_SetString(SpMatrix_ErrorObject,
-                          "Writing to upper triangle of symmetric matrix");
-          return -1;
-        }
-
-        printf("  (%ld,%ld) -> (%ld,%ld)\n", i, j, row, col);
-
-        if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
-          PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
-          return -1;
-        }
-        col += step1;
-        j++;
-      }
-      row += step0;
-      i++;
-    }
-
-    return 0;
-  }
-    */
 
   // Both index sets are Python lists
   if( PyList_Check(index0) && PyList_Check(index1) ) {
@@ -909,12 +893,12 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     Py_ssize_t length0 = PyList_Size(index0);
     Py_ssize_t length1 = PyList_Size(index1);
     PyObject *ind;
-    double val;
 
-    if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
-      PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
-      return -1;
-    }
+    if( !other_is_num )
+      if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
+        PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
+        return -1;
+      }
 
     for( i = 0; i < length0; i++ ) {
       ind = PyList_GetItem(index0, (Py_ssize_t)i);
@@ -933,9 +917,10 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
           return -1;
         }
 
-        val = SpMatrix_LLMatGetItem(mat, i, j);
+        if( !other_is_num )
+          val = SpMatrix_LLMatGetItem(mat, i, j);
 
-        if( mat->issym && row < col ) {
+        if( (other_is_num || mat->issym) && row < col ) {
           t = col;
           col = row;
           row = t;
@@ -962,16 +947,16 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
   if( PyArray_Check(index0) && PyArray_Check(index1) ) {
 
     long i, j, row, col, t;
-    double val;
     PyObject *iterator0 = PyArray_IterNew(index0);  // Use iterators because may
     PyObject *iterator1 = PyArray_IterNew(index1);  // not be contiguous
     npy_intp length0 = PyArray_DIM(index0, 0);
     npy_intp length1 = PyArray_DIM(index1, 0);
 
-    if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
-      PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
-      return -1;
-    }
+    if( !other_is_num )
+      if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
+        PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
+        return -1;
+      }
 
     PyArray_ITER_RESET(iterator0);
     i = 0;
@@ -986,9 +971,11 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
       while( PyArray_ITER_NOTDONE(iterator1) ) {
 
         col = *(long*)PyArray_ITER_DATA(iterator1);
-        val = SpMatrix_LLMatGetItem(mat, i, j);
 
-        if( mat->issym && row < col ) {
+        if( !other_is_num )
+          val = SpMatrix_LLMatGetItem(mat, i, j);
+
+        if( (other_is_num || mat->issym) && row < col ) {
           t = col;
           col = row;
           row = t;
@@ -1020,7 +1007,6 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
   // If we have a mixture of index sets, gather both sets into arrays.
   long *irow, *jcol;
   long  i, j, nrow,  ncol, row, col;
-  double val;
 
   // Create index list from first index
   if( !(irow = create_indexlist(&nrow, self->dim[0], index0)) ) {
@@ -1034,17 +1020,18 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     return -1;
   }
 
-  if( mat->dim[0] != nrow || mat->dim[1] != ncol ) {
-    PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
-    return -1;
-  }
+  if( !other_is_num )
+    if( mat->dim[0] != nrow || mat->dim[1] != ncol ) {
+      PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
+      return -1;
+    }
 
   for( i = 0; i < nrow; i++ ) {
     row = irow[i];
     for( j = 0; j < ncol; j++ ) {
       col = jcol[j];
 
-      if( mat->issym && row < col ) { 
+      if( (other_is_num || mat->issym) && row < col ) { 
         col = row;
         row = jcol[j];
       }
@@ -1057,7 +1044,9 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
       }
 
       // Insert element into self
-      val = SpMatrix_LLMatGetItem(mat, i, j);
+      if( !other_is_num )
+        val = SpMatrix_LLMatGetItem(mat, i, j);
+
       if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
         PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
         return -1;

@@ -156,6 +156,14 @@ class PysparseMatrix(SparseMatrix):
         else:
             self.matrix[index] = value
 
+#         elif type(value) in [type(0), type(0.0)]:
+#             # Set all specified elements to given value
+#             if hasattr(index[0], '__iter__') and hasattr(index[1], '__iter__'):
+#                 for (i,j) in zip(index[0], index[1]):
+#                     self.matrix[i,j] = value
+#             else:
+#                 raise ValueError, 'Index sets must be iterable'
+
     def __iadd__(self, other):
         # To implement  L += K
         return self._iadd(self.getMatrix(), other)
@@ -264,10 +272,9 @@ class PysparseMatrix(SparseMatrix):
             return PysparseMatrix(matrix=p)
         else:
             shape = numpy.shape(other)
-            if shape == ():
-                L = spmatrix.ll_mat(N, N, N)
-                L.put(other * numpy.ones(N))
-                p = spmatrix.matrixmultiply(self.matrix, L)
+            if shape == ():  # other is a scalar
+                p = self.matrix.copy()
+                p.scale(other)
                 return PysparseMatrix(matrix=p)
             elif shape == (N,):
                 y = numpy.empty(M)
@@ -275,7 +282,15 @@ class PysparseMatrix(SparseMatrix):
                 return y
             else:
                 raise TypeError, 'Cannot multiply objects'
-            
+
+    def __imul__(self, other):
+        # In-place multiplication (by a scalar)
+        if type(other) not in [type(0), type(0.0)]:
+            raise TypeError, 'In-place multiplication is with scalars only'
+        p = self.matrix
+        p.scale(other)
+        return self
+
     def __rmul__(self, other):
         # Compute  other * A  which is really  A^T * other
         if type(numpy.ones(1.0)) == type(other):
