@@ -113,7 +113,7 @@ class PysparseMatrix(SparseMatrix):
                 self.matrix = spmatrix.ll_mat(nrow, ncol, sizeHint)
 
     def isSymmetric(self):
-        "Returns True is `self` is a symmetric matrix or False otherwise"
+        "Returns `True` is `self` is a symmetric matrix or `False` otherwise"
         if self.matrix.issym: return True
         return False
 
@@ -122,7 +122,7 @@ class PysparseMatrix(SparseMatrix):
         return self.matrix.nnz
 
     def getMatrix(self):
-        "Returns the underlying ll_mat sparse matrix of `self`"
+        "Returns the underlying `ll_mat` sparse matrix of `self`"
         return self.matrix
     
     def copy(self):
@@ -140,35 +140,26 @@ class PysparseMatrix(SparseMatrix):
         msg = 'No such attribute: %s' % name
         raise ValueError, msg
 
-    def __repr__(self):
-        if self.nnz > 0: return self.matrix.__repr__()
-
     def __getitem__(self, index):
         m = self.matrix[index]
-        if type(m) is type(0) or type(m) is type(0.):
+        if isinstance(m, int) or isinstance(m, float):
             return m
         else:
             return PysparseMatrix(matrix = m, symmetric=self.matrix.issym)
 
     def __setitem__(self, index, value):
-        if type(value) is type(self):
+        #if type(value) is type(self):
+        if isinstance(value, pysparseMatrix):
             self.matrix[index] = value.matrix
         else:
             self.matrix[index] = value
 
-#         elif type(value) in [type(0), type(0.0)]:
-#             # Set all specified elements to given value
-#             if hasattr(index[0], '__iter__') and hasattr(index[1], '__iter__'):
-#                 for (i,j) in zip(index[0], index[1]):
-#                     self.matrix[i,j] = value
-#             else:
-#                 raise ValueError, 'Index sets must be iterable'
-
     def __iadd__(self, other):
-        # To implement  L += K
+        # In-place addition
         return self._iadd(self.getMatrix(), other)
         
     def _iadd(self, L, other, sign = 1):
+        # In-place addition helper
         if other != 0:
             if self.isSymmetric() and not other.isSymmetric():
                 L.generalize()
@@ -180,7 +171,7 @@ class PysparseMatrix(SparseMatrix):
         Add two sparse matrices, return a new sparse matrix
         
             >>> L = PysparseMatrix(size = 3)
-            >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
+            >>> L.put([3.,10.,numpy.pi,2.5], [0,0,1,2], [2,1,1,0])
             >>> print L + PysparseIdentityMatrix(size = 3)
              1.000000  10.000000   3.000000  
                 ---     4.141593      ---    
@@ -196,10 +187,9 @@ class PysparseMatrix(SparseMatrix):
                 ---     6.141593      ---    
              5.500000      ---        ---    
         """
-
         if other is 0 or other is 0.0:
             return self
-        elif type(other) in [type(1), type(1.0)]:
+        elif isinstance(other, int) or isinstance(other, float): #type(other) in [type(1), type(1.0)]:
             # Add give value to all elements of sparse matrix in nonzero pattern
             L = self.copy()
             val, irow, jcol = L.find()
@@ -217,7 +207,7 @@ class PysparseMatrix(SparseMatrix):
         
     def __sub__(self, other):
 
-        if type(other) in [type(1), type(1.0)]:
+        if isinstance(other,int) or isinstance(other, float): #type(other) in [type(1), type(1.0)]:
             return self.__add__(-other)
         else:
             if self.getShape() != other.getShape():
@@ -230,7 +220,7 @@ class PysparseMatrix(SparseMatrix):
             return PysparseMatrix(matrix = L)
 
     def __isub__(self, other):
-        # To implement L -= K
+        # In-place subtraction
         return self._iadd(self.getMatrix(), other, sign=-1)
 
     def __mul__(self, other):
@@ -238,10 +228,10 @@ class PysparseMatrix(SparseMatrix):
         Multiply a sparse matrix by another sparse matrix
         
             >>> L1 = PysparseMatrix(size = 3)
-            >>> L1.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
+            >>> L1.put([3.,10.,numpy.pi,2.5], [0,0,1,2], [2,1,1,0])
             >>> L2 = PysparseMatrix(size = 3)
             >>> L2.put(numpy.ones(3), numpy.arange(3), numpy.arange(3))
-            >>> L2.put((4.38,12357.2,1.1), (2,1,0), (1,0,2))
+            >>> L2.put([4.38,12357.2,1.1], [2,1,0], [1,0,2])
             
             >>> tmp = numpy.array(((1.23572000e+05, 2.31400000e+01, 3.00000000e+00),
             ...                      (3.88212887e+04, 3.14159265e+00, 0.00000000e+00),
@@ -285,7 +275,8 @@ class PysparseMatrix(SparseMatrix):
 
     def __imul__(self, other):
         # In-place multiplication (by a scalar)
-        if type(other) not in [type(0), type(0.0)]:
+        #if type(other) not in [type(0), type(0.0)]:
+        if isinstance(other, int) or isinstance(other, float):
             raise TypeError, 'In-place multiplication is with scalars only'
         p = self.matrix
         p.scale(other)
@@ -311,60 +302,72 @@ class PysparseMatrix(SparseMatrix):
         in so-called coordinate (or triplet) format:
 
             >>> L = PysparseMatrix(size = 3)
-            >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
-            >>> L.find()
-                (array([ 10.        ,   3.        ,   3.14159265,   2.5       ]),
-                 array([0, 0, 1, 2]),
-                 array([1, 2, 1, 0]))
+            >>> L.put([3.,10.,numpy.pi,2.5], [0,0,1,2], [2,1,1,0])
+            >>> (val,irow,jcol) = L.find()
+            >>> val
+            array([ 10.        ,   3.        ,   3.14159265,   2.5       ])
+            >>> irow
+            array([0, 0, 1, 2])
+            >>> jcol
+            array([1, 2, 1, 0])
         """
         return self.matrix.find()
         
-    def put(self, vector, id1, id2):
+    def put(self, value, id1, id2):
         """
-        Put elements of ``vector`` at positions of the matrix
+        Put elements of ``value`` at positions of the matrix
         corresponding to ``(id1, id2)``
         
             >>> L = PysparseMatrix(size = 3)
-            >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
+            >>> L.put( [3.,10.,numpy.pi,2.5], [0,0,1,2], [2,1,1,0] )
             >>> print L
                 ---    10.000000   3.000000  
                 ---     3.141593      ---    
              2.500000      ---        ---    
-            >>> L.put(2*numpy.pi, arange(3), arange(3))
+            >>> L.put(2*numpy.pi, range(3), range(3))
+            >>> print L
              6.283185  10.000000   3.000000  
                 ---     6.283185      ---    
              2.500000      ---     6.283185  
+
+        If ``value`` is a scalar, it has the same effect as the vector
+        of appropriate length with all values equal to ``value``.
+        If ``id1`` is omitted, it is replaced with ``range(nrow)``.
+        If ``id2`` is omitted, it is replaced with ``range(ncol)``.
         """
-        if type(vector) in [type(1), type(1.0)]:
-            m, n = self.getShape()
-            self.matrix.put(vector*numpy.ones(n), id1, id2)
-        else:
-            self.matrix.put(vector, id1, id2)
+        self.matrix.put(value, id1, id2)
+        return None
 
     def putDiagonal(self, vector):
         """
         Put elements of ``vector`` along diagonal of matrix
         
             >>> L = PysparseMatrix(size = 3)
-            >>> L.putDiagonal((3.,10.,numpy.pi))
+            >>> L.putDiagonal([3.,10.,numpy.pi])
             >>> print L
              3.000000      ---        ---    
                 ---    10.000000      ---    
                 ---        ---     3.141593  
-            >>> L.putDiagonal((10.,3.))
+            >>> L.putDiagonal([10.,3.])
             >>> print L
             10.000000      ---        ---    
                 ---     3.000000      ---    
                 ---        ---     3.141593  
+            >>> L.putDiagonal(2.7182)
+            >>> print L
+             2.718200      ---        ---    
+                ---     2.718200      ---    
+                ---        ---     2.718200  
+
         """
-        if type(vector) in [type(1), type(1.)]:
+        if isinstance(vector, int) or isinstance(vector, float):
             ids = numpy.arange(self.getShape()[0])
-            tmp = numpy.zeros((self.getShape()[0],), 'd')
-            tmp[:] = vector
-            self.put(tmp, ids, ids)
-        else:
-            ids = numpy.arange(len(vector))
+            #tmp = numpy.zeros((self.getShape()[0],), 'd')
+            #tmp[:] = vector
             self.put(vector, ids, ids)
+        else:
+            #ids = numpy.arange(len(vector))
+            self.matrix.put(vector) #, ids, ids)
 
     def take(self, id1, id2):
         """
@@ -391,7 +394,7 @@ class PysparseMatrix(SparseMatrix):
         to ``(id1,id2)``
         
             >>> L = PysparseMatrix(size = 3)
-            >>> L.put((3.,10.,numpy.pi,2.5), (0,0,1,2), (2,1,1,0))
+            >>> L.put([3.,10.,numpy.pi,2.5], [0,0,1,2], [2,1,1,0])
             >>> L.addAt((1.73,2.2,8.4,3.9,1.23), (1,2,0,0,1), (2,2,0,0,2))
             >>> print L
             12.300000  10.000000   3.000000  
@@ -405,7 +408,8 @@ class PysparseMatrix(SparseMatrix):
         Add the components of vector ``vector`` to the diagonal elements of the
         matrix.
         """
-        if type(vector) in [type(1), type(1.)]:
+        #if type(vector) in [type(1), type(1.)]:
+        if isinstance(vector, int) or isinstance(vector, float):
             ids = numpy.arange(self.getShape()[0])
             tmp = numpy.empty((self.getShape()[0],), 'd')
             tmp[:] = vector
@@ -441,9 +445,9 @@ class PysparseIdentityMatrix(PysparseMatrix):
     Represents a sparse identity matrix for pysparse.
 
         >>> print PysparseIdentityMatrix(size = 3)
-            1.000000      ---        ---    
-               ---     1.000000      ---    
-               ---        ---     1.000000  
+         1.000000      ---        ---    
+            ---     1.000000      ---    
+            ---        ---     1.000000  
     """
     def __init__(self, size):
 
@@ -463,11 +467,11 @@ class PysparseSpDiagsMatrix(PysparseMatrix):
         >>> from numpy import ones
         >>> e = ones(5)
         >>> print PysparseSpDiagsMatrix(size=5, vals=(-2*e,e,2*e), pos=(-1,0,1))
-             1.000000   2.000000      ---        ---        ---    
-            -2.000000   1.000000   2.000000      ---        ---    
-                ---    -2.000000   1.000000   2.000000      ---    
-                ---        ---    -2.000000   1.000000   2.000000  
-                ---        ---        ---    -2.000000   1.000000  
+         1.000000   2.000000      ---        ---        ---    
+        -2.000000   1.000000   2.000000      ---        ---    
+            ---    -2.000000   1.000000   2.000000      ---    
+            ---        ---    -2.000000   1.000000   2.000000  
+            ---        ---        ---    -2.000000   1.000000  
 
     Note that since the `pos[k]`-th diagonal has `size-|pos[k]|` elements, only
     that many first elements of `vals[k]` will be inserted.

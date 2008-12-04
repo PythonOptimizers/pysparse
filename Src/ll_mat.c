@@ -25,9 +25,102 @@
 
 #define PYSP_MAX(A,B) ( (A) > (B) ? (A) : (B) )
 
+// Iterator object
+#define SLICE 0
+#define LIST  1
+#define ARRAY 2
+typedef struct PysparseIterator {
+
+  int type;                        // Slice, list or array
+  PyObject *object;                // Python slice, list or Numpy array
+  int (*init)(void *);             // Iterator initialization function
+  int (*notDone)(void *);          // Determines whether iterations are finished
+  void (*next)(void *);            // Move to next iteration
+  PyObject* (*data)(void *);       // Get current iteration data
+  long (*size)(void *);            // Get total number of iterations
+  long counter;
+  long length;
+  long start;
+  long step;
+  long stop;
+
+} PysparseIterator;
+
 // Prototypes
 
 static PyObject *LLMat_Find(LLMatObject *self, PyObject *args);
+PysparseIterator* PysparseIterator_Create( int type, PyObject *object );
+void PysparseIterator_Destroy( PysparseIterator **iterator );
+int PysparseIterator_List_Init( void *self );
+int PysparseIterator_List_NotDone( void *self );
+void PysparseIterator_List_Next( void *self );
+PyObject *PysparseIterator_List_Data( void *self );
+long PysparseIterator_List_Size( void *self );
+
+// Iterator creation function: No argument check for now
+PysparseIterator* PysparseIterator_Create( int type, PyObject *object ) {
+  PysparseIterator *iterator;
+  iterator = calloc( 1, sizeof(PysparseIterator) );
+  if( iterator == NULL ) return NULL;
+  iterator->type = type;
+  iterator->object = object;
+  iterator->init = PysparseIterator_List_Init;
+  iterator->notDone = PysparseIterator_List_NotDone;
+  iterator->next = PysparseIterator_List_Next;
+  iterator->data = PysparseIterator_List_Data;
+  iterator->size = PysparseIterator_List_Size;
+  return iterator;
+}
+
+// Iterator destruction function: Let garbage collector take care of PyObjects
+// Call as: PysparseIterator_Destroy( &iterator );
+void PysparseIterator_Destroy( PysparseIterator **iterator ) {
+  if( *iterator ) {
+    free(*iterator);
+    *iterator = NULL;
+  }
+  return;
+}
+
+// Initialization of an iterator around a Python list
+int PysparseIterator_List_Init( void *self ) {
+
+  PysparseIterator *iterator = (PysparseIterator *)self;
+  if( !PyList_Check( iterator->object ) ) return -1;
+  iterator->counter = 0;
+  iterator->length = (long)PyList_Size( (PyObject *)(iterator->object) );
+  iterator->start = 0;
+  iterator->step = 1;
+  iterator->stop = iterator->length;
+  return 0;
+}
+
+// Define iterator functions for a Python list
+int PysparseIterator_List_NotDone( void *self ) {
+  PysparseIterator *iterator = (PysparseIterator *)self;
+  return (iterator->counter < iterator->length);
+}
+
+void PysparseIterator_List_Next( void *self ) {
+  PysparseIterator *iterator = (PysparseIterator *)self;
+  iterator->counter++;
+  return;
+}
+
+PyObject *PysparseIterator_List_Data( void *self ) {
+  PysparseIterator *iterator = (PysparseIterator *)self;
+  return (PyObject *)PyList_GetItem(iterator->object,
+                                    (Py_ssize_t)(iterator->counter));
+}
+
+long PysparseIterator_List_Size( void *self ) {
+  PysparseIterator *iterator = (PysparseIterator *)self;
+  return iterator->length;
+}
+
+// Define iterator functions for a Numpy array
+
+
 
 
 /******************************************************************************/
@@ -784,11 +877,21 @@ clear_submatrix(LLMatObject *self,
 static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
                                  PyObject *index0, PyObject *index1) {
 
-  LLMatObject *mat;
-  int other_is_num;
-  double val;
+  LLMatObject *mat = NULL;
+  int other_is_num = 0, other_is_sym;
+  double val = 0.0;
 
-  other_is_num = PyArg_Parse(other, "d;array item must be float", &val);
+  printf("In setSubmatrix...\n");
+
+  if( PyInt_Check(other) ) {
+    val = (double)PyInt_AsLong(other);
+    other_is_num = 1;
+  } else if( PyFloat_Check(other) ) {
+    val = PyFloat_AsDouble(other);
+    other_is_num = 1;
+  }
+  
+  //other_is_num = PyArg_Parse(other, "d;array item must be float", &val);
 
   // Both index sets are a single integer
   if( PyInt_Check(index0) && PyInt_Check(index1) ) {
@@ -800,7 +903,11 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     return SpMatrix_LLMatSetItem(self, row, col, val);
   }
 
-  if( !other_is_num ) mat = (LLMatObject *)other;
+  if( !other_is_num ) {
+    mat = (LLMatObject *)other;
+    other_is_sym = mat->issym;
+  } else
+    other_is_sym = 0;
 
   // Both index sets are Python slices
   if( PySlice_Check(index0) && PySlice_Check(index1) ) {
@@ -889,6 +996,8 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
   // Both index sets are Python lists
   if( PyList_Check(index0) && PyList_Check(index1) ) {
 
+    //printf("We have two lists...\n");
+
     long i, j, row, col, t;
     Py_ssize_t length0 = PyList_Size(index0);
     Py_ssize_t length1 = PyList_Size(index1);
@@ -920,11 +1029,13 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
         if( !other_is_num )
           val = SpMatrix_LLMatGetItem(mat, i, j);
 
-        if( (other_is_num || mat->issym) && row < col ) {
+        if( other_is_sym && row < col ) {
           t = col;
           col = row;
           row = t;
         }
+
+        //printf("Val = %g goes to position (%ld,%ld)\n", val, row, col);
 
         // Ensure write operation is permitted
         if( self->issym && row < col ) {
@@ -975,7 +1086,7 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
         if( !other_is_num )
           val = SpMatrix_LLMatGetItem(mat, i, j);
 
-        if( (other_is_num || mat->issym) && row < col ) {
+        if( other_is_sym && row < col ) {
           t = col;
           col = row;
           row = t;
@@ -1031,7 +1142,7 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     for( j = 0; j < ncol; j++ ) {
       col = jcol[j];
 
-      if( (other_is_num || mat->issym) && row < col ) { 
+      if( other_is_sym && row < col ) { 
         col = row;
         row = jcol[j];
       }
@@ -2140,93 +2251,233 @@ LLMat_take(LLMatObject *self, PyObject *args) {
 static char LLMat_put_doc[] = "a.put(b,id1,id2)\n\
 \n\
 for i in range(len(b)):\n\
-    a[id1[i],id2[i]] = b[i]";
+    a[id1[i],id2[i]] = b[i]\n\n\
+If b is a scalar, it has the same effect as the list [b, b, ..., b]\n\
+If id1 and/or id2 is omitted, it is considered to be [1, 2, 3, ...].\n";
 
 static PyObject *
 LLMat_put(LLMatObject *self, PyObject *args) {
-  PyObject *bIn;
+  PyObject *bIn, *ind;
   PyObject *id1in = NULL;
   PyObject *id2in = NULL;
-  PyArrayObject *b;
-  PyArrayObject *id1 = NULL;
-  PyArrayObject *id2 = NULL;
-  int lenb,i;
+  //PyArrayObject *b = NULL;
+  //PyArrayObject *id1 = NULL;
+  //PyArrayObject *id2 = NULL;
+  long lenb = 0, lenid1 = 0, lenid2 = 0, i;
+  char b_is_scalar = 0, b_is_list = 0, id1_is_list = 0, id2_is_list = 0;
+  double bval = 0.0;
+
+  PyObject *iterator0 = NULL, *iterator1 = NULL, *iterator2 = NULL;
 
   if (!PyArg_ParseTuple(args, "O|OO", &bIn,&id1in,&id2in))
     return NULL;
 
-  b = (PyArrayObject *)PyArray_ContiguousFromObject(bIn, PyArray_DOUBLE, 1, 1);
-  if (b == NULL) goto fail;
+  // Determine nature of value array b
+  if( PyInt_Check(bIn) ) {                // b is an integer
 
-  lenb = b->dimensions[0];
+    //printf("put: b is an Int\n");
+    bval = (double)PyInt_AS_LONG(bIn);
+    b_is_scalar = 1;
+    lenb = 1;
 
-  if (id1in) {
-    id1 = (PyArrayObject *)PyArray_ContiguousFromObject(id1in, PyArray_LONG, 1, 1);
-    if (id1 == NULL) goto fail;
-  }
+  } else if( PyFloat_Check(bIn) ) {       // b is a float
+
+    //printf("put: b is a Float\n");
+    bval = PyFloat_AsDouble(bIn);
+    b_is_scalar = 1;
+    lenb = 1;
+
+  } else if( PyList_Check(bIn) ) {        // b is a list
+
+    //printf("put: b is a list\n");
+    lenb = (long)PyList_Size(bIn);
+    b_is_list = 1;
     
-  if (id2in) {
-    id2 = (PyArrayObject *)PyArray_ContiguousFromObject(id2in,PyArray_LONG,1,1);
-    if (id2 == NULL)
-      goto fail;
+  } else if( PyArray_Check(bIn) ) {       // b is an array
+
+    //printf("put: b is an array\n");
+    iterator0 = PyArray_IterNew(bIn);
+    lenb = (long)PyArray_DIM(bIn, 0);
+    PyArray_ITER_RESET(iterator0);
+
+  } else {
+
+    PyErr_SetString(PyExc_TypeError,
+                    "Values must be Int, Float, list or Numpy array");
+    goto fail;
   }
-        
+
   if (lenb < 0 ) {
     PyErr_SetString(PyExc_IndexError, "vector b has a negative size");
     goto fail;
   }
+
+  // Determine nature of first index, if given
+  if (id1in) {
+
+    if( PyList_Check(id1in) ) {           // id1 is a list
+
+      //printf("put: id1in is a list\n");
+      lenid1 = (long)PyList_Size(id1in);
+      id1_is_list = 1;
+
+    } else if( PyArray_Check(id1in) ) {   // id1 is a Numpy array
+
+      //printf("put: id1in is an array\n");
+      iterator1 = PyArray_IterNew(id1in); // id1 may not be contiguous
+      lenid1 = (long)PyArray_DIM(id1in, 0);
+      PyArray_ITER_RESET(iterator1);
+
+    } else {
+
+      PyErr_SetString(PyExc_TypeError,
+                      "First index must be list or Numpy array");
+      goto fail;
+    }
+
+    if( !b_is_scalar )
+      if( lenid1 != lenb ) {
+        PyErr_SetString(PyExc_IndexError,
+                        "Not as many row indices as values");
+        goto fail;
+      }
+
+    if( b_is_scalar ) lenb = lenid1;
+  }
     
-  if (id1 && id1->dimensions[0] != lenb ) {
-    PyErr_SetString(PyExc_IndexError, "id1 does not have the same size as b");
-    goto fail;
+  // Determine nature of second index, if given
+  if( id2in ) {
+
+    if( PyList_Check(id2in) ) {           // id2 is a list
+
+      //printf("put: id2in is a list\n");
+      lenid2 = (long)PyList_Size(id2in);
+      id2_is_list = 1;
+
+    } else if( PyArray_Check(id2in) ) {   // id2 is a Numpy array
+
+      //printf("put: id2in is an array\n");
+      iterator2 = PyArray_IterNew(id2in); // id2 may not be contiguous
+      lenid2 = (long)PyArray_DIM(id2in, 0);
+      PyArray_ITER_RESET(iterator2);
+
+    } else {
+
+      PyErr_SetString(PyExc_TypeError,
+                        "Second index must be list or Numpy array");
+      goto fail;
+    }
+
+    if( !b_is_scalar ) {
+      if( lenid2 != lenb ) {
+        PyErr_SetString(PyExc_IndexError,
+                        "Not as many column indices as values");
+        goto fail;
+      }
+    }
+
+    if( id1in ) {
+      if( lenid1 != lenid2 ) {
+        PyErr_SetString(PyExc_IndexError,
+                        "Not as many row indices as column indices");
+        goto fail;
+      }
+    }
+
+    if( b_is_scalar ) lenb = lenid2;
   }
 
-  if (id2 && id2->dimensions[0] != lenb ) {
-    PyErr_SetString(PyExc_IndexError, "id2 does not have the same size as b");
-    goto fail;
-  }
+  // Perform put operation
+  long i1, j1;
+  for( i = 0; i < lenb; i++ ) {
     
-  /* Perform put operation */
-   for( i = 0; i < lenb; i++ ) {
-     int i1, j1;
-     if( id1 )
-       i1 = ((long *) id1->data)[i];
-     else
-       i1 = i;
+    i1 = i;
+    if( id1in ) {
+      if( id1_is_list ) {
+        ind = PyList_GetItem(id1in, (Py_ssize_t)i);
+        if( PyInt_Check(ind) )
+          i1 = PyInt_AS_LONG(ind);
+        else {
+          PyErr_SetString(PyExc_ValueError, "Invalid list item");
+          return NULL;
+        }
+      } else {
+        i1 = *(long*)PyArray_ITER_DATA(iterator1);
+        PyArray_ITER_NEXT(iterator1);
+      }
+    }
 
-     if( id2 )
-       j1 = ((long *) id2->data)[i];
-     else
-       j1 = i1;
+    j1 = i1;
+    if( id2in ) {
+      if( id2_is_list ) {
+        ind = PyList_GetItem(id2in, (Py_ssize_t)i);
+        if( PyInt_Check(ind) )
+          j1 = PyInt_AS_LONG(ind);
+        else {
+          PyErr_SetString(PyExc_ValueError, "Invalid list item");
+          return NULL;
+        }
+      } else {
+        j1 = *(long*)PyArray_ITER_DATA(iterator2);
+        PyArray_ITER_NEXT(iterator2);
+      }
+    }
 
-     if (i1 > j1 || !self->issym) { /* Update entries as given */
-       if( SpMatrix_LLMatSetItem(self, i1, j1, ((double *)b->data)[i]) == -1 )
-         goto fail;
-     } else { /* Symmetric matrix: update entries in lower triangle */
-       if( SpMatrix_LLMatSetItem(self, j1, i1, ((double *)b->data)[i]) == -1 )
-         goto fail;
-     }
-   }
-     
-   Py_DECREF(b);
-   if (id1) {
-     Py_DECREF(id1);
-   }
-   if (id2) {
-     Py_DECREF(id2);
-   }
-   Py_INCREF(Py_None); 
-   return Py_None;
-   
+    if( !b_is_scalar ) {
+      if( b_is_list ) {
+        ind = PyList_GetItem(bIn, (Py_ssize_t)i);
+        if( PyInt_Check(ind) )
+          bval = (double)PyInt_AS_LONG(ind);
+        else if( PyFloat_Check(ind) )
+          bval = PyFloat_AsDouble(ind);
+        else {
+          PyErr_SetString(PyExc_ValueError, "Invalid list item");
+          return NULL;
+        }
+      } else {
+        bval = *(double*)PyArray_ITER_DATA(iterator0);
+        PyArray_ITER_NEXT(iterator0);
+      }
+    }
+
+    //printf(" %g  --> (%ld,%ld)\n", bval, i1, j1);
+
+    if (i1 > j1 || !self->issym) { /* Update entries as given */
+      if( SpMatrix_LLMatSetItem(self, i1, j1, bval) == -1 )
+        goto fail;
+    } else { /* Symmetric matrix: update entries in lower triangle */
+      if( SpMatrix_LLMatSetItem(self, j1, i1, bval) == -1 )
+        goto fail;
+    }
+  }
+  
+  /*
+    if( !b_is_scalar ) {
+    Py_DECREF(b);
+    }
+    if (id1) {
+    Py_DECREF(id1);
+    }
+    if (id2) {
+    Py_DECREF(id2);
+    }
+  */
+  Py_INCREF(Py_None); 
+  return Py_None;
+  
  fail:
-   Py_XDECREF(b);
-   if (id1) {
-     Py_XDECREF(id1);
-   }
-   if (id2) {
-     Py_XDECREF(id2);
-   }
-   return NULL;
+  /*
+    if( !b_is_scalar ) {
+    Py_XDECREF(b);
+    }
+    if (id1) {
+    Py_XDECREF(id1);
+    }
+    if (id2) {
+    Py_XDECREF(id2);
+    }
+  */
+  return NULL;
 }
 
 static char LLMat_delete_rows_doc[] = 
@@ -2479,12 +2730,12 @@ static PyObject *LLMat_Find( LLMatObject *self, PyObject *args ) {
   /* Convert an LL matrix into coordinate format */
 
   PyArrayObject *a_row, *a_col, *a_val; /* Matrix in coordinate format */
-  int            dmat[1];               /* Dimension descriptor */
+  npy_intp       dmat[1];               /* Dimension descriptor */
   int           *pi, *pj;             /* Intermediate pointers to matrix data */
   double        *pv;
   int            i, k, elem;
 
-  dmat[0] = self->nnz;
+  dmat[0] = (npy_intp)(self->nnz);
 
   /* Allocate numarrays */
   a_row = (PyArrayObject *)PyArray_SimpleNew( 1, dmat, NPY_INT32 );
@@ -2740,37 +2991,8 @@ LLMat_ass_subscript(LLMatObject *self, PyObject *index, PyObject *value ) {
     return -1;
   }
 
-  // Create index list from first index
-  /*
-  if( !(irow = create_indexlist(&nrow, self->dim[0], index0)) ) {
-    PyErr_SetString(PyExc_IndexError, "Error creating first index list");
-    return -1;
-  }
-  */
-
-  // Create index list from second index
-  /*
-  if( !(jcol = create_indexlist(&ncol, self->dim[1], index1)) ) {
-    PyErr_SetString(PyExc_IndexError, "Error creating second index list");
-    return -1;
-  }
-  */
-
-  // Assign a single element
-  /*
-  if( nrow == 1 && ncol == 1 ) {
-    if( !PyArg_Parse(value, "d;array item must be float", &x) )
-      return -1;
-    else
-      return SpMatrix_LLMatSetItem(self, irow[0], jcol[0], x);
-  }
-  */
-
   // Assign a submatrix
   return setSubMatrix_FromList(self, value, index0, index1);
-
-  //return setSubMatrix_FromList(self, (LLMatObject*)value,
-  //                             irow, nrow, jcol, ncol);
 }
 
 static PyMappingMethods LLMat_as_mapping = {

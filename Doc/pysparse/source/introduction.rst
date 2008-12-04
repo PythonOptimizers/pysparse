@@ -190,3 +190,30 @@ There is a corresponding test script for UMFPACK, ``testUmfpack``::
     ----------------------------------------------------------------------
     Ran 18 tests in 8.486s
 
+
+Generating the Documentation
+============================
+
+To re-generate the documentation, `Sphinx <http://sphinx.pocoo.org>`_ version
+0.5 or higher must be installed. The `jsMath
+<http://www.math.union.edu/~dpvc/jsMath/users/welcome.html>`_ package must also
+be installed. Edit ``$PYSPARSE/Doc/pysparse/source/conf.py`` to specify the
+location of ``jsMath``.
+
+To re-generate the html documentation, ::
+
+    cd $PYSPARSE/Doc/pysparse
+    make html
+
+where ``Doc`` is a subdirectory of the top Pysparse directory. You can then
+point your browser to the file ``build/index.html``.
+
+Similarly, to re-generate the pdf documentation, ::
+
+    cd $PYSPARSE/Doc/pysparse
+    make latex
+    cd build/latex
+    make all-pdf
+
+This creates ``Pysparse.pdf`` in the current directory. Obviously, you need to
+have a working LaTeX distribution installed.

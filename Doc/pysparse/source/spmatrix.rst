@@ -139,6 +139,7 @@ Write operations to slices are also possible:
     ll_mat(general, [5,5], [(0,0): -1, (1,1): -1, (2,1): 1, 
     (2,2): 3, (3,3): 4, (4,4): 5])
 
+
 Fancy Indexing
 ^^^^^^^^^^^^^^
 
@@ -248,8 +249,8 @@ a submatrix::
      --------  --------  -------- -1.000000  2.000000 
 
 Notice however that although the slice ``[0:3]`` appears to amount to the
-list ``[0,1,2]``, the assignments ``A[:3,:3]=7``, ``A[[0,1,2],[0,1,2]]=7`` and
-``A[:3,[0,1,2]]=7`` produce **very different** results.
+list ``[0,1,2]``, the assignments ``A[:3,:3]=7`` and
+``A.put([7,7,7], [0,1,2], [0,1,2])`` produce **very different** results.
 
 .. warning:: For large-scale matrices, fancy indexing is most efficient when
              both index sets have the same type: two Python slices or two Python
@@ -457,6 +458,12 @@ list ``[0,1,2]``, the assignments ``A[:3,:3]=7``, ``A[[0,1,2],[0,1,2]]=7`` and
       at positions given by ``irow`` and ``jcol``::
 
            for i in range(len(val)): A[irow[i],jcol[i]] = val[i]
+
+      Here, ``irow`` and ``jcol`` can be Python lists or integer Numpy arrays.
+      If either ``irow`` or ``jcol`` is omitted, it is replaced with
+      ``[0, 1, 2, ...]``. Similarly, ``val`` can be a Python list, an integer
+      Numpy array or a single scalar. If ``val`` is a scalar ``v``, it has the
+      same effect as if it were the constant list or array ``[v, v, ..., v]``.
 
    .. method:: delete_rows(mask)
 
