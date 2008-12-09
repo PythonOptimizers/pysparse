@@ -881,8 +881,6 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
   int other_is_num = 0, other_is_sym;
   double val = 0.0;
 
-  printf("In setSubmatrix...\n");
-
   if( PyInt_Check(other) ) {
     val = (double)PyInt_AsLong(other);
     other_is_num = 1;

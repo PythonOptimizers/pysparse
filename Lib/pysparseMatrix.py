@@ -149,7 +149,7 @@ class PysparseMatrix(SparseMatrix):
 
     def __setitem__(self, index, value):
         #if type(value) is type(self):
-        if isinstance(value, pysparseMatrix):
+        if isinstance(value, PysparseMatrix):
             self.matrix[index] = value.matrix
         else:
             self.matrix[index] = value
