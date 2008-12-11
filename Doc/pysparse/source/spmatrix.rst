@@ -612,11 +612,27 @@ Vectorization
 
 The ``put`` method of ``ll_mat`` objects allows us to operate on entire arrays
 at a time. This is advantageous because the loop over the elements of an array
-is performed at C level instead of in the Python script. For illustration, let's
-rewrite the ``poisson2d``, ``poisson2d_sym`` and ``poisson2d_sym_blk``
-constructors.
+is performed at C level instead of in the Python script. 
 
-The ``put`` method can be used in ``poisson1d`` as so::
+If you need to ``put`` the same value in many places, ``put`` lets you specify
+this value as a floating-point number instead of an array, e.g.::
+
+    A.put(4.0, range(n), range(n))
+
+is perfectly equivalent to::
+
+    A.put(4*numpy.ones(n), range(n), range(n))
+
+Moreover, if the second index set is omitted, it defaults to ``range(n)`` where
+``n`` is the appropriate matrix dimension. So the above is again perfectly
+equivalent to::
+
+    A.put(4.0, range(n))
+
+For illustration, let's rewrite the ``poisson2d``, ``poisson2d_sym`` and
+``poisson2d_sym_blk`` constructors.
+
+The ``put`` method can be used in ``poisson2d`` as so::
 
     from pysparse import spmatrix
     import numpy
@@ -624,42 +640,28 @@ The ``put`` method can be used in ``poisson1d`` as so::
     def poisson2d_vec(n):
         n2 = n*n
         L = spmatrix.ll_mat(n2, n2, 5*n2-4*n)
-        e = numpy.ones(n)
-        d = numpy.arange(n, dtype=numpy.int)
-        din = d
+        d = numpy.arange(n2, dtype=numpy.int)
+        L.put(4.0, d)
+        L.put(-1.0, d[:-n], d[n:])
+        L.put(-1.0, d[n:], d[:-n])
         for i in xrange(n):
-            # Diagonal blocks
-            L.put(4*e, din, din)
-            L.put(-e[1:], din[1:], din[:-1])
-            L.put(-e[1:], din[:-1], din[1:])
-            # Outer blocks
-            L.put(-e, n+din, din)
-            L.put(-e, din, n+din)
-            din = d + i*n
-        # Last diagonal block
-        L.put(4*e, din, din)
-        L.put(-e[1:], din[1:], din[:-1])
-        L.put(-e[1:], din[:-1], din[1:])
+            di = d[i*n:(i+1)*n]
+            L.put(-1.0, di[1:], di[:-1])
+            L.put(-1.0, di[:-1], di[1:])
         return L
+
 
 And similarly in the symmetric version::
 
     def poisson2d_sym_vec(n):
         n2 = n*n
         L = spmatrix.ll_mat_sym(n2, 3*n2-2*n)
-        e = numpy.ones(n)
-        d = numpy.arange(n, dtype=numpy.int)
-        din = d
+        d = numpy.arange(n2, dtype=numpy.int)
+        L.put(4.0, d)
+        L.put(-1.0, d[n:], d[:-n])
         for i in xrange(n):
-            # Diagonal blocks
-            L.put(4*e, din, din)
-            L.put(-e[1:], din[1:], din[:-1])
-            # Outer blocks
-            L.put(-e, n+din, din)
-            din = d + i*n
-        # Last diagonal block
-        L.put(4*e, din, din)
-        L.put(-e[1:], din[1:], din[:-1])
+            di = d[i*n:(i+1)*n]
+            L.put(-1.0, di[:-1], di[1:])
         return L
 
 The time differences to construct matrices with and without vectorization can be
@@ -674,22 +676,22 @@ processor:
    In [3]: %timeit -n10 -r3 L = poisson.poisson2d(100)
    10 loops, best of 3: 38.2 ms per loop
    In [4]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(100)
-   10 loops, best of 3: 8.11 ms per loop
+   10 loops, best of 3: 4.26 ms per loop
 
    In [5]: %timeit -n10 -r3 L = poisson.poisson2d(300)
    10 loops, best of 3: 352 ms per loop
    In [6]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(300)
-   10 loops, best of 3: 44.8 ms per loop
+   10 loops, best of 3: 31.7 ms per loop
 
    In [7]: %timeit -n10 -r3 L = poisson.poisson2d(500)
    10 loops, best of 3: 980 ms per loop
    In [8]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(500)
-   10 loops, best of 3: 110 ms per loop
+   10 loops, best of 3: 86.4 ms per loop
 
    In [9]: %timeit -n10 -r3 L = poisson.poisson2d(1000)
    10 loops, best of 3: 4.02 s per loop
    In [10]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(1000)
-   10 loops, best of 3: 398 ms per loop
+   10 loops, best of 3: 333 ms per loop
    
 and for the symmetric versions:
 
@@ -698,22 +700,22 @@ and for the symmetric versions:
    In [18]: %timeit -n10 -r3 L = poisson.poisson2d_sym(100)
    10 loops, best of 3: 22.6 ms per loop
    In [19]: %timeit -n10 -r3 L = poisson_vec.poisson2d_sym_vec(100)
-   10 loops, best of 3: 5.05 ms per loop
+   10 loops, best of 3: 2.48 ms per loop
 
    In [20]: %timeit -n10 -r3 L = poisson.poisson2d_sym(300)
    10 loops, best of 3: 202 ms per loop
    In [21]: %timeit -n10 -r3 L = poisson_vec.poisson2d_sym_vec(300)
-   10 loops, best of 3: 27 ms per loop
+   10 loops, best of 3: 20 ms per loop
 
    In [22]: %timeit -n10 -r3 L = poisson.poisson2d_sym(500)
    10 loops, best of 3: 561 ms per loop
    In [23]: %timeit -n10 -r3 L = poisson_vec.poisson2d_sym_vec(500)
-   10 loops, best of 3: 63.7 ms per loop
+   10 loops, best of 3: 53.8 ms per loop
 
    In [24]: %timeit -n10 -r3 L = poisson.poisson2d_sym(1000)
    10 loops, best of 3: 2.26 s per loop
    In [25]: %timeit -n10 -r3 L = poisson_vec.poisson2d_sym_vec(1000)
-   10 loops, best of 3: 224 ms per loop
+   10 loops, best of 3: 205 ms per loop
 
 From these numbers, it is obvious that vectorizing is crucial, especially for
 large matrices. The gain in terms of time seems to be a factor of at least four
@@ -721,21 +723,20 @@ or five. Note that the last system has order one million.
 
 Finally, the block version could be written as::
 
-    def poisson2d_sym_blk_vec(n):
+    def poisson2d_vec_sym_blk(n):
         n2 = n*n
         L = spmatrix.ll_mat_sym(n2, 3*n2-2*n)
         D = spmatrix.ll_mat_sym(n, 2*n-1)
-        e = numpy.ones(n)
         d = numpy.arange(n, dtype=numpy.int)
-        D.put(4*e, d, d)
-        D.put(-e[1:], d[1:], d[:-1])
-        P = spmatrix.ll_mat(n, n, n-1)
-        P.put(-e,d,d)
+        D.put(4.0, d)
+        D.put(-1.0, d[1:], d[:-1])
+        P = spmatrix.ll_mat_sym(n, n-1)
+        P.put(-1,d)
         for i in xrange(n-1):
             L[i*n:(i+1)*n, i*n:(i+1)*n] = D
             L[(i+1)*n:(i+2)*n, i*n:(i+1)*n] = P
         # Last diagonal block
-        L[n2-n:n2, n2-n:n2] = D
+        L[-n:,-n:] = D
         return L
 
 Here, ``put`` is sufficiently efficient that the benefit of constructing the
@@ -748,9 +749,7 @@ of ``find`` and ``put``, at the expense of memory consumption.
    In [9]: %timeit -n10 -r3 L = poisson.poisson2d_sym_blk(1000)
    10 loops, best of 3: 246 ms per loop
    In [10]: %timeit -n10 -r3 L = poisson_vec.poisson2d_sym_blk_vec(1000)
-   10 loops, best of 3: 246 ms per loop
-
-The two best timings coinciding is a pure coincidence.
+   10 loops, best of 3: 232 ms per loop
 
 
 Matlab Implementation
@@ -849,20 +848,19 @@ the Python and Matlab Poisson constructors.
    +-------+---------+--------+------------+---------------+-------------------+
    | ``n`` | Matlab  | Python | Python_vec | Matlab/Python | Matlab/Python_vec |
    +=======+=========+========+============+===============+===================+
-   | 100   |    1.73 | 0.0382 | 0.00811    | 45.53         | 216.25            |
+   | 100   |    1.73 | 0.0382 | 0.00426    | 45.53         | 406.1             |
    +-------+---------+--------+------------+---------------+-------------------+
-   | 300   |  145.98 | 0.3520 | 0.0448     | 414.72        | 3258.5            |
+   | 300   |  145.98 | 0.3520 | 0.0317     | 414.72        | 4605.0            |
    +-------+---------+--------+------------+---------------+-------------------+
-   | 500   | 2318.51 | 0.9800 | 0.1100     | 2365.8        | 21077.0           |
+   | 500   | 2318.51 | 0.9800 | 0.0864     | 2365.8        | 26834.6           |
    +-------+---------+--------+------------+---------------+-------------------+
-   | 1000  | |inf|   | 4.02   | 0.398      | |inf|         | |inf|             |
+   | 1000  | |inf|   | 4.02   | 0.333      | |inf|         | |inf|             |
    +-------+---------+--------+------------+---------------+-------------------+
 
 Unfortunately, since Matlab does not explicitly support symmetric matrices, we
 cannot compare the other functions. For information only, we compare the block
 version of the Python constructor with the Kronecker-product version of the
-Matlab constructor since those are the fastest. The results are in
-the :ref:`next table <mpy2>`.
+Matlab constructor. The results are in the :ref:`next table <mpy2>`.
 
 .. _mpy2:
 .. table:: Matlab vs. Python: Construction of 2D Poisson matrices---Fastest
@@ -871,13 +869,13 @@ the :ref:`next table <mpy2>`.
    +-------+---------+------------+-------------------+
    | ``n`` | Matlab  | Python_vec | Matlab/Python_vec |
    +=======+=========+============+===================+
-   | 100   | 0.01912 | 0.0028     | 6.83              |
+   | 100   | 0.01912 | 0.0025     | 7.65              |
    +-------+---------+------------+-------------------+
    | 300   | 0.2152  | 0.0219     | 9.83              |
    +-------+---------+------------+-------------------+
-   | 500   | 0.6271  | 0.0654     | 9.59              |
+   | 500   | 0.6271  | 0.0631     | 9.94              |
    +-------+---------+------------+-------------------+
-   | 1000  | 2.318   | 0.246      | 9.42              |
+   | 1000  | 2.318   | 0.232      | 9.99              |
    +-------+---------+------------+-------------------+
 
 .. Shortcuts
