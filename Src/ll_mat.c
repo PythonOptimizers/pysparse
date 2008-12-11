@@ -217,6 +217,19 @@ static double
 SpMatrix_LLMatGetItem(LLMatObject *a, int i, int j) {
 
   int k, t;
+  
+  /*
+  while( i < 0 )
+    i += a->dim[0];
+
+  while( j < 0 )
+    j += a->dim[1];
+
+  if( i >= a->dim[0] || j >= a->dim[1] ) {
+    PyErr_SetString(PyExc_IndexError, "Index out of bounds");
+    return 0.0;
+  }
+  */
 
   if (a->issym && i < j) {
     t = i; i = j; j = t;
@@ -242,7 +255,7 @@ SpMatrix_LLMatSetItem(LLMatObject *a, int i, int j, double x) {
   int k, new_elem, last, col;
 
   if (a->issym && i < j) {
-    PyErr_SetString(SpMatrix_ErrorObject, 
+    PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject, 
 		    "write operation to upper triangle of symmetric matrix");
     return -1;
   } 
@@ -346,7 +359,7 @@ SpMatrix_LLMatUpdateItemAdd(LLMatObject *a, int i, int j, double x) {
   int k, new_elem, col, last;
 
   if (a->issym && i < j) {
-    PyErr_SetString(SpMatrix_ErrorObject, 
+    PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject, 
 		    "write operation to upper triangle of symmetric matrix");
     return -1;
   } 
@@ -617,6 +630,12 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
   if( PyInt_Check(index0) && PyInt_Check(index1) ) {
     long row = PyInt_AS_LONG(index0);
     long col = PyInt_AS_LONG(index1);
+    while( row < 0 ) row += self->dim[0];
+    while( col < 0 ) col += self->dim[1];
+    if( row >= self->dim[0] || col >= self->dim[1] ) {
+      PyErr_SetString(PyExc_IndexError, "Index ouf of bounds");
+      return NULL;
+    }
     return PyFloat_FromDouble( SpMatrix_LLMatGetItem(self, row, col) );
   }
 
@@ -874,7 +893,8 @@ clear_submatrix(LLMatObject *self,
 
 //static int setSubMatrix_FromList(LLMatObject *self, LLMatObject *other,
 //                                 long *irow, int nrow, long *jcol, int ncol) {
-static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
+static void //int
+setSubMatrix_FromList(LLMatObject *self, PyObject *other,
                                  PyObject *index0, PyObject *index1) {
 
   LLMatObject *mat = NULL;
@@ -897,8 +917,19 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     long row = PyInt_AS_LONG(index0);
     long col = PyInt_AS_LONG(index1);
 
-    if( !other_is_num ) return -1;
-    return SpMatrix_LLMatSetItem(self, row, col, val);
+    if( !other_is_num ) { //return -1;
+      PyErr_SetString(PyExc_ValueError, "Value must be double");
+      return;
+    }
+    //return SpMatrix_LLMatSetItem(self, row, col, val);
+    while( row < 0 ) row += self->dim[0];
+    while( col < 0 ) col += self->dim[1];
+    if( row >= self->dim[0] || col >= self->dim[1] ) {
+      PyErr_SetString(PyExc_IndexError, "Index out of bounds");
+      return;
+    }
+    SpMatrix_LLMatSetItem(self, row, col, val);
+    return;
   }
 
   if( !other_is_num ) {
@@ -915,12 +946,18 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     Py_ssize_t start1, stop1, step1, length1;
 
     if( PySlice_GetIndicesEx((PySliceObject*)index0, self->dim[0],
-                             &start0, &stop0, &step0, &length0) < 0)
-      return -1;
+                             &start0, &stop0, &step0, &length0) < 0) {
+      PyErr_SetString(PyExc_IndexError, "Erroneous indices");
+      return;
+      //return -1;
+    }
 
     if( PySlice_GetIndicesEx((PySliceObject*)index1, self->dim[1],
-                             &start1, &stop1, &step1, &length1) < 0)
-      return -1;
+                             &start1, &stop1, &step1, &length1) < 0) {
+      PyErr_SetString(PyExc_IndexError, "Erroneous indices");
+      return;
+      //return -1;
+    }
 
     //printf("New block of size (%ld,%ld)\n", length0, length1);
 
@@ -932,13 +969,13 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
         col = start1;
         while( (step1 > 0 && col < stop1) || (step1 < 0 && col > stop1) ) {
           if( self->issym && row < col ) {
-            PyErr_SetString(SpMatrix_ErrorObject,
+            PyErr_SetString(PyExc_IndexError,  //SpMatrix_ErrorObject,
                             "Writing to upper triangle of symmetric matrix");
-            return -1;
+            return; // -1;
           }
           if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
             PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
-            return -1;
+            return; // -1;
           }
           col += step1;
         }
@@ -949,7 +986,7 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
       if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
         PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
-        return -1;
+        return; // -1;
       }
 
       row = start0;
@@ -970,9 +1007,9 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
           // Ensure write operation is permitted
           if( self->issym && row < col ) {
-            PyErr_SetString(SpMatrix_ErrorObject,
+            PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
                             "Writing to upper triangle of symmetric matrix");
-            return -1;
+            return; // -1;
           }
           
           val = SpMatrix_LLMatGetItem(mat, i, j);
@@ -980,7 +1017,7 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
           if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
             PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
-            return -1;
+            return; // -1;
           }
         }
 
@@ -988,7 +1025,7 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
         i++;
       }
     }
-    return 0;
+    return; // 0;
   }
 
   // Both index sets are Python lists
@@ -1004,7 +1041,7 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     if( !other_is_num )
       if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
         PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
-        return -1;
+        return; // -1;
       }
 
     for( i = 0; i < length0; i++ ) {
@@ -1012,16 +1049,16 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
       if( PyInt_Check(ind) )
         row = PyInt_AS_LONG(ind);
       else {
-        PyErr_SetString(PyExc_ValueError, "Invalid list item");
-        return -1;
+        PyErr_SetString(PyExc_IndexError, "Invalid list item");
+        return; // -1;
       }
       for( j = 0; j < length1; j++ ) {
         ind = PyList_GetItem(index1, (Py_ssize_t)j);
         if( PyInt_Check(ind) )
           col = PyInt_AS_LONG(ind);
         else {
-          PyErr_SetString(PyExc_ValueError, "Invalid list item");
-          return -1;
+          PyErr_SetString(PyExc_IndexError, "Invalid list item");
+          return; // -1;
         }
 
         if( !other_is_num )
@@ -1037,19 +1074,19 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
         // Ensure write operation is permitted
         if( self->issym && row < col ) {
-          PyErr_SetString(SpMatrix_ErrorObject,
+          PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
                           "Writing to upper triangle of symmetric matrix");
-          return -1;
+          return; // -1;
         }
 
         if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
           PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
-          return -1;
+          return; // -1;
         }
       }
     }
 
-    return 0;
+    return; // 0;
   }
 
   // Both index sets are Numpy arrays
@@ -1064,7 +1101,7 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     if( !other_is_num )
       if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
         PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
-        return -1;
+        return; // -1;
       }
 
     PyArray_ITER_RESET(iterator0);
@@ -1092,14 +1129,14 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
         // Ensure write operation is permitted
         if( self->issym && row < col ) {
-          PyErr_SetString(SpMatrix_ErrorObject,
+          PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
                           "Writing to upper triangle of symmetric matrix");
-          return -1;
+          return; // -1;
         }
 
         if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
           PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
-          return -1;
+          return; // -1;
         }
 
         PyArray_ITER_NEXT(iterator1);
@@ -1110,7 +1147,7 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
       i++;
     }
 
-    return 0;
+    return; // 0;
   }
 
   // If we have a mixture of index sets, gather both sets into arrays.
@@ -1120,19 +1157,19 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
   // Create index list from first index
   if( !(irow = create_indexlist(&nrow, self->dim[0], index0)) ) {
     PyErr_SetString(PyExc_IndexError, "Error creating first index list");
-    return -1;
+    return; // -1;
   }
 
   // Create index list from second index
   if( !(jcol = create_indexlist(&ncol, self->dim[1], index1)) ) {
     PyErr_SetString(PyExc_IndexError, "Error creating second index list");
-    return -1;
+    return; // -1;
   }
 
   if( !other_is_num )
     if( mat->dim[0] != nrow || mat->dim[1] != ncol ) {
       PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
-      return -1;
+      return; // -1;
     }
 
   for( i = 0; i < nrow; i++ ) {
@@ -1147,9 +1184,9 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
       // Ensure write operation is permitted
       if( self->issym && row < col ) {
-        PyErr_SetString(SpMatrix_ErrorObject,
+        PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
                         "Writing to upper triangle of symmetric matrix");
-        return -1;
+        return; // -1;
       }
 
       // Insert element into self
@@ -1158,11 +1195,11 @@ static int setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
       if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
         PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
-        return -1;
+        return; // -1;
       }
     }
   }
-  return 0;
+  return; // 0;
 }
 
 /*****************************************************************************/
@@ -2990,11 +3027,15 @@ LLMat_ass_subscript(LLMatObject *self, PyObject *index, PyObject *value ) {
   }
 
   // Assign a submatrix
-  return setSubMatrix_FromList(self, value, index0, index1);
+  //return setSubMatrix_FromList(self, value, index0, index1);
+  setSubMatrix_FromList(self, value, index0, index1);
+  if( PyErr_Occurred() )
+    return -1;
+  return 0;
 }
 
 static PyMappingMethods LLMat_as_mapping = {
-  (lenfunc)LLMat_length,	      /*mp_length*/
+  (inquiry)LLMat_length,	      /*mp_length*/
   (binaryfunc)LLMat_subscript,        /*mp_subscript*/
   (objobjargproc)LLMat_ass_subscript, /*mp_ass_subscript*/
 };
@@ -3138,7 +3179,8 @@ LLMat_from_mtx(PyObject *module, PyObject *args) {
     }
     row --; col --;
     if (!(0 <= row && row < dim[0] && 0 <= col && col < dim[1])) {
-      PyErr_SetString(SpMatrix_ErrorObject, "matrix indices out of range");
+      PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
+                      "matrix indices out of range");
       fclose(f);
       return NULL;
     }

@@ -41,7 +41,7 @@ class LLMatSimpleTestCase(unittest.TestCase):
         self.failUnless(self.A.nnz == 1)
         self.failUnless(self.S[0,0] == 1.0)
         self.failUnless(self.S.nnz == 1)
-        self.failUnlessRaises(spmatrix.error, assignUP)
+        self.failUnlessRaises(IndexError, assignUP)
         self.A[0,0] += 1.0
         self.failUnless(self.A[0,0] == 2.0)
         self.failUnless(self.A.nnz == 1)
@@ -49,8 +49,12 @@ class LLMatSimpleTestCase(unittest.TestCase):
         self.failUnless(self.A[0,0] == 0.0)
         self.failUnless(self.A.nnz == 0)
         # indices out of bounds
-        for f in [assignLeft, assignRight, assignTop, assignBottom]:
-            self.failUnlessRaises(IndexError, f)
+        #for f in [assignLeft, assignRight, assignTop, assignBottom]:
+        #for f in [assignRight, assignTop, assignBottom]:
+        #    self.failUnlessRaises(IndexError, f)
+        self.failUnlessRaises(IndexError, assignRight)
+        self.failUnlessRaises(IndexError, assignTop)
+        self.failUnlessRaises(IndexError, assignBottom)
         # negative indices
         I = spmatrix.ll_mat(10, 10, 100)
         for i in range(10):
