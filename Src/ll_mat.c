@@ -2292,6 +2292,11 @@ If id1 and/or id2 is omitted, it is considered to be [1, 2, 3, ...].\n";
 
 static PyObject *
 LLMat_put(LLMatObject *self, PyObject *args) {
+
+  // For simplicity, we use iterators to parse Numpy arrays. We could gain in
+  // efficiency by checking whether the array is contiguous or not. If it is,
+  // a simple loop over the elements will be faster than the iterator.
+
   PyObject *bIn, *ind;
   PyObject *id1in = NULL;
   PyObject *id2in = NULL;
@@ -2470,7 +2475,7 @@ LLMat_put(LLMatObject *self, PyObject *args) {
           return NULL;
         }
       } else {
-        bval = *(double*)PyArray_ITER_DATA(iterator0);
+        bval = *(double*)(PyArray_ITER_DATA(iterator0));
         PyArray_ITER_NEXT(iterator0);
       }
     }

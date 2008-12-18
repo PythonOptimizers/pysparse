@@ -51,7 +51,7 @@ ItSolvers_pcg(PyObject *self, PyObject *args)
   int n;
   double *work;
   int res;
-  int nx, nb;
+  intp nx, nb;
   double *x_data, *b_data;
   PyObject *precon = Py_None;	/* default value for precon */
 
@@ -69,14 +69,17 @@ ItSolvers_pcg(PyObject *self, PyObject *args)
   res = SpMatrix_GetOrder((PyObject *)amat, &n);
   if (res)
     return NULL;
-  
-  /* Make sure that x and b are continous double arrays */
-  res = PyArray_As1D((PyObject **)&x, (char **)&x_data, &nx, PyArray_DOUBLE);
+
+  /* Make sure that x and b are contiguous double arrays */
+  res = PyArray_AsCArray((PyObject **)&x, (void *)&x_data, &nx, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert x to double array");
     return NULL;
   }
-  res = PyArray_As1D((PyObject **)&b, (char **)&b_data, &nb, PyArray_DOUBLE);
+  
+  res = PyArray_AsCArray((PyObject **)&b, (void *)&b_data, &nb, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert b to double array");
     return NULL;
@@ -106,9 +109,9 @@ ItSolvers_pcg(PyObject *self, PyObject *args)
   
   /* free workspace */
   PyMem_DEL(work);
-  res = PyArray_Free((PyObject *)x, (char *)x_data);
+  res = PyArray_Free((PyObject *)x, (void *)&x_data);
   assert(res != -1);
-  res = PyArray_Free((PyObject *)b, (char *)b_data);
+  res = PyArray_Free((PyObject *)b, (void *)&b_data);
   assert(res != -1);
 
   /* return result tuple */
@@ -141,7 +144,7 @@ ItSolvers_bicgstab(PyObject *self, PyObject *args)
   int n;
   double *work;
   int res;
-  int nx, nb;
+  intp nx, nb;
   double *x_data, *b_data;
   PyObject *precon = Py_None;	/* default value for precon */
 
@@ -161,12 +164,14 @@ ItSolvers_bicgstab(PyObject *self, PyObject *args)
     return NULL;
   
   /* Make sure that x and b are continous double arrays */
-  res = PyArray_As1D((PyObject **)&x, (char **)&x_data, &nx, PyArray_DOUBLE);
+  res = PyArray_AsCArray((PyObject **)&x, (void *)&x_data, &nx, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert x to double array");
     return NULL;
   }
-  res = PyArray_As1D((PyObject **)&b, (char **)&b_data, &nb, PyArray_DOUBLE);
+  res = PyArray_AsCArray((PyObject **)&b, (void *)&b_data, &nb, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert b to double array");
     return NULL;
@@ -196,9 +201,9 @@ ItSolvers_bicgstab(PyObject *self, PyObject *args)
   
   /* free workspace */
   PyMem_DEL(work);
-  res = PyArray_Free((PyObject *)x, (char *)x_data);
+  res = PyArray_Free((PyObject *)x, (void *)&x_data);
   assert(res != -1);
-  res = PyArray_Free((PyObject *)b, (char *)b_data);
+  res = PyArray_Free((PyObject *)b, (void *)&b_data);
   assert(res != -1);
 
   /* return result tuple */
@@ -231,7 +236,7 @@ ItSolvers_minres(PyObject *self, PyObject *args)
   int n;
   double *work;
   int res;
-  int nx, nb;
+  intp nx, nb;
   double *x_data, *b_data;
   int dim[2];			/* shape of amat */
   PyObject *precon = Py_None;	/* default value for precon */
@@ -255,12 +260,14 @@ ItSolvers_minres(PyObject *self, PyObject *args)
   n = dim[0];
 
   /* Make sure that x and b are continous double arrays */
-  res = PyArray_As1D((PyObject **)&x, (char **)&x_data, &nx, PyArray_DOUBLE);
+  res = PyArray_AsCArray((PyObject **)&x, (void *)&x_data, &nx, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert x to double array");
     return NULL;
   }
-  res = PyArray_As1D((PyObject **)&b, (char **)&b_data, &nb, PyArray_DOUBLE);
+  res = PyArray_AsCArray((PyObject **)&b, (void *)&b_data, &nb, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert b to double array");
     return NULL;
@@ -289,9 +296,9 @@ ItSolvers_minres(PyObject *self, PyObject *args)
   
   /* free workspace */
   PyMem_DEL(work);
-  res = PyArray_Free((PyObject *)x, (char *)x_data);
+  res = PyArray_Free((PyObject *)x, (void *)&x_data);
   assert(res != -1);
-  res = PyArray_Free((PyObject *)b, (char *)b_data);
+  res = PyArray_Free((PyObject *)b, (void *)&b_data);
   assert(res != -1);
 
   /* return result tuple */
@@ -324,7 +331,7 @@ ItSolvers_gmres(PyObject *self, PyObject *args)
   int n;
   double *work;
   int res;
-  int nx, nb;
+  intp nx, nb;
   double *x_data, *b_data;
   int dim[2];			/* shape of amat */
   PyObject *precon = Py_None;	/* default value for precon */
@@ -348,12 +355,14 @@ ItSolvers_gmres(PyObject *self, PyObject *args)
   n = dim[0];
 
   /* Make sure that x and b are continous double arrays */
-  res = PyArray_As1D((PyObject **)&x, (char **)&x_data, &nx, PyArray_DOUBLE);
+  res = PyArray_AsCArray((PyObject **)&x, (void *)&x_data, &nx, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert x to double array");
     return NULL;
   }
-  res = PyArray_As1D((PyObject **)&b, (char **)&b_data, &nb, PyArray_DOUBLE);
+  res = PyArray_AsCArray((PyObject **)&b, (void *)&b_data, &nb, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert b to double array");
     return NULL;
@@ -382,9 +391,9 @@ ItSolvers_gmres(PyObject *self, PyObject *args)
 
   /* free workspace */
   PyMem_DEL(work);
-  res = PyArray_Free((PyObject *)x, (char *)x_data);
+  res = PyArray_Free((PyObject *)x, (void *)&x_data);
   assert(res != -1);
-  res = PyArray_Free((PyObject *)b, (char *)b_data);
+  res = PyArray_Free((PyObject *)b, (void *)&b_data);
   assert(res != -1);
 
   /* return result tuple */
@@ -416,7 +425,7 @@ ItSolvers_qmrs(PyObject *self, PyObject *args)
   int n;
   double *work;
   int res;
-  int nx, nb;
+  intp nx, nb;
   double *x_data, *b_data;
   int dim[2];			/* shape of amat */
   PyObject *precon = Py_None;	/* default value for precon */
@@ -440,12 +449,14 @@ ItSolvers_qmrs(PyObject *self, PyObject *args)
   n = dim[0];
 
   /* Make sure that x and b are continous double arrays */
-  res = PyArray_As1D((PyObject **)&x, (char **)&x_data, &nx, PyArray_DOUBLE);
+  res = PyArray_AsCArray((PyObject **)&x, (void *)&x_data, &nx, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert x to double array");
     return NULL;
   }
-  res = PyArray_As1D((PyObject **)&b, (char **)&b_data, &nb, PyArray_DOUBLE);
+  res = PyArray_AsCArray((PyObject **)&b, (void *)&b_data, &nb, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert b to double array");
     return NULL;
@@ -473,9 +484,9 @@ ItSolvers_qmrs(PyObject *self, PyObject *args)
   
   /* free workspace */
   PyMem_DEL(work);
-  res = PyArray_Free((PyObject *)x, (char *)x_data);
+  res = PyArray_Free((PyObject *)x, (void *)&x_data);
   assert(res != -1);
-  res = PyArray_Free((PyObject *)b, (char *)b_data);
+  res = PyArray_Free((PyObject *)b, (void *)&b_data);
   assert(res != -1);
 
   /* return result tuple */
@@ -507,7 +518,7 @@ ItSolvers_cgs(PyObject *self, PyObject *args)
   int n;
   double *work;
   int res;
-  int nx, nb;
+  intp nx, nb;
   double *x_data, *b_data;
   int dim[2];			/* shape of amat */
   PyObject *precon = Py_None;	/* default value for precon */
@@ -531,12 +542,14 @@ ItSolvers_cgs(PyObject *self, PyObject *args)
   n = dim[0];
 
   /* Make sure that x and b are continous double arrays */
-  res = PyArray_As1D((PyObject **)&x, (char **)&x_data, &nx, PyArray_DOUBLE);
+  res = PyArray_AsCArray((PyObject **)&x, (void *)&x_data, &nx, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert x to double array");
     return NULL;
   }
-  res = PyArray_As1D((PyObject **)&b, (char **)&b_data, &nb, PyArray_DOUBLE);
+  res = PyArray_AsCArray((PyObject **)&b, (void *)&b_data, &nb, 1,
+                         PyArray_DescrFromType(NPY_DOUBLE));
   if (res == -1) {
     PyErr_SetString(PyExc_ValueError, "Unable to convert b to double array");
     return NULL;
@@ -564,9 +577,9 @@ ItSolvers_cgs(PyObject *self, PyObject *args)
   
   /* free workspace */
   PyMem_DEL(work);
-  res = PyArray_Free((PyObject *)x, (char *)x_data);
+  res = PyArray_Free((PyObject *)x, (void *)&x_data);
   assert(res != -1);
-  res = PyArray_Free((PyObject *)b, (char *)b_data);
+  res = PyArray_Free((PyObject *)b, (void *)&b_data);
   assert(res != -1);
 
   /* return result tuple */
