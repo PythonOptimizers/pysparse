@@ -406,7 +406,7 @@ list ``[0,1,2]``, the assignments ``A[:3,:3]=7`` and
       Add in place the elements of the vector ``val`` at the indices given by
       the two arrays ``irow`` and ``jcol``. The operation is equivalent to::
 
-          for i in range(len(b)):
+          for i in range(len(val)):
               A[irow[i],jcol[i]] += val[i]
 
    .. method:: generalize()
