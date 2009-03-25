@@ -1679,10 +1679,10 @@ LLMat_copy(LLMatObject *self, PyObject *args) {
   return (PyObject *)new;
 }
 
-static char update_add_at_doc[] = "A.update_add_at(b,id1,id2)\n\
+static char update_add_at_doc[] = "A.update_add_at(val,id1,id2)\n\
 \n\
-for i in range(len(b)):\n\
-    A[id1[i],id2[i]] += b[i]";
+for i in range(len(val)):\n\
+    A[id1[i],id2[i]] += val[i]";
 
 static PyObject *
 LLMat_update_add_at(LLMatObject *self, PyObject *args) {
@@ -1731,16 +1731,16 @@ LLMat_update_add_at(LLMatObject *self, PyObject *args) {
     if( err == -1 ) goto fail;
   }
 
-  Py_DECREF(b);
-  Py_DECREF(id1);
-  Py_DECREF(id2);
+  Py_XDECREF(b);
+  Py_XDECREF(id1);
+  Py_XDECREF(id2);
   Py_INCREF(Py_None); 
   return Py_None;
 
  fail:
-  if (b) { Py_XDECREF(b); }
-  if (id1) { Py_XDECREF(id1); }
-  if (id2) { Py_XDECREF(id2); }
+  if(b) Py_XDECREF(b);
+  if(id1) Py_XDECREF(id1);
+  if(id2) Py_XDECREF(id2);
   return NULL;
 }
 
