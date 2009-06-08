@@ -208,7 +208,7 @@ SpMatrix_LLMatDestroyColIndex(struct llColIndex **idx) {
 /******************************************************************************/
 /*  Routines for setting, updating and reading entries of ll_mat objects      */
 /******************************************************************************/
-http://mail.google.com/mail/?hl=en&tab=wm#inbox
+
 /*
  *  Return matrix entry a[i,j] as a double value
  */
