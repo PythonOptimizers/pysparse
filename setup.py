@@ -6,11 +6,27 @@ import os, socket
 import sys
 
 # default settings
-library_dirs_list= []
-libraries_list = ['lapack', 'blas', 'g2c']
+
+##library_dirs_list= []
+##libraries_list = ['lapack', 'blas', 'g2c']
+
+library_dirs_list= ['/usr/local/lib']
+libraries_list = ['lapack', 'cblas', 'f77blas', 'atlas', 'gfortran']
+
+
+
 superlu_defs = [('USE_VENDOR_BLAS',1)]
 if sys.platform == 'win32':
     superlu_defs += [('NO_TIMER', 1)]
+
+#altix
+##library_dirs_list= ['/opt/intel/Compiler/11.0/081/mkl/lib/64', '/opt/intel/Compiler/11.0/081/lib/ia64']
+##libraries_list = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_lapack', 'mkl_core', 'iomp5', 'pthread']
+##superlu_defs = [('USE_VENDOR_BLAS',1)]
+
+## build script:
+## python setup.py config --compiler=intel build_clib --fcompiler=intel build_ext --compiler=intel --verbose build
+
 
 f77_defs = []
 linky=[]
