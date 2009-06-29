@@ -568,7 +568,10 @@ long* create_indexlist(long *len, long maxlen, PyObject *A) {
     npy_intp length0 = PyArray_DIM(A, 0);
     PyObject *iterator0 = PyArray_IterNew(A);
 
-    if( !(index = calloc(length0, sizeof(long))) ) return NULL;
+    if( !(index = calloc(length0, sizeof(long))) ) {
+      Py_XDECREF(iterator0);
+      return NULL;
+    }
 
     PyArray_ITER_RESET(iterator0);
     i = 0;
@@ -579,6 +582,7 @@ long* create_indexlist(long *len, long maxlen, PyObject *A) {
       i++;
     }
     *len = (int)length0;
+    Py_DECREF(iterator0);
     return index;
   }
 
@@ -788,7 +792,11 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
 
     dim[0] = length0; dim[1] = length1;
     dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz);
-    if( !dst ) return NULL;
+    if( !dst ) {
+      Py_XDECREF(iterator0);
+      Py_XDECREF(iterator1);
+      return NULL;
+    }
 
     PyArray_ITER_RESET(iterator0);
     i = 0;
@@ -807,6 +815,8 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
 
         if( SpMatrix_LLMatSetItem(dst, i, j, val) ) {
           Py_DECREF(dst);
+          Py_DECREF(iterator0);
+          Py_DECREF(iterator1);
           PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
           return NULL;
         }
@@ -819,6 +829,8 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
       i++;
     }
 
+    Py_DECREF(iterator0);
+    Py_DECREF(iterator1);
     return (PyObject *)dst;
   }
 
@@ -1100,6 +1112,8 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
     if( !other_is_num )
       if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
+        Py_DECREF(iterator0);
+        Py_DECREF(iterator1);
         PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
         return; // -1;
       }
@@ -1129,12 +1143,16 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
         // Ensure write operation is permitted
         if( self->issym && row < col ) {
+          Py_DECREF(iterator0);
+          Py_DECREF(iterator1);
           PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
                           "Writing to upper triangle of symmetric matrix");
           return; // -1;
         }
 
         if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
+          Py_DECREF(iterator0);
+          Py_DECREF(iterator1);
           PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
           return; // -1;
         }
@@ -1147,6 +1165,8 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
       i++;
     }
 
+    Py_DECREF(iterator0);
+    Py_DECREF(iterator1);
     return; // 0;
   }
 
@@ -2542,6 +2562,9 @@ LLMat_put(LLMatObject *self, PyObject *args) {
     Py_DECREF(id2);
     }
   */
+  Py_XDECREF(iterator0);
+  Py_XDECREF(iterator1);
+  Py_XDECREF(iterator2);
   Py_INCREF(Py_None); 
   return Py_None;
   
@@ -2557,6 +2580,9 @@ LLMat_put(LLMatObject *self, PyObject *args) {
     Py_XDECREF(id2);
     }
   */
+  Py_XDECREF(iterator0);
+  Py_XDECREF(iterator1);
+  Py_XDECREF(iterator2);
   return NULL;
 }
 
