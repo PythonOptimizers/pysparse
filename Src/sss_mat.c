@@ -210,7 +210,11 @@ SSSMat_subscript(SSSMatObject *self, PyObject *idx) {
 }
 
 static PyMappingMethods SSSMat_as_mapping = {
+#ifdef LENFUNC_OK
+    (lenfunc)SSSMat_length,	/*mp_length*/
+#else
     (inquiry)SSSMat_length,	/*mp_length*/
+#endif
     (binaryfunc)SSSMat_subscript, /*mp_subscript*/
     (objobjargproc)0,
 };

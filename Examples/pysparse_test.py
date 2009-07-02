@@ -1,5 +1,5 @@
 import math, os, sys, time
-import Numeric
+import numpy as Numeric
 from pysparse import spmatrix
 from pysparse import itsolvers
 from pysparse import precon
@@ -37,7 +37,7 @@ for i in range(0, 100, 5):
         ll[i,j] = 1.0/float(i+j+1)
 A = ll.to_csr()
 
-x = Numeric.arange(100).astype(Numeric.Float)
+x = Numeric.arange(100).astype(Numeric.float)
 y = Numeric.zeros(100, 'd')
 z = Numeric.zeros(100, 'd')
 

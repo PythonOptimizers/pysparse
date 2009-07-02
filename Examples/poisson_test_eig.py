@@ -1,4 +1,4 @@
-import Numeric
+import numpy as Numeric
 import math
 from pysparse import spmatrix
 from pysparse import itsolvers

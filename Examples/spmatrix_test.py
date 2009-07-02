@@ -1,4 +1,4 @@
-import Numeric
+import numpy as Numeric
 import traceback
 from pysparse import spmatrix_util, spmatrix
 

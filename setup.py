@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from distutils import sysconfig, version
 from distutils.core import setup, Extension
 import glob
 import os, socket
@@ -61,6 +62,13 @@ else:
     #umfpack_include_dirs = ['amd', 'umfpack'] # you may need to set this to find the atlas
     #umfpack_library_dirs = []
 
+# Obtain Python version
+pyver = sysconfig.get_python_version()  # Returns something like '2.5'
+current = version.StrictVersion(pyver)  # Object that can be compored
+target = version.StrictVersion('2.6')
+newpy_defs = []
+if current >= target:
+    newpy_defs = [('LENFUNC_OK', 1)]    # For PyMappingMethods types
 
 ## numpy / Numeric settings
 try:
@@ -81,52 +89,6 @@ else:
     numerix_macro = []
     numerix_include_dirs = []
 
-#hostname = socket.gethostname()
-#if hostname in ['bree', 'brokoli', 'givens2', 'givens4', 'nedelec', 'gondor']:
-#    # SuSE Linux 8.x and 9.0
-#    libraries_list = ['lapack', 'blas', 'g2c']
-#elif hostname == 'maxwell':
-#    # AMD Opteron 'x86-64' architecture using ACML
-#    libraries_list = ['acml', 'g2c']
-#    library_dirs_list = ['/opt/acml/gnu64/lib']
-#elif hostname == 'sysiphus':
-#    # Linux RedHat 7.3 2.4.18-10 i686 with atlas Lapack routines
-#    library_dirs_list= ['/hg/u/vasseur/Linux/lib/atlas']
-#    libraries_list = ['lapack', 'f77blas', 'cblas', 'atlas', 'g2c']
-#elif hostname == 'sophokles':
-#    #SunOS sophokles 5.8 Generic_108528-15 sun4u sparc SUNW,Sun-Fire-880
-#    library_dirs_list= ['/hg/s/solaris/8/opt/SUNWspro/lib']
-#    libraries_list = ['F77', 'sunperf', 'fui', 'fsu', 'sunmath']
-#elif hostname == 'sim0':
-#    # Linux sim0 2.2.19-7.0.16enterprise #1 SMP Wed Mar 13 13:23:22 EST 2002 i686 unknown
-#    library_dirs_list = ['/home/geus/linux/lib']
-#    libraries_list = ['lapack', 'blas', 'g2c']
-#elif hostname == 'stardust':
-#    # HP-UX stardust B.11.11 U 9000/800 3761215035 unlimited-user license
-#    library_dirs_list = ['/home/infk/geus/lib/pa20_64']
-#    libraries_list = ['lapack']
-#elif hostname == 'zuse':
-#    # SunOS zuse 5.6 Generic_105181-21 sun4u sparc SUNW,Ultra-Enterprise
-#    library_dirs_list = ['/software/SunOS/5.X/opt/SUNWspro/WS6/lib']
-#    libraries_list = ['F77', 'sunperf', 'fui', 'fsu', 'sunmath']
-#elif hostname == 'Rivendell':
-#    # WinXP, using VC++ and Intel MKL
-#    #
-#    # Uses BLAS and LAPACK from the Intel Math Kernel Library 5.2
-#    # DLL directory must be in the PATH
-#    library_dirs_list = [r'C:\Program Files\Intel\MKL\ia32\lib']
-#    libraries_list = ['mkl_c_dll']
-#    superlu_defs = [("NO_TIMER",1), ("NoChange",1), ('USE_VENDOR_BLAS',1)]
-#    f77_defs = [("NOF77UNDERSCORE",1)]
-#elif hostname == 'nedelec-vmware':
-#    # Win32 using MinGW
-#    libraries_list = ['lapack', 'blas', 'g2c']
-#    superlu_defs = [("NO_TIMER",1), ('USE_VENDOR_BLAS',1)]
-#elif hostname == 'psw283.psi.ch':
-#    # OSF1 psw283.psi.ch V4.0 1530 alpha
-#    library_dirs_list = ['/data/geus/lib']
-#    libraries_list = ['dxml']
-
 if sys.platform == 'darwin':
     superlu_defs = [('USE_VENDOR_BLAS',1)]
     library_dirs_list = ['/System/Library/Frameworks']
@@ -143,11 +105,11 @@ if sys.platform == 'darwin':
         # Apple python
         #linky=["-faltivec","-framework","Accelerate"]
         linky=["-framework","Accelerate"]
-        # The python Framework build is compiled with (and propagates to all library builds) the 
-        # '-fno-common' flag. Nobody seems to know why.
+        # The python Framework build is compiled with (and propagates to all
+        # library builds) the '-fno-common' flag. Nobody seems to know why.
         # (c.f. <https://sourceforge.net/tracker/?func=detail&atid=105470&aid=768306&group_id=5470>)
-        # This flag wreaks havoc with the nightmarishly circular declarations in the itsolvers module.
-        # We reset it by appending this flag:
+        # This flag wreaks havoc with the nightmarishly circular declarations
+        # in the itsolvers module. We reset it by appending this flag:
         compily=["-fcommon"]
 
 elif sys.platform == 'linux2':
@@ -161,7 +123,7 @@ elif sys.platform == 'linux2':
 from distutils.core import Command
     
 ext_modules = [Extension(package_name + '.spmatrix', ['Src/spmatrixmodule.c'],
-                         define_macros=numerix_macro),
+                         define_macros=numerix_macro + newpy_defs),
                Extension(package_name + '.itsolvers', ['Src/itsolversmodule.c',
                                        'Src/pcg.c',
                                        'Src/gmres.c',

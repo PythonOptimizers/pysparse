@@ -3126,7 +3126,11 @@ LLMat_ass_subscript(LLMatObject *self, PyObject *index, PyObject *value ) {
 }
 
 static PyMappingMethods LLMat_as_mapping = {
+#ifdef LENFUNC_OK
+  (lenfunc)LLMat_length,              /*mp_length*/
+#else
   (inquiry)LLMat_length,	      /*mp_length*/
+#endif
   (binaryfunc)LLMat_subscript,        /*mp_subscript*/
   (objobjargproc)LLMat_ass_subscript, /*mp_ass_subscript*/
 };
