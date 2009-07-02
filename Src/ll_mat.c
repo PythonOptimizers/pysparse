@@ -2376,7 +2376,18 @@ LLMat_put(LLMatObject *self, PyObject *args) {
   if( PyInt_Check(bIn) ) {                // b is an integer
 
     //printf("put: b is an Int\n");
-    bval = (double)PyInt_AS_LONG(bIn);
+    bval = (double)PyInt_AsLong(bIn);
+    if( PyErr_Occurred() ) {
+      PyErr_SetString(PyExc_TypeError,
+                      "Could not convert int to double");
+      goto fail;
+    }
+    b_is_scalar = 1;
+    lenb = 1;
+
+  } else if( PyLong_Check(bIn) ) {        // b in a long int
+
+    bval = PyLong_AsDouble(bIn);
     b_is_scalar = 1;
     lenb = 1;
 
@@ -2396,6 +2407,11 @@ LLMat_put(LLMatObject *self, PyObject *args) {
   } else if( PyArray_Check(bIn) ) {       // b is an array
 
     //printf("put: b is an array\n");
+    if( !PyArray_ISINTEGER(bIn) && !PyArray_ISFLOAT(bIn) ) {
+      PyErr_SetString(PyExc_TypeError,
+                      "Value array must be Int, Long or Float");
+      goto fail;
+    }
     iterator0 = PyArray_IterNew(bIn);
     lenb = (long)PyArray_DIM(bIn, 0);
     PyArray_ITER_RESET(iterator0);
@@ -2403,7 +2419,7 @@ LLMat_put(LLMatObject *self, PyObject *args) {
   } else {
 
     PyErr_SetString(PyExc_TypeError,
-                    "Values must be Int, Float, list or Numpy array");
+                    "Values must be Int, Long, Float, list or Numpy array");
     goto fail;
   }
 
@@ -2535,7 +2551,11 @@ LLMat_put(LLMatObject *self, PyObject *args) {
           return NULL;
         }
       } else {
-        bval = *(double*)(PyArray_ITER_DATA(iterator0));
+        // Convert value to double appropriately
+        if( PyArray_ISINTEGER(bIn) )
+          bval = (double)(*(long*)(PyArray_ITER_DATA(iterator0)));
+        else  // float
+          bval = *(double*)(PyArray_ITER_DATA(iterator0));
         PyArray_ITER_NEXT(iterator0);
       }
     }
