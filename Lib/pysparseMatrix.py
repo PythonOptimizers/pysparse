@@ -91,7 +91,7 @@ class PysparseMatrix(SparseMatrix):
             if nrow > 0 or ncol > 0:
                 if size != nrow or size != ncol:
                     msg =  'size argument was given but does not match '
-                    msg += 'nrow or ncol'
+                    msg += 'nrow and ncol'
                 raise ValueError, msg
             else:
                 nrow = ncol = size
@@ -276,7 +276,7 @@ class PysparseMatrix(SparseMatrix):
     def __imul__(self, other):
         # In-place multiplication (by a scalar)
         #if type(other) not in [type(0), type(0.0)]:
-        if isinstance(other, int) or isinstance(other, float):
+        if not (isinstance(other, int) or isinstance(other, float)):
             raise TypeError, 'In-place multiplication is with scalars only'
         p = self.matrix
         p.scale(other)
