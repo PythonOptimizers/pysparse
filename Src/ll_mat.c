@@ -231,6 +231,11 @@ SpMatrix_LLMatGetItem(LLMatObject *a, int i, int j) {
   }
   */
 
+  if(i < 0 || i >= a->dim[0] || j < 0 || j >= a->dim[1]) {
+    PyErr_SetString(PyExc_IndexError, "indices out of range");
+    return 0.0;
+  }
+
   if (a->issym && i < j) {
     t = i; i = j; j = t;
   }
@@ -259,6 +264,14 @@ SpMatrix_LLMatSetItem(LLMatObject *a, int i, int j, double x) {
 		    "write operation to upper triangle of symmetric matrix");
     return -1;
   } 
+
+  //printf("LLMatSetItem: matrix dimensions=(%d,%d)\n", a->dim[0], a->dim[1]);
+  //printf("LLMatSetItem: receiving row=%d, col=%d, val=%g\n", i, j, x);
+
+  if(i < 0 || i >= a->dim[0] || j < 0 || j >= a->dim[1]) {
+    PyErr_SetString(PyExc_IndexError, "indices out of range");
+    return -1;
+  }
 
   /* Find element to be set (or removed) */
   col = last = -1;
@@ -2563,6 +2576,7 @@ LLMat_put(LLMatObject *self, PyObject *args) {
     //printf(" %g  --> (%ld,%ld)\n", bval, i1, j1);
 
     if (i1 > j1 || !self->issym) { /* Update entries as given */
+      //printf("mat[%d,%d] <- %g\n", i1, j1, bval);
       if( SpMatrix_LLMatSetItem(self, i1, j1, bval) == -1 )
         goto fail;
     } else { /* Symmetric matrix: update entries in lower triangle */
