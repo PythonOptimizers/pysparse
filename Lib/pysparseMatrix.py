@@ -296,6 +296,20 @@ class PysparseMatrix(SparseMatrix):
         "Returns the shape ``(nrow,ncol)`` of a sparse matrix"
         return self.matrix.shape
 
+    def col_scale(self, v):
+        """
+        Apply in-place column scaling. Each column is scaled by the
+        corresponding component of v, i.e., A[:,i] *= v[i].
+        """
+        return self.matrix.col_scale(v)
+
+    def row_scale(self, v):
+        """
+        Apply in-place row scaling. Each row is scaled by the
+        corresponding component of v, i.e., A[i,:] *= v[i].
+        """
+        return self.matrix.row_scale(v)
+
     def find(self):
         """
         Returns three Numpy arrays to describe the sparsity pattern of ``self``
@@ -313,7 +327,7 @@ class PysparseMatrix(SparseMatrix):
         """
         return self.matrix.find()
         
-    def put(self, value, id1, id2):
+    def put(self, value, id1=None, id2=None):
         """
         Put elements of ``value`` at positions of the matrix
         corresponding to ``(id1, id2)``
@@ -335,6 +349,18 @@ class PysparseMatrix(SparseMatrix):
         If ``id1`` is omitted, it is replaced with ``range(nrow)``.
         If ``id2`` is omitted, it is replaced with ``range(ncol)``.
         """
+        nrow, ncol = self.getShape()
+        if id2 is None and id1 is not None: id2 = id1
+        if id1 is None:
+            if not (isinstance(value, int) or isinstance(value, float)):
+                id1 = numpy.arange(len(value), dtype=numpy.int)
+            else:
+                id1 = numpy.arange(nrow, dtype=numpy.int)
+        if id2 is None:
+            if not (isinstance(value, int) or isinstance(value, float)):
+                id2 = numpy.arange(len(value), dtype=numpy.int)
+            else:
+                id2 = numpy.arange(ncol, dtype=numpy.int)
         self.matrix.put(value, id1, id2)
         return None
 
@@ -369,7 +395,7 @@ class PysparseMatrix(SparseMatrix):
             #ids = numpy.arange(len(vector))
             self.matrix.put(vector) #, ids, ids)
 
-    def take(self, id1, id2):
+    def take(self, id1=None, id2=None):
         """
         Extract elements at positions ``(irow[i], jcol[i])`` and place them in
         the array ``val``. In other words::
@@ -377,6 +403,18 @@ class PysparseMatrix(SparseMatrix):
             for i in range(len(val)): val[i] = A[irow[i],jcol[i]]
 
         """
+        nrow, ncol = self.getShape()
+        if id2 is None and id1 is not None: id2 = id1
+        if id1 is None:
+            if not (isinstance(value, int) or isinstance(value, float)):
+                id1 = numpy.arange(len(value), dtype=numpy.int)
+            else:
+                id1 = numpy.arange(nrow, dtype=numpy.int)
+        if id2 is None:
+            if not (isinstance(value, int) or isinstance(value, float)):
+                id2 = numpy.arange(len(value), dtype=numpy.int)
+            else:
+                id2 = numpy.arange(ncol, dtype=numpy.int)
         vector = numpy.zeros(len(id1), 'd')
         self.matrix.take(vector, id1, id2)
         return vector

@@ -229,7 +229,7 @@ SpMatrix_LLMatGetItem(LLMatObject *a, int i, int j) {
     PyErr_SetString(PyExc_IndexError, "Index out of bounds");
     return 0.0;
   }
-  */
+pwd  */
 
   if(i < 0 || i >= a->dim[0] || j < 0 || j >= a->dim[1]) {
     PyErr_SetString(PyExc_IndexError, "indices out of range");
@@ -970,6 +970,8 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     Py_ssize_t start0, stop0, step0, length0;
     Py_ssize_t start1, stop1, step1, length1;
 
+    //printf("PySparse:: we have two slices...\n");
+
     if( PySlice_GetIndicesEx((PySliceObject*)index0, self->dim[0],
                              &start0, &stop0, &step0, &length0) < 0) {
       PyErr_SetString(PyExc_IndexError, "Erroneous indices");
@@ -1010,6 +1012,8 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     } else {
 
       if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
+        printf("In LHS=RHS, RHS has shape (%d,%d), LHS has shape (%d,%d)\n",
+               mat->dim[0], mat->dim[1], length0, length1);
         PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
         return; // -1;
       }
@@ -1056,7 +1060,7 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
   // Both index sets are Python lists
   if( PyList_Check(index0) && PyList_Check(index1) ) {
 
-    //printf("We have two lists...\n");
+    //printf("PySparse:: We have two lists...\n");
 
     long i, j, row, col, t;
     Py_ssize_t length0 = PyList_Size(index0);
@@ -1443,6 +1447,112 @@ LLMat_matvec(LLMatObject *self, PyObject *args)
   Py_INCREF(Py_None); 
   return Py_None;
 }
+
+/* Apply in-place column scaling to a matrix of type LL_Mat */
+
+static char col_scale_doc[] = "A.col_scale(v)\n\
+\n\
+Scale the i-th column of A by v[i] in place for i=0, ..., ncol-1.";
+
+static PyObject *
+LLMat_col_scale(LLMatObject *self, PyObject *args) {
+
+  PyObject *vIn;
+  PyArrayObject *v = NULL;
+
+  // Read scale vector v.
+  if( !PyArg_ParseTuple(args, "O", &vIn) ) {
+    PyErr_SetString(SpMatrix_ErrorObject, "Cannot read input vector.");
+    return NULL;
+  }
+  v = (PyArrayObject *)PyArray_ContiguousFromObject(vIn, PyArray_DOUBLE, 1, 1);
+  if( v == NULL ) {
+    PyErr_SetString(SpMatrix_ErrorObject, "Supply scaling vector as input.");
+    return NULL;
+  }
+
+  // Check for dimensions mismatch.
+  if( v->dimensions[0] != self->dim[1] ) {
+    PyErr_SetString(SpMatrix_ErrorObject,
+                    "Column scaling vector has wrong dimension.");
+    return NULL;
+  }
+
+  // Build column index.
+  struct llColIndex *colIdx;
+  if( SpMatrix_LLMatBuildColIndex(&colIdx, self, 1) ) {
+    PyErr_SetString(SpMatrix_ErrorObject, "Cannot build column index.");
+    return NULL;
+  }
+
+  // Process each column in turn
+  double val;
+  int j, k;
+  for( j = 0; j < self->dim[1] ; j++ ) {
+    val = ((double *)v->data)[j];
+
+    // Scan column j.
+    k = colIdx->root[j];
+    while( k != -1 ) {
+      self->val[k] *= val;
+      k = colIdx->link[k];
+    }
+  }
+
+  SpMatrix_LLMatDestroyColIndex(&colIdx);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+/* Apply in-place row scaling to a matrix of type LL_Mat */
+
+static char row_scale_doc[] = "A.row_scale(v)\n\
+\n\
+Scale the i-th row of A by v[i] in place for i=0, ..., nrow-1.";
+
+static PyObject *
+LLMat_row_scale(LLMatObject *self, PyObject *args) {
+
+  PyObject *vIn;
+  PyArrayObject *v = NULL;
+
+  // Read scale vector v.
+  if( !PyArg_ParseTuple(args, "O", &vIn) ) {
+    PyErr_SetString(SpMatrix_ErrorObject, "Cannot read input vector.");
+    return NULL;
+  }
+  v = (PyArrayObject *)PyArray_ContiguousFromObject(vIn, PyArray_DOUBLE, 1, 1);
+  if( v == NULL ) {
+    PyErr_SetString(SpMatrix_ErrorObject, "Supply scaling vector as input.");
+    return NULL;
+  }
+
+  // Check for dimensions mismatch.
+  if( v->dimensions[0] != self->dim[0] ) {
+    PyErr_SetString(SpMatrix_ErrorObject,
+                    "Row scaling vector has wrong dimension.");
+    return NULL;
+  }
+
+  // Process each row in turn.
+  double val;
+  int i, k, row;
+  for( i = 0; i < self->dim[0]; i++ ) {
+    val = ((double *)v->data)[i];
+
+    // Scan row i.
+    k = self->root[i];
+    while( k != -1 ) {
+      self->val[k] *= val;
+      k = self->link[k];
+    }
+  }
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
 
 static char to_csr_doc[] = "A.to_csr()\n\
 \n\
@@ -2310,11 +2420,13 @@ LLMat_take(LLMatObject *self, PyObject *args) {
     goto fail;
   }
   
+  /*
   if (id1 != id2 && self->issym) {
     PyErr_SetString(SpMatrix_ErrorObject,
                     "Symmetric matrices require identical sets of indices");
     goto fail;
   }
+  */
     
   /* Perform take operation */
   for( i = 0; i < lenb; i++ ) {
@@ -2361,7 +2473,8 @@ static char LLMat_put_doc[] = "a.put(b,id1,id2)\n\
 for i in range(len(b)):\n\
     a[id1[i],id2[i]] = b[i]\n\n\
 If b is a scalar, it has the same effect as the list [b, b, ..., b]\n\
-If id1 and/or id2 is omitted, it is considered to be [1, 2, 3, ...].\n";
+If id1 is omitted, it is considered to be [1, 2, 3, ...].\n\
+If id2 is omitted, it is considered equal to id1.\n";
 
 static PyObject *
 LLMat_put(LLMatObject *self, PyObject *args) {
@@ -2918,6 +3031,8 @@ PyMethodDef LLMat_methods[] = {
   {"norm",          (PyCFunction)LLMat_norm,          METH_VARARGS, LLMat_norm_doc},
   {"shift",         (PyCFunction)LLMat_shift,         METH_VARARGS, shift_doc},
   {"scale",         (PyCFunction)LLMat_scale,         METH_VARARGS, scale_doc},
+  {"col_scale",     (PyCFunction)LLMat_col_scale,     METH_VARARGS, col_scale_doc},
+  {"row_scale",     (PyCFunction)LLMat_row_scale,     METH_VARARGS, row_scale_doc},
   {"keys",          (PyCFunction)LLMat_keys,          METH_VARARGS, keys_doc},
   {"values",        (PyCFunction)LLMat_values,        METH_VARARGS, values_doc},
   {"items",         (PyCFunction)LLMat_items,         METH_VARARGS, items_doc},

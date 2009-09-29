@@ -46,13 +46,15 @@ static int    ONE   =  1;
 static int
 Jdsym_Proj(PyObject *proj, int n, double *x) {
   PyObject *x_arr = NULL;
-  int dimensions[1];
+  //int dimensions[1];
+  npy_intp dimensions[1];
   PyObject *res;
 
   dimensions[0] = n;
 
   /* create array objects from x and y */
   x_arr = PyArray_FromDimsAndData(1, dimensions, PyArray_DOUBLE, (char *)x);
+  // x_arr = PyArray_SimpleNewFromData(1, dimensions, NPY_FLOAT, (void *)x);
   if (x_arr == NULL)
     goto fail;
 
@@ -177,7 +179,8 @@ JDSym_jdsym(PyObject *self, PyObject *args, PyObject *keywds) {
   /* other local variables */
   int n, na, nm, nk, np;	/* order of eigensystem */
   int i, k, ret;
-  int dimensions[2];
+  // int dimensions[2];
+  npy_intp dimensions[2];
   
   static char *kwlist[] = {
     "A", "M", "K", "kmax", "tau", "jdtol", "itmax", "linsolver", 
@@ -285,6 +288,7 @@ JDSym_jdsym(PyObject *self, PyObject *args, PyObject *keywds) {
   /* allocate array objects for *converged* eigenvectors */
   dimensions[0] = n; dimensions[1] = kconv;
   Q_obj = (PyArrayObject *)PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
+  // Q_obj = (PyArrayObject *)PyArray_SimpleNew(2, dimensions, NPY_FLOAT);
   if (Q_obj == NULL)
     goto fail;
   /* copy converged eigenvectors, convert from Fortran to C ordering */
@@ -294,6 +298,7 @@ JDSym_jdsym(PyObject *self, PyObject *args, PyObject *keywds) {
   /* allocate array objects for *converged* eigenvalues */
   dimensions[0] = kconv;
   lambda_obj = (PyArrayObject *)PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
+  // lambda_obj = (PyArrayObject *)PyArray_SimpleNew(1, dimensions, NPY_FLOAT);
   if (lambda_obj == NULL)
     goto fail;
   for (k = 0; k < kconv; k ++)

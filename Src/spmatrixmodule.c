@@ -175,12 +175,17 @@ SpMatrix_Matvec(PyObject *matrix, int nx, double *x, int ny, double *y) {
   PyObject *x_arr = NULL;
   PyObject *y_arr = NULL;
   PyObject *res;
+  npy_intp dims[1];
 
   /* create array objects from x and y */
   x_arr = PyArray_FromDimsAndData(1, &nx, PyArray_DOUBLE, (char *)x);
+  dims[0] = nx;
+  // x_arr = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT, (void *)x);
   if (x_arr == NULL)
     goto fail;
   y_arr = PyArray_FromDimsAndData(1, &ny, PyArray_DOUBLE, (char *)y);
+  dims[0] = ny;
+  // y_arr = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT, (void *)y);
   if (y_arr == NULL)
     goto fail;
 
@@ -217,16 +222,19 @@ static int
 SpMatrix_Precon(PyObject *prec, int n, double *x, double *y) {
   PyObject *x_arr = NULL;
   PyObject *y_arr = NULL;
-  int dimensions[1];
+  // int dimensions[1];
+  npy_intp dimensions[1];
   PyObject *res;
 
   dimensions[0] = n;
 
   /* create array objects from x and y */
   x_arr = PyArray_FromDimsAndData(1, dimensions, PyArray_DOUBLE, (char *)x);
+  // x_arr = PyArray_SimpleNewFromData(1, dimensions, NPY_FLOAT, (void *)x);
   if (x_arr == NULL)
     goto fail;
   y_arr = PyArray_FromDimsAndData(1, dimensions, PyArray_DOUBLE, (char *)y);
+  // y_arr = PyArray_SimpleNewFromData(1, dimensions, NPY_FLOAT, (void *)y);
   if (y_arr == NULL)
     goto fail;
 
@@ -270,16 +278,19 @@ ItSolvers_Solve(PyObject *linsolver, PyObject *A, int n,
 		int *info, int *iter, double *relres) {
   PyObject *b_arr = NULL;
   PyObject *x_arr = NULL;
-  int dimensions[1];
+  // int dimensions[1];
+  npy_intp dimensions[1];
   PyObject *res;
 
   dimensions[0] = n;
 
   /* create array objects from x and y */
   b_arr = PyArray_FromDimsAndData(1, dimensions, PyArray_DOUBLE, (char *)b);
+  // b_arr = PyArray_SimpleNewFromData(1, dimensions, NPY_FLOAT, (void *)b);
   if (b_arr == NULL)
     goto fail;
   x_arr = PyArray_FromDimsAndData(1, dimensions, PyArray_DOUBLE, (char *)x);
+  // x_arr = PyArray_SimpleNewFromData(1, dimensions, NPY_FLOAT, (void *)x);
   if (x_arr == NULL)
     goto fail;
 
