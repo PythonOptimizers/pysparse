@@ -46,15 +46,13 @@ static int    ONE   =  1;
 static int
 Jdsym_Proj(PyObject *proj, int n, double *x) {
   PyObject *x_arr = NULL;
-  //int dimensions[1];
   npy_intp dimensions[1];
   PyObject *res;
 
   dimensions[0] = n;
 
   /* create array objects from x and y */
-  x_arr = PyArray_FromDimsAndData(1, dimensions, PyArray_DOUBLE, (char *)x);
-  // x_arr = PyArray_SimpleNewFromData(1, dimensions, NPY_FLOAT, (void *)x);
+  x_arr = PyArray_SimpleNewFromData(1, dimensions, NPY_DOUBLE, (void *)x);
   if (x_arr == NULL)
     goto fail;
 
@@ -187,7 +185,8 @@ JDSym_jdsym(PyObject *self, PyObject *args, PyObject *keywds) {
     "jmax", "jmin", "blksize", "blkwise", "V0", "optype", "linitmax", 
     "eps_tr", "toldecay", "clvl", "strategy", "projector", NULL};
 
-  ret = PyArg_ParseTupleAndKeywords(args, keywds, "OOOiddiO|iiiiO!iiddiiO", kwlist,
+  ret = PyArg_ParseTupleAndKeywords(args, keywds, "OOOiddiO|iiiiO!iiddiiO",
+                                    kwlist,
 				    /* required args */
 				    &amat,
 				    &mmat,
@@ -287,18 +286,18 @@ JDSym_jdsym(PyObject *self, PyObject *args, PyObject *keywds) {
    */
   /* allocate array objects for *converged* eigenvectors */
   dimensions[0] = n; dimensions[1] = kconv;
-  Q_obj = (PyArrayObject *)PyArray_FromDims(2, dimensions, PyArray_DOUBLE);
-  // Q_obj = (PyArrayObject *)PyArray_SimpleNew(2, dimensions, NPY_FLOAT);
+  Q_obj = (PyArrayObject *)PyArray_SimpleNew(2, dimensions, NPY_DOUBLE);
   if (Q_obj == NULL)
     goto fail;
+
   /* copy converged eigenvectors, convert from Fortran to C ordering */
   for (k = 0; k < kconv; k ++)
     for (i = 0; i < n; i ++)
       ((double *)Q_obj->data)[i*kconv + k] = Q[k*n + i];
+
   /* allocate array objects for *converged* eigenvalues */
   dimensions[0] = kconv;
-  lambda_obj = (PyArrayObject *)PyArray_FromDims(1, dimensions, PyArray_DOUBLE);
-  // lambda_obj = (PyArrayObject *)PyArray_SimpleNew(1, dimensions, NPY_FLOAT);
+  lambda_obj = (PyArrayObject *)PyArray_SimpleNew(1, dimensions, NPY_DOUBLE);
   if (lambda_obj == NULL)
     goto fail;
   for (k = 0; k < kconv; k ++)
@@ -307,7 +306,7 @@ JDSym_jdsym(PyObject *self, PyObject *args, PyObject *keywds) {
   PyMem_DEL(Q);
   PyMem_DEL(lambda);
   result =  Py_BuildValue("iOOii", kconv, lambda_obj, Q_obj, it_outer, it_inner);
-  /* Py_BuildValue increased refcount, so decrease it or it would never be freed */
+  /* Py_BuildValue increased refcount. Decrease it or it would never be freed */
   Py_DECREF(lambda_obj);
   Py_DECREF(Q_obj);
   return result;

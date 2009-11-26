@@ -1013,7 +1013,7 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
       if( mat->dim[0] != length0 || mat->dim[1] != length1 ) {
         printf("In LHS=RHS, RHS has shape (%d,%d), LHS has shape (%d,%d)\n",
-               mat->dim[0], mat->dim[1], length0, length1);
+               mat->dim[0], mat->dim[1], (int)length0, (int)length1);
         PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
         return; // -1;
       }
@@ -1537,7 +1537,7 @@ LLMat_row_scale(LLMatObject *self, PyObject *args) {
 
   // Process each row in turn.
   double val;
-  int i, k, row;
+  int i, k;
   for( i = 0; i < self->dim[0]; i++ ) {
     val = ((double *)v->data)[i];
 
@@ -1881,9 +1881,9 @@ LLMat_update_add_at(LLMatObject *self, PyObject *args) {
   return Py_None;
 
  fail:
-  if(b) Py_XDECREF(b);
-  if(id1) Py_XDECREF(id1);
-  if(id2) Py_XDECREF(id2);
+  if(b)   { Py_XDECREF(b);   }
+  if(id1) { Py_XDECREF(id1); }
+  if(id2) { Py_XDECREF(id2); }
   return NULL;
 }
 
@@ -2991,9 +2991,9 @@ static PyObject *LLMat_Find( LLMatObject *self, PyObject *args ) {
   dmat[0] = (npy_intp)(self->nnz);
 
   /* Allocate numarrays */
-  a_row = (PyArrayObject *)PyArray_SimpleNew( 1, dmat, NPY_INT32 );
-  a_col = (PyArrayObject *)PyArray_SimpleNew( 1, dmat, NPY_INT32 );
-  a_val = (PyArrayObject *)PyArray_SimpleNew( 1, dmat, NPY_FLOAT64 );
+  a_row = (PyArrayObject *)PyArray_SimpleNew( 1, dmat, NPY_INT );
+  a_col = (PyArrayObject *)PyArray_SimpleNew( 1, dmat, NPY_INT );
+  a_val = (PyArrayObject *)PyArray_SimpleNew( 1, dmat, NPY_DOUBLE );
 
   pi = (int *)a_row->data;
   pj = (int *)a_col->data;

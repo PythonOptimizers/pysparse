@@ -115,7 +115,7 @@ jdsym (int n, double tau, double jdtol,
 	   !mmat ? "A*x = lambda*x" : "A*x = lambda*M*x",
 	   !prec ? "without" : "with");
     printf("  N=      %10d  ITMAX=%4d\n", n, itmax);
-    printf("  KMAX=%3d  JMIN=%3d  JMAX=%3d  V0DIM=%3d\n", 
+    printf("  KMAX=%3d  JMIN=%3d  JMAX=%3d  V0DIM=%3ld\n", 
 	   kmax, jmin, jmax, 
 	   V0 == NULL ? 0 : (V0->nd == 1 ? 1 : V0->dimensions[1]));
     printf("  BLKSIZE=        %2d  BLKWISE=      %5s\n", 
