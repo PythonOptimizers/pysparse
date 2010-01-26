@@ -91,7 +91,7 @@ class LLMatPoissonTestCase(unittest.TestCase):
         # read and test diagonal blocks
         for i in range(n):
             self.failUnless(llmat_isEqual(self.A[n*i:n*(i+1),n*i:n*(i+1)], P))
-            self.failUnless(llmat_isEqual(self.S[n*i:n*(i+1),n*i:n*(i+1)], P))
+            #self.failUnless(llmat_isEqual(self.S[n*i:n*(i+1),n*i:n*(i+1)], P))
             self.failUnless(llmat_isEqual(self.A[n*i:n*(i+1),n*i:n*(i+1)], Psym))
             self.failUnless(llmat_isEqual(self.S[n*i:n*(i+1),n*i:n*(i+1)], Psym))
         # store and get diagonal blocks
