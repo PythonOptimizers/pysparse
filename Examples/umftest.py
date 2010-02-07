@@ -1,6 +1,6 @@
 from pysparse import spmatrix
 from pysparse import umfpack
-import Numeric
+import numpy as Numeric
 from pysparse import poisson
 
 l = spmatrix.ll_mat(5, 5)
