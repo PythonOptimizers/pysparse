@@ -140,11 +140,13 @@ ext_modules = [Extension(package_name + '.spmatrix', ['Src/spmatrixmodule.c'],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
                          define_macros=f77_defs + numerix_macro,
+                         extra_compile_args=compily,
                          extra_link_args=linky),
                Extension(package_name + '.jdsym', [os.path.join('Src', 'jdsymmodule.c')],
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
                          define_macros=f77_defs + numerix_macro,
+                         extra_compile_args=compily,
                          extra_link_args=linky)
                ]
 
@@ -250,6 +252,7 @@ if not use_users_umfpack:
                          define_macros=umfpack_defs + numerix_macro,
                          include_dirs=umfpack_include_dirs,
                          libraries=umfpack_libraries,
+                         extra_compile_args=compily,
                          library_dirs=umfpack_library_dirs)
                ]
 else:
@@ -277,6 +280,7 @@ else:
                          include_dirs=umfpack_include_dirs + amd_include_dirs,
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
+                         extra_compile_args=compily,
                          extra_link_args=linky) ]
 
 # Schedule SuperLU
@@ -329,6 +333,7 @@ if not use_users_superlu:
                          define_macros=superlu_defs + numerix_macro,
                          include_dirs=["superlu"],
                          library_dirs=library_dirs_list,
+                         extra_compile_args=compily,
                          libraries=libraries_list,extra_link_args=linky) ]
 else:
     if superlu_src_dir.strip() != '':
@@ -345,6 +350,7 @@ else:
                          include_dirs=superlu_include_dirs,
                          library_dirs=library_dirs_list,
                          libraries=libraries_list,
+                         extra_compile_args=compily,
                          extra_link_args=linky) ]
 
 execfile(os.path.join('Lib', '__version__.py'))
@@ -358,6 +364,7 @@ setup(name = 'pysparse',
       url = 'http://www.geus.ch',
       packages = [package_name],
       package_dir = {package_name: 'Lib'},
+      package_data = {package_name: package_data},
       include_dirs = ['Include'] + numerix_include_dirs,
       headers = glob.glob(os.path.join ("Include","pysparse","*.h")),
       ext_modules = ext_modules
