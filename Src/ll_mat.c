@@ -848,34 +848,36 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
   }
 
   // If we have a mixture of index sets, gather both sets into arrays.
-  long *irow, *jcol;
-  long  nrow,  ncol;
+  {
+      long *irow, *jcol;
+      long  nrow,  ncol;
 
-  // Create index list from first index
-  if( !(irow = create_indexlist(&nrow, self->dim[0], index0)) ) {
-    PyErr_SetString(PyExc_IndexError, "Error creating first index list");
-    Py_INCREF(Py_None);
-    return Py_None;
+      // Create index list from first index
+      if( !(irow = create_indexlist(&nrow, self->dim[0], index0)) ) {
+        PyErr_SetString(PyExc_IndexError, "Error creating first index list");
+        Py_INCREF(Py_None);
+        return Py_None;
+      }
+
+      // Create index list from second index
+      if( !(jcol = create_indexlist(&ncol, self->dim[1], index1)) ) {
+        PyErr_SetString(PyExc_IndexError, "Error creating second index list");
+        Py_INCREF(Py_None);
+        return Py_None;
+      }
+
+      dim[0] = nrow; dim[1] = ncol;
+      dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz);
+      if( !dst ) return NULL;
+
+      res = copySubMatrix_FromList(self, (LLMatObject*)dst, irow, nrow, jcol, ncol);
+      if( res ) {
+        Py_DECREF(dst);
+        return NULL;
+      }
+      return (PyObject *)dst;
   }
 
-  // Create index list from second index
-  if( !(jcol = create_indexlist(&ncol, self->dim[1], index1)) ) {
-    PyErr_SetString(PyExc_IndexError, "Error creating second index list");
-    Py_INCREF(Py_None);
-    return Py_None;
-  }
-
-  dim[0] = nrow; dim[1] = ncol;
-  dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz);
-  if( !dst ) return NULL;
-
-  res = copySubMatrix_FromList(self, (LLMatObject*)dst, irow, nrow, jcol, ncol);
-  if( res ) {
-    Py_DECREF(dst);
-    return NULL;
-  }
-
-  return (PyObject *)dst;
 }
 
 /*
@@ -1188,55 +1190,57 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
   }
 
   // If we have a mixture of index sets, gather both sets into arrays.
-  long *irow, *jcol;
-  long  i, j, nrow,  ncol, row, col;
+  {
+    long *irow, *jcol;
+    long  i, j, nrow,  ncol, row, col;
 
-  // Create index list from first index
-  if( !(irow = create_indexlist(&nrow, self->dim[0], index0)) ) {
-    PyErr_SetString(PyExc_IndexError, "Error creating first index list");
-    return; // -1;
-  }
-
-  // Create index list from second index
-  if( !(jcol = create_indexlist(&ncol, self->dim[1], index1)) ) {
-    PyErr_SetString(PyExc_IndexError, "Error creating second index list");
-    return; // -1;
-  }
-
-  if( !other_is_num )
-    if( mat->dim[0] != nrow || mat->dim[1] != ncol ) {
-      PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
+    // Create index list from first index
+    if( !(irow = create_indexlist(&nrow, self->dim[0], index0)) ) {
+      PyErr_SetString(PyExc_IndexError, "Error creating first index list");
       return; // -1;
     }
 
-  for( i = 0; i < nrow; i++ ) {
-    row = irow[i];
-    for( j = 0; j < ncol; j++ ) {
-      col = jcol[j];
+    // Create index list from second index
+    if( !(jcol = create_indexlist(&ncol, self->dim[1], index1)) ) {
+      PyErr_SetString(PyExc_IndexError, "Error creating second index list");
+      return; // -1;
+    }
 
-      if( other_is_sym && row < col ) { 
-        col = row;
-        row = jcol[j];
-      }
-
-      // Ensure write operation is permitted
-      if( self->issym && row < col ) {
-        PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
-                        "Writing to upper triangle of symmetric matrix");
+    if( !other_is_num )
+      if( mat->dim[0] != nrow || mat->dim[1] != ncol ) {
+        PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
         return; // -1;
       }
 
-      // Insert element into self
-      if( !other_is_num )
-        val = SpMatrix_LLMatGetItem(mat, i, j);
+    for( i = 0; i < nrow; i++ ) {
+      row = irow[i];
+      for( j = 0; j < ncol; j++ ) {
+        col = jcol[j];
 
-      if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
-        PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
-        return; // -1;
+        if( other_is_sym && row < col ) { 
+          col = row;
+          row = jcol[j];
+        }
+
+        // Ensure write operation is permitted
+        if( self->issym && row < col ) {
+          PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
+                          "Writing to upper triangle of symmetric matrix");
+          return; // -1;
+        }
+
+        // Insert element into self
+        if( !other_is_num )
+          val = SpMatrix_LLMatGetItem(mat, i, j);
+
+        if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
+          PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
+          return; // -1;
+        }
       }
     }
+    return; // 0;
   }
-  return; // 0;
 }
 
 /*****************************************************************************/
@@ -1459,6 +1463,9 @@ LLMat_col_scale(LLMatObject *self, PyObject *args) {
 
   PyObject *vIn;
   PyArrayObject *v = NULL;
+  struct llColIndex *colIdx;
+  double val;
+  int j, k;
 
   // Read scale vector v.
   if( !PyArg_ParseTuple(args, "O", &vIn) ) {
@@ -1479,15 +1486,12 @@ LLMat_col_scale(LLMatObject *self, PyObject *args) {
   }
 
   // Build column index.
-  struct llColIndex *colIdx;
   if( SpMatrix_LLMatBuildColIndex(&colIdx, self, 1) ) {
     PyErr_SetString(SpMatrix_ErrorObject, "Cannot build column index.");
     return NULL;
   }
 
   // Process each column in turn
-  double val;
-  int j, k;
   for( j = 0; j < self->dim[1] ; j++ ) {
     val = ((double *)v->data)[j];
 
@@ -1514,6 +1518,8 @@ Scale the i-th row of A by v[i] in place for i=0, ..., nrow-1.";
 static PyObject *
 LLMat_row_scale(LLMatObject *self, PyObject *args) {
 
+  double val;
+  int i, k;
   PyObject *vIn;
   PyArrayObject *v = NULL;
 
@@ -1536,8 +1542,6 @@ LLMat_row_scale(LLMatObject *self, PyObject *args) {
   }
 
   // Process each row in turn.
-  double val;
-  int i, k;
   for( i = 0; i < self->dim[0]; i++ ) {
     val = ((double *)v->data)[i];
 
@@ -1917,11 +1921,12 @@ LLMat_norm(LLMatObject *self, PyObject *args)
       return NULL;
     } else {
 
-      if (SpMatrix_LLMatBuildColIndex(&colIdx, self, 1)) return NULL;
+      if (SpMatrix_LLMatBuildColIndex(&colIdx, self, 1)) 
+        return NULL;
       for( norm = 0.0, i = 0; i < self->dim[1]; i++ ) {
 	for( s = 0.0, k = colIdx->root[i]; k != -1; k = colIdx->link[k] )
 	  s += fabs(self->val[k]);
-        norm = fmax(s, norm);
+        norm = s > norm ? s : norm;
       }
       SpMatrix_LLMatDestroyColIndex(&colIdx);
     }
@@ -1936,7 +1941,7 @@ LLMat_norm(LLMatObject *self, PyObject *args)
       for( norm = 0.0, i = 0; i < self->dim[0]; i++ ) {
 	for( s = 0.0, k = self->root[i]; k != -1; k = self->link[k] )
 	  s += fabs(self->val[k]);
-        norm = fmax(s, norm);
+        norm = s > norm ? s : norm;
       }
     }
 
@@ -2630,8 +2635,8 @@ LLMat_put(LLMatObject *self, PyObject *args) {
   }
 
   // Perform put operation
-  long i1, j1;
   for( i = 0; i < lenb; i++ ) {
+    long i1, j1;
     
     i1 = i;
     if( id1in ) {

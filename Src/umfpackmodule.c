@@ -264,7 +264,8 @@ static PyObject *UMFPack_Lu(UMFPackObject *self, PyObject *args) {
   }
 
   /* Create LL_Mat structure for factor L and populate it */
-  ldims[0] = nrow; ldims[1] = fmin(nrow,ncol);
+  ldims[0] = nrow;
+  ldims[1] = nrow < ncol ? nrow : ncol;
   Lmat = SpMatrix_NewLLMatObject( ldims, GENERAL, lnz );
 
   for( i=0; i<nrow+1; i++ )
@@ -274,7 +275,8 @@ static PyObject *UMFPack_Lu(UMFPackObject *self, PyObject *args) {
   free( Lp ); free( Lj ); free( Lx );
 
   /* Create LL_Mat structure for factor U and populate it */
-  udims[0] = fmin(nrow,ncol); udims[1] = ncol;
+  udims[0] = nrow < ncol ? nrow : ncol;
+  udims[1] = ncol;
   Umat = SpMatrix_NewLLMatObject( udims, GENERAL, unz );
 
   for( j=0; j<ncol+1; j++ )
