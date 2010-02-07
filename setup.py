@@ -7,8 +7,9 @@ import os, socket
 import sys
 
 # default settings
+package_data = []
 library_dirs_list= []
-libraries_list = ['lapack', 'blas', 'g2c']
+libraries_list = ['lapack', 'blas']
 superlu_defs = [('USE_VENDOR_BLAS',1)]
 if sys.platform == 'win32':
     superlu_defs += [('NO_TIMER', 1)]
