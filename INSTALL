@@ -1,6 +1,80 @@
 Special installation instructions for various platforms
 =======================================================
 
+Win32 using MS VC++ 2008 and ACML 4.3
+-------------------------------------
+
+PySparse was successfully built with Microsoft Visual C++ 2008 (Express Edition)
+together with AMD Core Math Library (ACML) 4.3.0 for Python 2.6.4 and NumPy 1.4.0
+(All the above mentioned software can be obtained free of charge).
+
+In the following it is assumed that ACML is installed into C:\AMD\acml4.3.0
+
+Please follow the following steps to build and install PySparse
+
+1. Copy the three DLL files in the directory C:\AMD\acml4.3.0\ifort32\lib 
+   to the Lib subdirectory of the PySparse.
+
+2. Modify setup.py to use the following settings:
+
+	library_dirs_list= [r"C:\AMD\acml4.3.0\ifort32\lib"]
+	libraries_list = ['libacml_dll', "python26"]
+	superlu_defs = [('USE_VENDOR_BLAS',1), ('F77_CALL_C', 'UPCASE')]
+	superlu_defs += [('NO_TIMER', 1)]
+	f77_defs = [("F77UPPERCASE", "1")]
+	package_data = ['libacml_dll.dll', 'libifcoremd.dll', 'libmmd.dll']
+	compily=[]
+	linky=[]
+
+3. python.exe setup.py build -f
+
+4. python.exe setup.py install -f
+
+The DLL files will be automatically copied to the pysparse install directory. 
+It is not necessary to modify the PATH variable.
+
+Note: To compile the PySpare for debugging the following settings can be used:
+	linky=["/DEBUG"]
+	compily=["/Od", "/Zi"]
+
+
+Win32 using MS VC++ 2008 and ACML 4.3 (statically linked)
+---------------------------------------------------------
+
+These build instructions are similiar to the above ones. However here ACML
+is linked statically, which makes it more suitable for creating a Windows
+Installer.
+
+This type of build requires the presence Fotran standard libraries, which
+are not included in ACML or MSVC++ (they are part of Intel Fotran). It
+assumed that they are available in the directory 
+C:\AMD\acml4.3.0\ifort32\lib\ifort
+
+Please follow the following steps to build and install PySparse
+
+1. Copy the DLL files libifcoremd.dll and libmmd.dll from the directory 
+   C:\AMD\acml4.3.0\ifort32\lib to the Lib subdirectory of the PySparse.
+
+2. Modify setup.py to use the following settings:
+
+	library_dirs_list= [r"C:\AMD\acml4.3.0\ifort32\lib", r"C:\AMD\acml4.3.0\ifort32\lib\ifort"]
+	libraries_list = ['libacml', "python26"]
+	superlu_defs = [('USE_VENDOR_BLAS',1), ('F77_CALL_C', 'UPCASE')]
+	if sys.platform == 'win32':
+		superlu_defs += [('NO_TIMER', 1)]
+	f77_defs = [("F77UPPERCASE", "1")]
+	package_data = ['libifcoremd.dll', 'libmmd.dll']
+	compily=[]
+	linky=[]
+
+3. python.exe setup.py build -f
+
+4. python.exe setup.py install -f
+
+The DLL files will be automatically copied to the pysparse install directory. 
+It is not necessary to modify the PATH variable.
+
+
 Win32 using MS VC++ 6.0 and Intel MKL
 -------------------------------------
 
@@ -60,4 +134,3 @@ Win32 using MinGW
    - Build a distribution for windows:
 
      C:\pythonXX\python setup.py build --compiler=mingw32 --install
-
