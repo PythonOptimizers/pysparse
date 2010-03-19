@@ -60,18 +60,13 @@ Availability:
 #include <string.h>
 #include "Python.h"
 #define PY_ARRAY_UNIQUE_SYMBOL umfpack
-//#include "Numeric/arrayobject.h"
 
-#if NUMPY
-    #include "numpy/arrayobject.h"
-    #include "numpy/noprefix.h"
-#else
-    #include "Numeric/arrayobject.h"
-#endif
+#include "numpy/arrayobject.h"
+#include "numpy/noprefix.h"
 
 #include "umfpack.h"
-#include "pysparse/spmatrix.h"
-#include "pysparse/ll_mat.h"
+#include "spmatrix.h"
+#include "ll_mat.h"
 
 #define SYMMETRIC 1    /* Symmetric SpMatrix */
 #define GENERAL   0    /* General   SpMatrix */

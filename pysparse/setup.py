@@ -8,10 +8,10 @@ def configuration(parent_package='',top_path=None):
 
     config.add_subpackage('spmatrix')
     config.add_subpackage('jdsym')
-    #config.add_subpackage('direct')
+    config.add_subpackage('direct')
     config.add_subpackage('itsolvers')
     config.add_subpackage('precon')
-    #config.add_subpackage('tools')
+    config.add_subpackage('tools')
     #config.add_data_dir('tests')
 
     config.make_config_py()

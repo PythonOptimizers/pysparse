@@ -2,17 +2,13 @@
 #include "Python.h"
 #define PY_ARRAY_UNIQUE_SYMBOL superlu
 
-#if NUMPY
 #include "numpy/arrayobject.h"
 #include "numpy/noprefix.h"
-#else
-#include "Numeric/arrayobject.h"
-#endif
 
 #include "slu_ddefs.h"
 #include "slu_util.h"
 
-#include "pysparse/spmatrix.h"
+#include "spmatrix.h"
 
 /*********************************************************************** 
  * static variable
