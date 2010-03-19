@@ -9,7 +9,7 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('spmatrix')
     #config.add_subpackage('eigen')
     #config.add_subpackage('direct')
-    config.add_subpackage('iter')
+    config.add_subpackage('itsolvers')
     config.add_subpackage('precon')
     #config.add_subpackage('tools')
     #config.add_data_dir('tests')
