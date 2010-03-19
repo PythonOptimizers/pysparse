@@ -1,22 +1,16 @@
 #include "Python.h"
 #include <math.h>
-#include "pysparse/mmio.h"
-#include "pysparse/ll_mat.h"
-#include "pysparse/csr_mat.h"
-#include "pysparse/sss_mat.h"
+#include "mmio.h"
+#include "ll_mat.h"
+#include "csr_mat.h"
+#include "sss_mat.h"
 
 #define SPMATRIX_MODULE
-//#include "pysparse/spmatrix.h"
 
-#if NUMPY
-    #include "numpy/arrayobject.h"
-    #include "numpy/noprefix.h"
-#else
-    #include "Numeric/arrayobject.h"
-#endif
+#include "numpy/arrayobject.h"
+#include "numpy/noprefix.h"
 
 #define PY_ARRAY_UNIQUE_SYMBOL spmatrix
-//#include "Numeric/arrayobject.h"
 
 #define INCREASE_FACTOR   1.5 // increase rate for reallocation of ll_mat arrays
 #define PPRINT_ROW_THRESH 500 // row threshold for choosing print format

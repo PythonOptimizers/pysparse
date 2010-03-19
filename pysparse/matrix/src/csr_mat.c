@@ -1,17 +1,12 @@
 #include "Python.h"
 
 #define SPMATRIX_MODULE
-#include "pysparse/spmatrix.h"
+#include "spmatrix.h"
 
 #define PY_ARRAY_UNIQUE_SYMBOL spmatrix
-//#include "Numeric/arrayobject.h"
 
-#if NUMPY
-    #include "numpy/arrayobject.h"
-    #include "numpy/noprefix.h"
-#else
-    #include "Numeric/arrayobject.h"
-#endif
+#include "numpy/arrayobject.h"
+#include "numpy/noprefix.h"
 
 #define UNROLL_LOOPS 0
 
