@@ -1,8 +1,8 @@
 import math, unittest
 import numpy
-from pysparse import poisson
-from pysparse.pysparseMatrix import PysparseMatrix, PysparseIdentityMatrix, PysparseSpDiagsMatrix
-from pysparse.pysparseUmfpack import PysparseUmfpackSolver
+from pysparse.tools import poisson
+from pysparse.sparse.pysparseMatrix import PysparseMatrix, PysparseIdentityMatrix, PysparseSpDiagsMatrix
+from pysparse.direct.pysparseUmfpack import PysparseUmfpackSolver
 
 import sys
 

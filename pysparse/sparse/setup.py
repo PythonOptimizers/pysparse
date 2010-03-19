@@ -12,17 +12,18 @@ def configuration(parent_package='',top_path=None):
     #pysparse_config.read(os.path.join(top_path, 'site.cfg'))
     #hsl_dir = pysparse_config.get('HSL', 'hsl_dir')
 
-    config = Configuration('jdsym', parent_package, top_path)
+    config = Configuration('sparse', parent_package, top_path)
 
     # Get BLAS info from site.cfg
     blas_info = get_info('blas_opt',0)
     if not blas_info:
         print 'No blas info found'
 
-    jdsym_src = ['jdsymmodule.c']
+    #spmatrix_src = ['csr_mat.c', 'll_mat.c', 'sss_mat.c', 'spmatrixmodule.c']
+    spmatrix_src = ['spmatrixmodule.c']
     config.add_extension(
-        name='jdsym',
-        sources=[os.path.join('src',name) for name in jdsym_src],
+        name='spmatrix',
+        sources=[os.path.join('src',name) for name in spmatrix_src],
         libraries=[],
         include_dirs=['src'],
         extra_info=blas_info,

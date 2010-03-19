@@ -32,13 +32,13 @@ See [UMF]_ for more information.
 
 __docformat__ = 'restructuredtext'
 
-import pysparseMatrix as psm
+from pysparse.sparse import pysparseMatrix as psm
 import numpy
 import resource
 
-from directSolver import PysparseDirectSolver
-from pysparse     import umfpack
-from string       import upper
+from pysparse.direct.directSolver import PysparseDirectSolver
+from pysparse.direct import umfpack
+from string import upper
 
 def cputime():
     return resource.getrusage(resource.RUSAGE_SELF)[0]

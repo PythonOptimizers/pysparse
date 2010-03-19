@@ -1,4 +1,4 @@
-import spmatrix
+from pysparse.sparse import spmatrix
 import numpy
 
 def poisson1d(n):

@@ -4,7 +4,7 @@ factorization.
 """
 __docformat__ = 'restructuredtext'
 
-import pysparseMatrix as psm
+from pysparse.sparse import pysparseMatrix as psm
 import numpy
 
 class PysparseDirectSolver:

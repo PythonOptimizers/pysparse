@@ -31,12 +31,12 @@ See [SLU]_ for more information.
 
 __docformat__ = 'restructuredtext'
 
-import pysparseMatrix as psm
+from pysparse.sparse import pysparseMatrix as psm
 import numpy
 import resource
 
-from directSolver import PysparseDirectSolver
-from pysparse  import superlu
+from pysparse.direct.directSolver import PysparseDirectSolver
+from pysparse.direct import superlu
 
 def cputime():
     return resource.getrusage(resource.RUSAGE_SELF)[0]

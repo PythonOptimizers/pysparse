@@ -1,5 +1,5 @@
 import math, random
-import spmatrix
+from pysparse.sparse import spmatrix
 
 def bytesToString(n):
     if n < 1024:

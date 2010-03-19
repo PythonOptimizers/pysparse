@@ -1,7 +1,7 @@
 # -*- coding: iso-8859-1 -*-
 from types import IntType,SliceType
 import operator
-import spmatrix
+from pysparse.sparse import spmatrix
 
 class sparray:
     """

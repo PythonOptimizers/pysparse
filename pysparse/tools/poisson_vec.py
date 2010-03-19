@@ -1,5 +1,5 @@
 # A vectorized Poisson module
-from pysparse import spmatrix
+from pysparse.sparse import spmatrix
 import numpy
 
 def poisson1d_vec(n):

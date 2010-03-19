@@ -1,9 +1,9 @@
 import unittest
 import numpy
 
-from pysparse import itsolvers
-from pysparse import jdsym
-from pysparse import spmatrix
+from pysparse.itsolvers import itsolvers
+from pysparse.eigen import jdsym
+from pysparse.sparse import spmatrix
 
 class JdsymTestCase(unittest.TestCase):
 

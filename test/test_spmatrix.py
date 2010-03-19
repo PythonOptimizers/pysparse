@@ -1,8 +1,8 @@
 import unittest
 import math, random
-from pysparse import spmatrix
-from pysparse import spmatrix_util
-from pysparse import poisson
+from pysparse.sparse import spmatrix
+from pysparse.tools import spmatrix_util
+from pysparse.tools import poisson
 import numpy
 import numpy.oldnumeric.random_array as RandomArray
 ##import Numeric, RandomArray

@@ -49,8 +49,8 @@
 
 __docformat__ = 'restructuredtext'
 
-from pysparse import spmatrix
-from sparseMatrix import SparseMatrix
+from pysparse.sparse import spmatrix
+from pysparse.sparse.sparseMatrix import SparseMatrix
 import numpy
 
 class PysparseMatrix(SparseMatrix):
