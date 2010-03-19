@@ -5,24 +5,19 @@
 #include "Python.h"
 
 #define PY_ARRAY_UNIQUE_SYMBOL itsolvers_pyarray
-//#include "Numeric/arrayobject.h"
 
-#if NUMPY
-    #include "numpy/arrayobject.h"
-    #include "numpy/noprefix.h"
-#else
-    #include "Numeric/arrayobject.h"
-#endif
+#include "numpy/arrayobject.h"
+#include "numpy/noprefix.h"
 
 #define SPMATRIX_UNIQUE_SYMBOL itsolvers_spmatrix
-#include "pysparse/spmatrix.h"
+#include "spmatrix.h"
 
-#include "pysparse/pcg.h"
-#include "pysparse/bicgstab.h"
-#include "pysparse/minres.h"
-#include "pysparse/gmres.h"
-#include "pysparse/qmrs.h"
-#include "pysparse/cgs.h"
+#include "pcg.h"
+#include "bicgstab.h"
+#include "minres.h"
+#include "gmres.h"
+#include "qmrs.h"
+#include "cgs.h"
 
 /*********************************************************************** 
  * Module functions

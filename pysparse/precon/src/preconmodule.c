@@ -1,17 +1,12 @@
 #include "Python.h"
 #define PY_ARRAY_UNIQUE_SYMBOL precon
-//#include "Numeric/arrayobject.h"
 
-#if NUMPY
-    #include "numpy/arrayobject.h"
-    #include "numpy/noprefix.h"
-#else
-    #include "Numeric/arrayobject.h"
-#endif
+#include "numpy/arrayobject.h"
+#include "numpy/noprefix.h"
 
-#include "pysparse/blas.h"
-#include "pysparse/fortran.h"
-#include "pysparse/spmatrix.h"
+#include "blas.h"
+#include "fortran.h"
+#include "spmatrix.h"
 
 typedef struct JacobiObject {
   PyObject_VAR_HEAD

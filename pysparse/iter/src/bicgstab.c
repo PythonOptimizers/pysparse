@@ -1,9 +1,9 @@
 #include "Python.h"
-#include "pysparse/blas.h"
-#include "pysparse/fortran.h"
+#include "blas.h"
+#include "fortran.h"
 #define SPMATRIX_UNIQUE_SYMBOL itsolvers_spmatrix
-#include "pysparse/spmatrix.h"
-#include "pysparse/bicgstab.h"
+#include "spmatrix.h"
+#include "bicgstab.h"
 
 /* function prototypes */
 static void itermsg(double tol,

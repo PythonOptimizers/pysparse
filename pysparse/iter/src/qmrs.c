@@ -1,11 +1,11 @@
 #include <math.h>
 #include <stdio.h>
 #include "Python.h"
-#include "pysparse/blas.h"
-#include "pysparse/fortran.h"
+#include "blas.h"
+#include "fortran.h"
 #define SPMATRIX_UNIQUE_SYMBOL itsolvers_spmatrix
-#include "pysparse/spmatrix.h"
-#include "pysparse/qmrs.h"
+#include "spmatrix.h"
+#include "qmrs.h"
 
 #define SpMatrix_PRECON(prec_obj, n, x, y) \
         {if (SpMatrix_Precon((prec_obj),(n),(x),(y))) return -1;}

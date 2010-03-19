@@ -1,9 +1,9 @@
 #include <math.h>
 #include "Python.h"
-#include "pysparse/blas.h"
+#include "blas.h"
 #define SPMATRIX_UNIQUE_SYMBOL itsolvers_spmatrix
-#include "pysparse/spmatrix.h"
-#include "pysparse/cgs.h"
+#include "spmatrix.h"
+#include "cgs.h"
 
 #define SpMatrix_PRECON(prec_obj, n, p, tmp) \
         {if (SpMatrix_Precon((prec_obj),(n),(p),(tmp))) return -1;}
