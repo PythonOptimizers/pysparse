@@ -83,7 +83,8 @@
 # UMFPACK
 # -------
 # If the UMFPACK header files and library are in nonstandard locations,
-# specify them here.
+# specify them here. Comment out this section to use a default version of
+# UMFPACK included with the PySparse source distribution.
 [UMFPACK]
 #umfpack_include = /Users/dpo/local/linalg/UMFPACK/UMFPACK/Include
 #umfpack_libdir  = /Users/dpo/local/linalg/UMFPACK/UMFPACK/Lib
@@ -91,7 +92,8 @@
 # SuperLU
 # -------
 # If the SuperLU header files and library are in nonstandard locations,
-#specify it here.
+# specify it here. Comment out this section to use a default version of
+# SuperLU included with the PySparse distribution.
 [SuperLU]
 #superlu_include = /Users/dpo/local/linalg/SuperLU/SuperLU_3.1/SRC
 #superlu_libdir  = /Users/dpo/local/linalg/SuperLU/SuperLU_3.1/lib
@@ -99,7 +101,7 @@
 # AMD
 # ---
 # If the AMD header files and library are in nonstandard locations,
-#specify it here.
+# specify it here.
 [AMD]
 #amd_include= /Users/dpo/local/linalg/UMFPACK/AMD/Include
 #amd_libdir  = /Users/dpo/local/linalg/UMFPACK/AMD/Lib
