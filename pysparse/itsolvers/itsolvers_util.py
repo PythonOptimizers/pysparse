@@ -7,7 +7,7 @@ x = inv(A)*b.
 The classes are intended to replace superlu.superlu_context in cases
 where appropriate."""
 
-import itsolvers
+from pysparse.itsolvers import itsolvers
 
 class ItSolver:
     "abstract base class for iteravtive solver classes"

@@ -14,7 +14,7 @@ DOCLINES = __doc__.split("\n")
 
 import os
 import sys
-import setuptools  # To enable 'python setup.py develop'
+#import setuptools  # To enable 'python setup.py develop'
 
 CLASSIFIERS = """\
 Development Status :: 4 - Beta

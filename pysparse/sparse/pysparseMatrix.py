@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""
+This module defines a few convenience classes as wrappers around ll_mat
+objects. Being proper Python classes, they are subclassable. PysparseMatrix
+objects have hooks for all methods of ll_mat objects.
+"""
 
 ## -*-Pyth-*-
  # ###################################################################

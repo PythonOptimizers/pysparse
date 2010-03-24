@@ -19,7 +19,6 @@ def configuration(parent_package='',top_path=None):
     if not blas_info:
         print 'No blas info found'
 
-    #spmatrix_src = ['csr_mat.c', 'll_mat.c', 'sss_mat.c', 'spmatrixmodule.c']
     spmatrix_src = ['spmatrixmodule.c']
     config.add_extension(
         name='spmatrix',
