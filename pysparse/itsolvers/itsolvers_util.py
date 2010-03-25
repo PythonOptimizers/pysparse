@@ -1,5 +1,5 @@
 """This module defines encapsulation classes for all iterative solvers
-implemented in the itsolvers module.
+implemented in the krylov module.
 
 All classes provide a method "solve(b, x)" for approximatively compute
 x = inv(A)*b.
@@ -7,7 +7,7 @@ x = inv(A)*b.
 The classes are intended to replace superlu.superlu_context in cases
 where appropriate."""
 
-from pysparse.itsolvers import itsolvers
+from pysparse.itsolvers import krylov
 
 class ItSolver:
     "abstract base class for iteravtive solver classes"
@@ -48,20 +48,20 @@ class ItSolver:
 class Pcg(ItSolver):
     def __init__(self, A, tol, maxit, K=None, debug=0):
         ItSolver.__init__(self, A, tol, maxit, K, debug)
-        self.itsolver = itsolvers.pcg
+        self.itsolver = krylov.pcg
 
 class Minres(ItSolver):
     def __init__(self, A, tol, maxit, K=None, debug=0):
         ItSolver.__init__(self, A, tol, maxit, K, debug)
-        self.itsolver = itsolvers.minres
+        self.itsolver = krylov.minres
         
 class Qmrs(ItSolver):
     def __init__(self, A, tol, maxit, K=None, debug=0):
         ItSolver.__init__(self, A, tol, maxit, K, debug)
-        self.itsolver = itsolvers.qmrs
+        self.itsolver = krylov.qmrs
 
 class Cgs(ItSolver):
-    """wrapper class for the itsolvers.cgs iterative solver
+    """wrapper class for the krylov.cgs iterative solver
 
 Cgs(A, tol, maxit, K=None) constructs the Cgs object.
 
@@ -71,7 +71,7 @@ solve(b, x) solves the linear system A*x = b with a zero initial guess
 """
     def __init__(self, A, tol, maxit, K=None, debug=0):
         ItSolver.__init__(self, A, tol, maxit, K, debug)
-        self.itsolver = itsolvers.cgs
+        self.itsolver = krylov.cgs
                         
 if __name__ == '__main__':
     import math

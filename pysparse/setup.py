@@ -2,6 +2,8 @@
 
 def configuration(parent_package='',top_path=None):
     import numpy
+    import fnmatch
+    import os
     from numpy.distutils.misc_util import Configuration
 
     config = Configuration('pysparse', parent_package, top_path)
@@ -12,7 +14,11 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('itsolvers')
     config.add_subpackage('precon')
     config.add_subpackage('tools')
+    config.add_subpackage('misc')
     #config.add_data_dir('tests')
+
+    # Pysparse header files
+    config.add_data_dir(os.path.join(config.top_path,'pysparse','include'))
 
     config.make_config_py()
     return config

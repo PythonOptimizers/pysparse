@@ -652,12 +652,13 @@ The result is tuple with 3 elements:\n\
 \n\
 ";
 
+/* inititsolvers(void) */
 DL_EXPORT(void)
-inititsolvers(void)
+    initkrylov(void)
 {
   PyObject *m;
   
-  m = Py_InitModule3("itsolvers", itsolvers_methods, module_doc);
+  m = Py_InitModule3("krylov", itsolvers_methods, module_doc);
 
   /* initialize Numeric array module */
   import_array();

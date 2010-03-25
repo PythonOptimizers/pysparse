@@ -14,7 +14,8 @@ DOCLINES = __doc__.split("\n")
 
 import os
 import sys
-#import setuptools  # To enable 'python setup.py develop'
+
+#import setuptools  # If you want to enable 'python setup.py develop'
 
 CLASSIFIERS = """\
 Development Status :: 4 - Beta
@@ -44,7 +45,7 @@ def configuration(parent_package='',top_path=None):
                        quiet=True)
 
     config.add_include_dirs(numpy.get_include())
-    config.add_include_dirs('include')
+    config.add_include_dirs(os.path.join(config.top_path,'pysparse','include'))
     config.add_subpackage('pysparse')
 
     # Set config.version

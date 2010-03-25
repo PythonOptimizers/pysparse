@@ -22,7 +22,7 @@ def configuration(parent_package='',top_path=None):
     itsolvers_src = ['itsolversmodule.c', 'bicgstab.c', 'cgs.c', 'gmres.c',
                      'minres.c', 'pcg.c', 'qmrs.c']
     config.add_extension(
-        name='itsolvers',
+        name='krylov',
         sources=[os.path.join('src',name) for name in itsolvers_src],
         libraries=[],
         include_dirs=['src'],
