@@ -1,0 +1,7 @@
+How to build in MinGW with gcc
+==============================
+
+1. The paths in site.cfg must be of the form C:\msys\1.0\home\lib
+2. Although documentation suggests that libraries must have a 'lib' extension,
+   I found that I needed to rename libf95.lib to libf95.a and add the
+   appropriate search path in site.cfg in order to compile with g95.

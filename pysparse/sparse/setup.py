@@ -3,6 +3,7 @@
 def configuration(parent_package='',top_path=None):
     import numpy
     import os
+    #import sys
     import ConfigParser
     from numpy.distutils.misc_util import Configuration
     from numpy.distutils.system_info import get_info, NotFoundError
@@ -17,7 +18,11 @@ def configuration(parent_package='',top_path=None):
     # Get BLAS info from site.cfg
     blas_info = get_info('blas_opt',0)
     if not blas_info:
-        print 'No blas info found'
+        blas_info = get_info('blas',0)
+        if not blas_info:
+            print 'No blas info found'
+    print 'Using BLAS info:' ; print blas_info
+    #sys.exit(0)
 
     spmatrix_src = ['spmatrixmodule.c']
     config.add_extension(
