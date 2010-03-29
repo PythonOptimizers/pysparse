@@ -544,6 +544,20 @@ class PysparseSpDiagsMatrix(PysparseMatrix):
             else:
                 self.put(vals[k][:dk], -d + numpy.arange(dk), numpy.arange(dk))
 
+
+# A subclass for use with Scipy solvers.
+class PysparseMatrix4Scipy(PysparseMatrix):
+
+    def __init__(self, **kwargs):
+        PysparseMatrix.__init__(self, **kwargs)
+
+    def matvec(self,x,y):
+        """
+        Return a new vector containing the matrix-vector product with `x`.
+        This method is provided for compatibility with Scipy solvers.
+        """
+        return self.matrix.matvec(x,y)
+
         
 def _test(): 
     import doctest

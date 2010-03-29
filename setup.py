@@ -15,7 +15,11 @@ DOCLINES = __doc__.split("\n")
 import os
 import sys
 
-#import setuptools  # If you want to enable 'python setup.py develop'
+try:
+    import setuptools  # If you want to enable 'python setup.py develop'
+except:
+    print 'setuptools module not found.'
+    print "Install setuptools if you want to enable 'python setup.py develop'."
 
 CLASSIFIERS = """\
 Development Status :: 4 - Beta

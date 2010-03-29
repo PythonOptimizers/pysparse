@@ -22,6 +22,7 @@ def configuration(parent_package='',top_path=None):
     spmatrix_src = ['spmatrixmodule.c']
     config.add_extension(
         name='spmatrix',
+        define_macros=[('LENFUNC_OK', 1)],
         sources=[os.path.join('src',name) for name in spmatrix_src],
         libraries=[],
         include_dirs=['src'],

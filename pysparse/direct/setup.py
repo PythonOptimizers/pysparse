@@ -31,10 +31,13 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('direct', parent_package, top_path)
     cwd = config.local_path
 
-    # Get BLAS info from site.cfg
+    # Get BLAS info from site.cfg.
     blas_info = get_info('blas_opt',0)
     if not blas_info:
-        print 'No blas info found'
+        blas_info = get_info('blas',0)
+        if not blas_info:
+            print 'No blas info found'
+    print 'Using BLAS info:' ; print blas_info
 
     # If UMFPACK or AMD library was not specified, use default.
     umfpack_lib = ['umfpack']
@@ -65,10 +68,17 @@ def configuration(parent_package='',top_path=None):
         umfpack_include = [umfpack_include]
 
     # Build UMFPACK extension.
+    if blas_info:
+        umfpack_defs = [('NBLAS',1)]
+    else:
+        umfpack_defs = [('NBLAS',0)]
+    umfpack_defs += [('DINT',1)]
+
     umfpack_src.append(os.path.join('src','umfpackmodule.c'))
     config.add_extension(
         name='umfpack',
         sources=umfpack_src + amd_src,
+        define_macros=umfpack_defs,
         libraries=amd_lib + umfpack_lib,
         library_dirs=amd_libdir + umfpack_libdir,
         include_dirs=['src'] + umfpack_include + amd_include,
@@ -95,7 +105,10 @@ def configuration(parent_package='',top_path=None):
         superlu_src= [os.path.join('src','superlu3module.c')]
 
     # Build SuperLU extension.
-    superlu_defs = [('USE_VENDOR_BLAS',1)]
+    if blas_info:
+        superlu_defs = [('USE_VENDOR_BLAS',1)]
+    else:
+        superlu_defs = [('USE_VENDOR_BLAS',0)]
     if sys.platform == 'win32':
             superlu_defs += [('NO_TIMER', 1)]
 
