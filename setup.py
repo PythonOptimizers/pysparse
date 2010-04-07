@@ -7,7 +7,9 @@ matrix storage formats and conversion methods. It also implements a number of
 iterative solvers, preconditioners, and interfaces to efficient factorization
 packages. Both low-level and high-level interfaces are available, each with
 different strengths.
-D. Orban <d-orban@sf.net>
+R. Geus    <hamsel@sf.net>
+D. Orban   <d-orban@sf.net>
+D. Wheeler <wd15@sf.net>
 """
 
 DOCLINES = __doc__.split("\n")
@@ -17,6 +19,7 @@ import sys
 
 try:
     import setuptools  # If you want to enable 'python setup.py develop'
+    #pass
 except:
     print 'setuptools module not found.'
     print "Install setuptools if you want to enable 'python setup.py develop'."

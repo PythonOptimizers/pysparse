@@ -30,16 +30,16 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('eigen', parent_package, top_path)
 
     # Get BLAS info from site.cfg
-    blas_info = get_info('blas_opt',0)
+    blas_info = get_info('blas',0)
     if not blas_info:
-        blas_info = get_info('blas',0)
+        blas_info = get_info('blas_opt',0)
         if not blas_info:
             print 'No blas info found'
 
     # Get LAPACK info from site.cfg
-    lapack_info = get_info('lapack_opt',0)
+    lapack_info = get_info('lapack',0)
     if not lapack_info:
-        lapack_info = get_info('lapack',0)
+        lapack_info = get_info('lapack_opt',0)
         if not lapack_info:
             print 'No lapack info found'
 
