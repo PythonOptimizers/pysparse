@@ -76,6 +76,8 @@
 #define sgemm_    SGEMM
 #define strsm_    STRSM
 
+#ifdef _CRAY
+/* Original UPCASE mapping (appearently for the CRAY platform) */
 #define dasum_    SASUM
 #define idamax_   ISAMAX
 #define dcopy_    SCOPY
@@ -91,6 +93,26 @@
 #define dtrsv_    STRSV
 #define dgemm_    SGEMM
 #define dtrsm_    STRSM
+
+#else
+/* UPCASE mapping for Windows MSVC/ACML */
+#define dasum_    DASUM
+#define idamax_   IDAMAX
+#define dcopy_    DCOPY
+#define dscal_    DSCAL
+#define dger_     DGER
+#define dnrm2_    DNRM2
+#define dsymv_    DSYMV
+#define ddot_     DDOT
+#define daxpy_    DAXPY
+#define dsyr2_    DSYR2
+#define drot_     DROT
+#define dgemv_    DGEMV
+#define dtrsv_    DTRSV
+#define dgemm_    DGEMM
+#define dtrsm_    DTRSM
+
+#endif
 
 #define scasum_   SCASUM
 #define icamax_   ICAMAX
