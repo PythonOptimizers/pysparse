@@ -131,7 +131,7 @@ static ItSolvers_Solve_RET ItSolvers_Solve ItSolvers_Solve_PROTO;
 extern void **SpMatrix_API;
 #else
 #ifdef SPMATRIX_UNIQUE_SYMBOL
-void **SpMatrix_API;
+extern void **SpMatrix_API;
 #else
 static void **SpMatrix_API;
 #endif

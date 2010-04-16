@@ -22,6 +22,7 @@
 /*********************************************************************** 
  * Module functions
  */
+void **SPMATRIX_UNIQUE_SYMBOL;
 
 static char pcg_doc[] = 
 "info, iter, relres = pcg(A, b, x, tol, maxit)\n\
