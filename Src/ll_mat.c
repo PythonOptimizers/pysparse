@@ -3186,7 +3186,7 @@ static int LLMat_length(LLMatObject *self) {
 
 static PyObject *LLMat_subscript(LLMatObject *self, PyObject *index) {
 
-  PyObject *index0, *index1;
+  PyObject *index0, *index1, *submatrix;
 
   // Check that input is a double index
   if( !PySequence_Check(index) ) {
@@ -3209,13 +3209,17 @@ static PyObject *LLMat_subscript(LLMatObject *self, PyObject *index) {
 
   // Parse second index
   if( !(index1 = PySequence_GetItem(index, 1)) ) {
+    Py_DECREF(index0);
     PyErr_SetString(PyExc_IndexError, "Second index is invalid");
     Py_INCREF(Py_None);
     return Py_None;
   }
 
   // Return submatrix
-  return getSubMatrix_FromList(self, index0, index1);
+  submatrix = getSubMatrix_FromList(self, index0, index1);
+  Py_DECREF(index0);
+  Py_DECREF(index1);
+  return submatrix;
 
 }
 
@@ -3247,6 +3251,7 @@ LLMat_ass_subscript(LLMatObject *self, PyObject *index, PyObject *value ) {
 
   // Parse second index
   if( !(index1 = PySequence_GetItem(index, 1)) ) {
+    Py_DECREF(index0);
     PyErr_SetString(PyExc_IndexError, "Second index is invalid");
     return -1;
   }
@@ -3254,6 +3259,8 @@ LLMat_ass_subscript(LLMatObject *self, PyObject *index, PyObject *value ) {
   // Assign a submatrix
   //return setSubMatrix_FromList(self, value, index0, index1);
   setSubMatrix_FromList(self, value, index0, index1);
+  Py_DECREF(index0);
+  Py_DECREF(index1);
   if( PyErr_Occurred() )
     return -1;
   return 0;
