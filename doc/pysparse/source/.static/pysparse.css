@@ -82,6 +82,7 @@ tt.descname {
 
 tt.descclassname {
     background-color: transparent;
+    font-size: 1.2em; /* New */
     border: 0;
 }
 

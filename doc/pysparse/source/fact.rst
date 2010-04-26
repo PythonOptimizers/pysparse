@@ -97,7 +97,8 @@ all entries equal to one.
 
 The Python solution for this task looks as follows::
 
-    from pysparse import spmatrix, superlu
+    from pysparse.sparse import spmatrix
+    from pysparse.direct import superlu
     import numpy 
     n = 100
     A = poisson2d_sym_blk(n)
@@ -128,7 +129,9 @@ cost and factor density. The following example show how to use an incomplete LU
 factorization as a preconditioner in any of the iterative methods of the
 ``itsolvers`` module::
 
-    from pysparse import poisson, superlu, itsolvers
+    from pysparse.tools import poisson
+    from pysparse.direct import superlu
+    from pysparse.itsolvers import krylov
     import numpy
 
     class ILU_Precon:
@@ -153,7 +156,7 @@ factorization as a preconditioner in any of the iterative methods of the
     x = numpy.empty(n*n)
 
     K = ILU_Precon(A)
-    info, niter, relres = itsolvers.pcg(A, b, x, 1e-12, 2000, K)
+    info, niter, relres = krylov.pcg(A, b, x, 1e-12, 2000, K)
 
 .. note::
 
@@ -269,7 +272,8 @@ a vector with all entries equal to one.
 
 The Python solution using UMFPACK looks as follows::
 
-    from pysparse import spmatrix, umfpack
+    from pysparse.sparse import spmatrix
+    from pysparse.direct import umfpack
     import numpy 
     n = 100
     A = poisson2d_sym_blk(n)
@@ -291,9 +295,9 @@ higher-level interfaces to the LU factorization packages.
 The Abstract :mod:`directSolver` Module
 ---------------------------------------
 
-.. automodule:: directSolver
+.. automodule:: pysparse.direct.directSolver
 
-.. autoclass:: PysparseDirectSolver
+.. autoclass:: pysparse.direct.directSolver.PysparseDirectSolver
    :show-inheritance: 
    :members: 
    :inherited-members: 
@@ -302,9 +306,9 @@ The Abstract :mod:`directSolver` Module
 The :mod:`pysparseSuperLU` Module: A Higher-Level SuperLU Interface
 -------------------------------------------------------------------
 
-.. automodule:: pysparseSuperLU
+.. automodule:: pysparse.direct.pysparseSuperLU
 
-.. autoclass:: PysparseSuperLUSolver
+.. autoclass:: pysparse.direct.pysparseSuperLU.PysparseSuperLUSolver
    :show-inheritance: 
    :members: 
    :inherited-members: 
@@ -316,10 +320,9 @@ Example: The 2D Poisson System with SuperLU
 The solution of a 2D Poisson system with :class:`PysparseSuperLUSolver` may look
 like this::
 
-     from pysparse.pysparseMatrix import PysparseMatrix
-     from pysparse.pysparseSuperLU import PysparseSuperLUSolver
-
-     from poisson_vec import poisson2d_sym_blk_vec
+     from pysparse.sparse.pysparseMatrix import PysparseMatrix
+     from pysparse.direct.pysparseSuperLU import PysparseSuperLUSolver
+     from pysparse.tools.poisson_vec import poisson2d_sym_blk_vec
      from numpy import ones
      from numpy.linalg import norm
 
@@ -346,7 +349,7 @@ of :ref:`spmatrix-page`.
 The :mod:`pysparseUmfpack` Module: A Higher-Level UMFPACK Interface
 -------------------------------------------------------------------
 
-.. automodule:: pysparseUmfpack
+.. automodule:: pysparse.direct.pysparseUmfpack
 
 .. autoclass:: PysparseUmfpackSolver
    :show-inheritance: 
@@ -360,7 +363,7 @@ Example: The 2D Poisson System with UMFPACK
 The solution of a 2D Poisson system with :class:`PysparseUmfpackSolver` may look
 like this::
 
-     from poisson_vec import poisson2d_sym_blk_vec
+     from pysparse.tools.poisson_vec import poisson2d_sym_blk_vec
      from numpy import ones
      from numpy.linalg import norm
 

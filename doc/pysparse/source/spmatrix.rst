@@ -108,7 +108,7 @@ The following code creates an empty :math:`5 \times 5` matrix ``A``, sets
 all diagonal elements to their respective row/column index and then
 copies the value of ``A[0,0]`` to ``A[2,1]``::
 
-    >>> from pysparse import spmatrix
+    >>> from pysparse.sparse import spmatrix
     >>> A = spmatrix.ll_mat(5, 5)
     >>> for i in range(5):
     ...     A[i,i] = i+1
@@ -149,7 +149,7 @@ submatrices need not be composed of consecutive rows or indices. Let's look at
 an example. Below, the :func:`poisson1d` function assembles a Poisson matrix. We
 come back to Poisson matrices later in this section. ::
 
-    >>> from pysparse import poisson
+    >>> from pysparse.sparse import poisson
     >>> n = 5
     >>> A = poisson.poisson1d(n)
     >>> print A   # Original matrix
@@ -552,7 +552,7 @@ This section illustrates the use of the ``spmatrix`` module to
 build the well known 2D-Poisson matrix resulting from a :math:`n \times n`
 square grid::
 
-       from pysparse import spmatrix
+       from pysparse.sparse import spmatrix
 
        def poisson2d(n):
            n2 = n*n
@@ -634,7 +634,7 @@ For illustration, let's rewrite the ``poisson2d``, ``poisson2d_sym`` and
 
 The ``put`` method can be used in ``poisson2d`` as so::
 
-    from pysparse import spmatrix
+    from pysparse.sparse import spmatrix
     import numpy
 
     def poisson2d_vec(n):
@@ -670,27 +670,26 @@ processor:
 
 .. sourcecode:: ipython
 
-   In [1]: from pysparse import poisson
-   In [2]: import poisson_vec
+   In [1]: from pysparse.tools import poisson, poisson_vec
 
-   In [3]: %timeit -n10 -r3 L = poisson.poisson2d(100)
+   In [2]: %timeit -n10 -r3 L = poisson.poisson2d(100)
    10 loops, best of 3: 38.2 ms per loop
-   In [4]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(100)
+   In [3]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(100)
    10 loops, best of 3: 4.26 ms per loop
 
-   In [5]: %timeit -n10 -r3 L = poisson.poisson2d(300)
+   In [4]: %timeit -n10 -r3 L = poisson.poisson2d(300)
    10 loops, best of 3: 352 ms per loop
-   In [6]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(300)
+   In [5]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(300)
    10 loops, best of 3: 31.7 ms per loop
 
-   In [7]: %timeit -n10 -r3 L = poisson.poisson2d(500)
+   In [6]: %timeit -n10 -r3 L = poisson.poisson2d(500)
    10 loops, best of 3: 980 ms per loop
-   In [8]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(500)
+   In [7]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(500)
    10 loops, best of 3: 86.4 ms per loop
 
-   In [9]: %timeit -n10 -r3 L = poisson.poisson2d(1000)
+   In [8]: %timeit -n10 -r3 L = poisson.poisson2d(1000)
    10 loops, best of 3: 4.02 s per loop
-   In [10]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(1000)
+   In [9]: %timeit -n10 -r3 L = poisson_vec.poisson2d_vec(1000)
    10 loops, best of 3: 333 ms per loop
    
 and for the symmetric versions:

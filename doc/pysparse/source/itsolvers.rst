@@ -119,20 +119,24 @@ entries equal to one.
 
 The Python solution for this task looks as follows::
 
-    from pysparse import spmatrix, precon, itsolvers
+    from pysparse.sparse import spmatrix
+    from pysparse.precon import precon
+    from pysparse.itsolvers import krylov
     import numpy
     n = 300
     L = poisson2d_sym_blk(n)
     b = numpy.ones(n*n)
     x = numpy.empty(n*n)
-    info, iter, relres = itsolvers.pcg(L.to_sss(), b, x, 1e-12, 2000)
+    info, iter, relres = krylov.pcg(L.to_sss(), b, x, 1e-12, 2000)
 
 The code makes use of the Python function ``poisson2d_sym_blk``,
 which was defined in :ref:`spmatrix-page`.
 
 Incorporating e.g. a SSOR preconditioner is straightforward::
 
-    from pysparse import spmatrix, precon, itsolvers
+    from pysparse.sparse import spmatrix
+    from pysparse.precon import precon
+    from pysparse.itsolver import krylov
     import numpy
     n = 300
     L = poisson2d_sym_blk(n)
@@ -140,7 +144,7 @@ Incorporating e.g. a SSOR preconditioner is straightforward::
     x = numpy.empty(n*n)
     S = L.to_sss()
     Kssor = precon.ssor(S)
-    info, iter, relres = itsolvers.pcg(S, b, x, 1e-12, 2000, Kssor)
+    info, iter, relres = krylov.pcg(S, b, x, 1e-12, 2000, Kssor)
 
 The Matlab solution (without preconditioner) may look as follows:
 

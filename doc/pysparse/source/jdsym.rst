@@ -116,7 +116,10 @@ eigenvalues to an accuracy of :math:`10^{-10}`.  We set ``strategy=1``
 to avoid convergence to the high-dimensional null space of
 (:math:`\mathbf{A}`, :math:`\mathbf{M}`)::
 
-    from pysparse import spmatrix, itsolvers, jdsym, precon
+    from pysparse.sparse import spmatrix
+    from pysparse.itsolvers import krylov
+    from pysparse.eig import jdsym
+    from pysparse.precon import precon
 
     A = spmatrix.ll_mat_from_mtx('edge6x3x5_A.mtx')
     M = spmatrix.ll_mat_from_mtx('edge6x3x5_B.mtx')
@@ -128,7 +131,7 @@ to avoid convergence to the high-dimensional null space of
 
     A = A.to_sss(); M = M.to_sss()
     k_conv, lmbd, Q, it  = jdsym.jdsym(A, M, K, 5, tau,
-                                       1e-10, 150, itsolvers.qmrs,
+                                       1e-10, 150, krylov.qmrs,
                                        jmin=5, jmax=10, clvl=1, strategy=1)
 
 This code takes 33.71 seconds to compute the five eigenpairs.  A native
