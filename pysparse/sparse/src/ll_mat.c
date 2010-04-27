@@ -857,14 +857,21 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
       if( !(jcol = create_indexlist(&ncol, self->dim[1], index1)) ) {
         PyErr_SetString(PyExc_IndexError, "Error creating second index list");
         Py_INCREF(Py_None);
+        free(irow);
         return Py_None;
       }
 
       dim[0] = nrow; dim[1] = ncol;
       dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz);
-      if( !dst ) return NULL;
+      if( !dst ) {
+        free(irow);
+        free(jcol);
+        return NULL;
+      }
 
       res = copySubMatrix_FromList(self, (LLMatObject*)dst, irow, nrow, jcol, ncol);
+      free(irow);
+      free(jcol);
       if( res ) {
         Py_DECREF(dst);
         return NULL;
@@ -1197,12 +1204,15 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
     // Create index list from second index
     if( !(jcol = create_indexlist(&ncol, self->dim[1], index1)) ) {
       PyErr_SetString(PyExc_IndexError, "Error creating second index list");
+      free(irow);
       return; // -1;
     }
 
     if( !other_is_num )
       if( mat->dim[0] != nrow || mat->dim[1] != ncol ) {
         PyErr_SetString(PyExc_ValueError, "Matrix shapes are different");
+        free(irow);
+        free(jcol);
         return; // -1;
       }
 
@@ -1220,6 +1230,8 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
         if( self->issym && row < col ) {
           PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
                           "Writing to upper triangle of symmetric matrix");
+          free(irow);
+          free(jcol);
           return; // -1;
         }
 
@@ -1229,10 +1241,14 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
         if( SpMatrix_LLMatSetItem(self, row, col, val) ) {
           PyErr_SetString(PyExc_ValueError, "SpMatrix_LLMatSetItem failed");
+          free(irow);
+          free(jcol);
           return; // -1;
         }
       }
     }
+    free(irow);
+    free(jcol);
     return; // 0;
   }
 }
