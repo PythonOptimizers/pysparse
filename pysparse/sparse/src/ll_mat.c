@@ -3024,7 +3024,8 @@ static PyObject *LLMat_Find( LLMatObject *self, PyObject *args ) {
     }
   }
 
-  return Py_BuildValue( "OOO",
+  /* Descriptor 'N' does not increment reference count */
+  return Py_BuildValue( "NNN",
                         PyArray_Return( a_val ),
                         PyArray_Return( a_row ),
                         PyArray_Return( a_col ) );
