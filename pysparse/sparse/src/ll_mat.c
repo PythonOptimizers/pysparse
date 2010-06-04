@@ -849,16 +849,18 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
       // Create index list from first index
       if( !(irow = create_indexlist(&nrow, self->dim[0], index0)) ) {
         PyErr_SetString(PyExc_IndexError, "Error creating first index list");
-        Py_INCREF(Py_None);
-        return Py_None;
+        // Py_INCREF(Py_None);
+        // return Py_None;
+        return NULL;
       }
 
       // Create index list from second index
       if( !(jcol = create_indexlist(&ncol, self->dim[1], index1)) ) {
-        PyErr_SetString(PyExc_IndexError, "Error creating second index list");
-        Py_INCREF(Py_None);
         free(irow);
-        return Py_None;
+        PyErr_SetString(PyExc_IndexError, "Error creating second index list");
+        // Py_INCREF(Py_None);
+        // return Py_None;
+        return NULL;
       }
 
       dim[0] = nrow; dim[1] = ncol;
@@ -3202,28 +3204,32 @@ static PyObject *LLMat_subscript(LLMatObject *self, PyObject *index) {
   // Check that input is a double index
   if( !PySequence_Check(index) ) {
     PyErr_SetString(PyExc_IndexError, "Index must be a sequence");
-    Py_INCREF(Py_None);
-    return Py_None;
+    // Py_INCREF(Py_None);
+    // return Py_None;
+    return NULL;
   }
   if( PySequence_Length(index) != 2 ) {
     PyErr_SetString(PyExc_IndexError, "There must be exactly two indices");
-    Py_INCREF(Py_None);
-    return Py_None;
+    // Py_INCREF(Py_None);
+    // return Py_None;
+    return NULL;
   }
 
   // Parse first index
   if( !(index0 = PySequence_GetItem(index, 0)) ) {
     PyErr_SetString(PyExc_IndexError, "First index is invalid");
-    Py_INCREF(Py_None);
-    return Py_None;
+    // Py_INCREF(Py_None);
+    // return Py_None;
+    return NULL;
   }
 
   // Parse second index
   if( !(index1 = PySequence_GetItem(index, 1)) ) {
     Py_DECREF(index0);
     PyErr_SetString(PyExc_IndexError, "Second index is invalid");
-    Py_INCREF(Py_None);
-    return Py_None;
+    // Py_INCREF(Py_None);
+    // return Py_None;
+    return NULL;
   }
 
   // Return submatrix
