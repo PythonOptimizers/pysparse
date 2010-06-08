@@ -6,6 +6,7 @@ __docformat__ = 'restructuredtext'
 from numpy._import_tools import PackageLoader
 from version import version as __version__
 
+from sparse import spmatrix
 #from sparse import *
 from misc import get_include
 
