@@ -33,7 +33,7 @@ class ItSolver:
         if self.debug:
             print 'iterative solver returned:', info, iter, relres
         if info < 0:
-            raise 'error', ('iterative solver %s returned error code %d' % (self.__class__.__name__, info), info, iter, relres)
+            raise RuntimeError, ('iterative solver %s returned error code %d' % (self.__class__.__name__, info), info, iter, relres)
 
     def __str__(self):
         s = '<%s.%s instance>\n\n' % (self.__class__.__module__, self.__class__.__name__)
