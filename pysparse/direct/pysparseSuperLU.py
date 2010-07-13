@@ -33,13 +33,14 @@ __docformat__ = 'restructuredtext'
 
 from pysparse.sparse import pysparseMatrix as psm
 import numpy
-import resource
+#import resource
 
 from pysparse.direct.directSolver import PysparseDirectSolver
 from pysparse.direct import superlu
+from pysparse.tools.sptime import cputime
 
-def cputime():
-    return resource.getrusage(resource.RUSAGE_SELF)[0]
+#def cputime():
+#    return resource.getrusage(resource.RUSAGE_SELF)[0]
 
 class PysparseSuperLUSolver( PysparseDirectSolver ):
     """

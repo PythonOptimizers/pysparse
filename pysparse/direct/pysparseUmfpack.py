@@ -34,14 +34,15 @@ __docformat__ = 'restructuredtext'
 
 from pysparse.sparse import pysparseMatrix as psm
 import numpy
-import resource
+#import resource
 
 from pysparse.direct.directSolver import PysparseDirectSolver
 from pysparse.direct import umfpack
+from pysparse.tools.sptime import cputime
 from string import upper
 
-def cputime():
-    return resource.getrusage(resource.RUSAGE_SELF)[0]
+#def cputime():
+#    return resource.getrusage(resource.RUSAGE_SELF)[0]
 
 class PysparseUmfpackSolver( PysparseDirectSolver ):
     """
