@@ -8,8 +8,12 @@ import sys
 
 # default settings
 package_data = []
-library_dirs_list= []
-libraries_list = ['lapack', 'blas']
+##library_dirs_list= []
+##libraries_list = ['lapack', 'blas']
+
+library_dirs_list= ['/usr/local/lib']
+libraries_list = ['lapack', 'cblas', 'f77blas', 'atlas', 'gfortran']
+
 superlu_defs = [('USE_VENDOR_BLAS',1)]
 if sys.platform == 'win32':
     superlu_defs += [('NO_TIMER', 1)]

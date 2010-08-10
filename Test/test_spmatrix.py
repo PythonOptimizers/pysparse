@@ -219,6 +219,19 @@ class LLMatMatMul(unittest.TestCase):
                   B.matvec(x, t)
                   A.matvec(t, y2)
                   self.failUnless(math.sqrt(numpy.dot(y1 - y2, y1 - y2)) < eps * n*m*k)
-              
+
+class LLMatKeys(unittest.TestCase):
+    
+    def setUp(self):
+        self.matrix = spmatrix.ll_mat(4, 4)
+        import numpy
+        self.matrix.update_add_at((6., 7., 8., 5.), (0, 3, 1, 2), (0, 1, 2, 3))
+
+    def testKeys(self):
+        import numpy
+        keys = self.matrix.keys()
+        keys.sort()
+        self.failUnless(keys == [(0, 0), (1, 2), (2, 3), (3, 1)])
+                      
 if __name__ == '__main__':
     unittest.main()
