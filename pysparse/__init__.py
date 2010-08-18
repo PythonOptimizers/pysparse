@@ -32,3 +32,5 @@ Miscellaneous
 
     __version__  :  pysparse version string
 """
+
+from pysparse.direct import superlu

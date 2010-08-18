@@ -72,6 +72,12 @@ solve(b, x) solves the linear system A*x = b with a zero initial guess
     def __init__(self, A, tol, maxit, K=None, debug=0):
         ItSolver.__init__(self, A, tol, maxit, K, debug)
         self.itsolver = krylov.cgs
+
+pcg = krylov.pcg
+minres = krylov.minres
+qmrs = krylov.qmrs
+cgs = krylov.cgs
+gmres = krylov.gmres
                         
 if __name__ == '__main__':
     import math
