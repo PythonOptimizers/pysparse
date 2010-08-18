@@ -2034,48 +2034,48 @@ static char keys_doc[] = "A.keys()\n\
 \n\
 Return a list of tuples (i,j) of non-zero matrix entries.";
 
-/* static PyObject * */
-/* LLMat_keys(LLMatObject *a, PyObject *args) { */
-/*   PyObject *list;             /\* the list that will hold the keys *\/ */
-/*   int i, j, k; */
-/*   int pos = 0;                /\* position in list *\/ */
-    
-/*   if (!PyArg_ParseTuple(args, "")) return NULL; */
-    
-/*   if (!a->issym) { */
-
-/*     if ((list = PyList_New(a->nnz)) == NULL) return NULL; */
-        
-/*     for (i = 0; i < a->dim[0]; i ++) { */
-/*       k = a->root[i]; */
-/*       while (k != -1) { */
-/*         j = a->col[k]; */
-/*                 PyList_SET_ITEM(list, pos++, Py_BuildValue("ii", i, j)); */
-/*                 k = a->link[k]; */
-/* 	    } */
-/*         } */
-/*         return list; */
-        
-/*     } else { */
-/*         PyErr_SetString(PyExc_NotImplementedError,  */
-/*                         "keys() doesn't yet support symmetric matrices"); */
-/*         return NULL; */
-/*     } */
-/* } */
-
 static PyObject *
 LLMat_keys(LLMatObject *a, PyObject *args) {
-  PyObject *listi;             /* the list that will hold keys i */
-  PyObject *listj;             /* the list that will hold keys j */
   PyObject *list;             /* the list that will hold the keys */
   int i, j, k;
   int pos = 0;                /* position in list */
     
   if (!PyArg_ParseTuple(args, "")) return NULL;
+   
+  if (!a->issym) {
+
+    if ((list = PyList_New(a->nnz)) == NULL) return NULL;
+        
+    for (i = 0; i < a->dim[0]; i ++) {
+      k = a->root[i];
+      while (k != -1) {
+        j = a->col[k];
+        PyList_SET_ITEM(list, pos++, Py_BuildValue("ii", i, j));
+        k = a->link[k];
+      }
+    }
+    return list;
+        
+  } else {
+    PyErr_SetString(PyExc_NotImplementedError,
+                    "keys() doesn't yet support symmetric matrices");
+    return NULL;
+  }
+}
+
+/*
+static PyObject *
+LLMat_keys(LLMatObject *a, PyObject *args) {
+  PyObject *listi;             /\* the list that will hold keys i *\/
+  PyObject *listj;             /\* the list that will hold keys j *\/
+  PyObject *list;             /\* the list that will hold the keys *\/
+  int i, j, k;
+  int pos = 0;                /\* position in list *\/
+    
+  if (!PyArg_ParseTuple(args, "")) return NULL;
     
   if (!a->issym) {
 
-    //    printf("nnz is %i\n", a->nnz);
     if ((list = PyList_New(2)) == NULL) return NULL;
     if ((listi = PyList_New(a->nnz)) == NULL) return NULL;
     if ((listj = PyList_New(a->nnz)) == NULL) return NULL;
@@ -2102,6 +2102,7 @@ LLMat_keys(LLMatObject *a, PyObject *args) {
     return NULL;
   }
 }
+*/
 
 static char values_doc[] = "A.values()\n\
 \n\
