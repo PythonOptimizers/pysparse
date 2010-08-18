@@ -22,35 +22,27 @@ that implement
 All these modules are implemented as C extension modules for maximum
 performance.
 
-PySparse uses Numerical Python (NumPy) for handling dense vectors and
-matrices and makes use of SuperLU for factorising sparse matrices.
+PySparse uses NumPy for handling dense vectors and matrices and makes use of
+UMFPACK and SuperLU for factorising sparse matrices.
 
 Installation
 ------------
 
-1. Install Numerical Python
+1. Install NumPy
 
    - Download NumPy from http://www.numpy.org/
 
-     PySparse was tested with NumPy version 1.0
-     Pysparse works with both the new "numpy" and the old "Numeric".
+     PySparse was tested with NumPy up to version 2.0
 
    - Unpack and Install the NumPy package
 
      Refer to the documentation provided in the NumPy package for
      installation hints.
 
-2. Customise the setup.py file
+2. Customise the site.cfg file
 
    PySparse is needs to link against the BLAS and LAPACK libraries,
    which must be available on your system.
-
-   Set the library_dirs_list, libraries_list, superlu_defs, f77_defs
-   variables according to your local configuration. Examples for
-   several architectures are provided.
-
-   Change the "use_numpy" flag to False in setup.py when using the old
-   "Numeric".
 
 3. Install PySparse
 
@@ -58,24 +50,31 @@ Installation
    directory of your Python installation. Refer to the Python
    documentation, if you have advanced installation needs.
 
+   Some systems will require usage of a Fortran compiler to link the BLAS
+   and/or LAPACK libraries. The Fortran compiler that was used to compile those
+   libraries should normally be used. It can be specified at build time using:
+
+   python setup.py config_fc --fcompiler=gfortran build
+
+   (replace gfortran with your compiler; see 'python setup.py config_fc --help'
+   for more information.)
+
 4. Testing
 
    Testing support is only rudimentary.
 
-   Run the scripts in the Examples directory. Check if the results are
-   meaningful :-;
+   Run the scripts in the examples and test directories. Check if the results
+   are meaningful :-;
 
    PySparse was successfully tested on many UNIX brands, including
-   Linux, Solaris (SunOS 5.6), Digital UNIX (OSF1 V4.0) and HP-UX
-   11.11, and Windows XP.
-   PySparse was tested using Python version 2.1 and 2.2.
+   Linux, OSX, Solaris (SunOS 5.6), Digital UNIX (OSF1 V4.0) and HP-UX
+   11.11, and Windows XP (MinGW).
+   PySparse was tested using Python version 2.6.
 
 Documentation
 -------------
 
-Some documentation is located in the Doc subdirectory. Alternatively
-you can consult the documentation in the source code using the 'pydoc'
-utility.
+Some documentation is located in the doc subdirectory.
 
 
 Acknowledgements
@@ -101,6 +100,7 @@ software distribution.
 Contact
 -------
 
-For comments, questions, bug reports, etc. contact me by email: roman@geus.ch
+For comments, questions, bug reports, etc. please consult the pysparse-users
+mailing list. See http://pysparse.sf.net.
 
-Roman Geus
+Thank you for using PySparse!
