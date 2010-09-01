@@ -1,7 +1,8 @@
-from pysparse import spmatrix, jdsym, itsolvers
-from numpy import zeros, dot, allclose, multiply
+from pysparse.sparse import spmatrix
+from pysparse.eigen import jdsym
+from pysparse.itsolvers.krylov import qmrs
+from numpy import zeros, dot, allclose, multiply, random
 from math import sqrt
-import RandomArray
 
 class diagPrecShifted:
     def __init__(self, A, M, sigma):
@@ -54,7 +55,8 @@ lmbd_exact = zeros(ncv, 'd')
 for k in xrange(ncv):
     lmbd_exact[k] =  A[k,k]
 
-kconv, lmbd, Q, it, it_inner = jdsym.jdsym(As, None, None, ncv, 0.0, tol, 150, itsolvers.qmrs,
+kconv, lmbd, Q, it, it_inner = jdsym.jdsym(As, None, None, ncv,
+                                           0.0, tol, 150, qmrs,
                                            jmin=5, jmax=10, eps_tr=1e-4, clvl=1)
     
 assert ncv == kconv
@@ -73,9 +75,10 @@ for k in xrange(ncv):
     lmbd_exact[k] =  A[k,k]/M[k,k]
 
 
-X0 = RandomArray.random((n,ncv))
+X0 = random.random((n,ncv))
 
-kconv, lmbd, Q, it, it_inner = jdsym.jdsym(As, Ms, None, ncv, 0.0, tol, 150, itsolvers.qmrs,
+kconv, lmbd, Q, it, it_inner = jdsym.jdsym(As, Ms, None, ncv,
+                                           0.0, tol, 150, qmrs,
                                            jmin=5, jmax=10, eps_tr=1e-4, clvl=1)
     
 assert ncv == kconv
@@ -93,7 +96,8 @@ lmbd_exact = zeros(ncv, 'd')
 for k in xrange(ncv):
     lmbd_exact[k] =  A[k,k]/M[k,k]
 
-kconv, lmbd, Q, it, it_inner = jdsym.jdsym(As, Ms, K, ncv, 0.0, tol, 150, itsolvers.qmrs,
+kconv, lmbd, Q, it, it_inner = jdsym.jdsym(As, Ms, K, ncv,
+                                           0.0, tol, 150, qmrs,
                                            jmin=5, jmax=10, eps_tr=1e-4, clvl=1)
 assert ncv == kconv
 assert allclose(computeResiduals(As, Ms, lmbd, Q), zeros(kconv), 0.0, normM*tol)
@@ -110,14 +114,14 @@ lmbd_exact = zeros(ncv, 'd')
 for k in xrange(ncv):
     lmbd_exact[k] =  A[k,k]/M[k,k]
 
-# Fixme: RandomArray.random is broken AMD64
-# X0 = RandomArray.random((n,ncv))
-X0 = zeros((n,ncv), 'd')
+X0 = random.random((n,ncv))
 for k in xrange(ncv):
     X0[k,k] = 10000
 
-kconv, lmbd, Q, it, it_inner = jdsym.jdsym(As, Ms, None, ncv, 0.0, tol, 150, itsolvers.qmrs,
-                                           jmin=5, jmax=10, eps_tr=1e-4, clvl=1, V0=X0)
+kconv, lmbd, Q, it, it_inner = jdsym.jdsym(As, Ms, None, ncv,
+                                           0.0, tol, 150, qmrs,
+                                           jmin=5, jmax=10, eps_tr=1e-4,
+                                           clvl=1, V0=X0)
 
 assert ncv == kconv
 assert allclose(computeResiduals(As, Ms, lmbd, Q), zeros(kconv), 0.0, normM*tol)
