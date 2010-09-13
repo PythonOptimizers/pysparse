@@ -72,6 +72,28 @@ solve(b, x) solves the linear system A*x = b with a zero initial guess
     def __init__(self, A, tol, maxit, K=None, debug=0):
         ItSolver.__init__(self, A, tol, maxit, K, debug)
         self.itsolver = krylov.cgs
+
+from pysparse.misc import Deprecated
+
+@Deprecated('Use pysparse.itsolvers.Pcg instead.')
+def pcg(*args, **kwargs):
+    return  krylov.pcg(*args, **kwargs)
+
+@Deprecated('Use pysparse.itsolvers.Minres instead.')
+def minres(*args, **kwargs):
+    return  krylov.minres(*args, **kwargs)
+
+@Deprecated('Use pysparse.itsolvers.Qmrs instead.')
+def qmrs(*args, **kwargs):
+    return  krylov.qmrs(*args, **kwargs)
+
+@Deprecated('Use pysparse.itsolvers.Cgs instead.')
+def cgs(*args, **kwargs):
+    return  krylov.cgs(*args, **kwargs)
+
+@Deprecated('Use pysparse.itsolvers.krylov.gmres instead.')
+def gmres(*args, **kwargs):
+    return  krylov.gmres(*args, **kwargs)
                         
 if __name__ == '__main__':
     import math

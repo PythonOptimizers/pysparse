@@ -32,3 +32,14 @@ Miscellaneous
 
     __version__  :  pysparse version string
 """
+
+from pysparse.misc import Deprecated
+
+class _superlu:
+    @Deprecated('Use pysparse.direct.superlu.factorize instead.')
+    def factorize(self, *args, **kwargs):
+        import pysparse.direct.superlu
+        self.factorizeFnc = pysparse.direct.superlu.factorize
+        return self.factorizeFnc(*args, **kwargs)
+    
+superlu = _superlu()
