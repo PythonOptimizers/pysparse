@@ -1,11 +1,11 @@
 # Poisson 2D constructors. Illustrate vectorization.
-from pysparse import spmatrix
-import numpy
+from pysparse.sparse import spmatrix
+import numpy as np
 
 def poisson2d_vec(n):
     n2 = n*n
     L = spmatrix.ll_mat(n2, n2, 5*n2-4*n)
-    d = numpy.arange(n2, dtype=numpy.int)
+    d = np.arange(n2, dtype=np.int)
     L.put(4.0, d)
     L.put(-1.0, d[:-n], d[n:])
     L.put(-1.0, d[n:], d[:-n])
@@ -18,7 +18,7 @@ def poisson2d_vec(n):
 def poisson2d_vec_sym(n):
     n2 = n*n
     L = spmatrix.ll_mat_sym(n2, 3*n2-2*n)
-    d = numpy.arange(n2, dtype=numpy.int)
+    d = np.arange(n2, dtype=np.int)
     L.put(4.0, d)
     L.put(-1.0, d[n:], d[:-n])
     for i in xrange(n):
@@ -30,7 +30,7 @@ def poisson2d_vec_sym_blk(n):
     n2 = n*n
     L = spmatrix.ll_mat_sym(n2, 3*n2-2*n)
     D = spmatrix.ll_mat_sym(n, 2*n-1)
-    d = numpy.arange(n, dtype=numpy.int)
+    d = np.arange(n, dtype=np.int)
     D.put(4.0, d)
     D.put(-1.0, d[1:], d[:-1])
     P = spmatrix.ll_mat_sym(n, n-1)

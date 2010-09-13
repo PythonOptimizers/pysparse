@@ -1,9 +1,9 @@
-import numpy as Numeric
+import numpy as np
 import math
-from pysparse import spmatrix
-from pysparse import itsolvers
-from pysparse import precon
-from pysparse import jdsym
+from pysparse.sparse import spmatrix
+from pysparse.itsolvers.krylov import qmrs
+from pysparse.precon import precon
+from pysparse.eigen import jdsym
 import time
 
 def poisson2d_sym_blk(n):
@@ -24,11 +24,11 @@ n = 200
 
 t1 = time.clock()
 L = poisson2d_sym_blk(n)
-print 'Time for constructing the matrix: %8.2f sec' % (time.clock() - t1, )
+print 'Time for constructing the matrix: %8.2f sec' % (time.clock() - t1)
 
 print L.nnz
 
-# ---------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 t1 = time.clock()
-jdsym.jdsym(L.to_sss(), None, None, 5, 0.0, 1e-8, 100, itsolvers.qmrs, clvl=1)
-print 'Time spend in jdsym: %8.2f sec' % (time.clock() - t1, )
+jdsym.jdsym(L.to_sss(), None, None, 5, 0.0, 1e-8, 100, qmrs, clvl=1)
+print 'Time spend in jdsym: %8.2f sec' % (time.clock() - t1)

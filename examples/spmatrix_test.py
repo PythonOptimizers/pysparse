@@ -1,10 +1,11 @@
-import numpy as Numeric
+import numpy as np
 import traceback
-from pysparse import spmatrix_util, spmatrix
+from pysparse.sparse import spmatrix
+from pysparse.tools import spmatrix_util
 
 def printMatrix(M):
     n, m = M.shape
-    Z = Numeric.zeros((n,m), 'd')
+    Z = np.zeros((n,m), 'd')
     for i in range(n):
         for j in range(m):
             Z[i,j] = M[i,j]
@@ -101,9 +102,9 @@ print A[:4,:4].to_csr()
 print As[:4,:4].to_csr()
 
 print 'update_add_mask operations'
-ind = Numeric.array([3, 4, 5, 6], 'i')
-mask = Numeric.array([1, 1, 1, 1], 'i')
-B = Numeric.ones((4,4), 'd')
+ind = np.array([3, 4, 5, 6], 'i')
+mask = np.array([1, 1, 1, 1], 'i')
+B = np.ones((4,4), 'd')
 Ac = A.copy()
 Ac.update_add_mask(B, ind, ind, mask, mask)
 A.update_add_mask_sym(B, ind, mask)
@@ -119,7 +120,7 @@ print 'original matrix:'
 printMatrix(Atemp)
 
 print 'Matrix with rows 7 and 8 and deleted:'
-mask = Numeric.ones(n, 'l')
+mask = np.ones(n, 'l')
 mask[7:9] = 0
 Atemp.delete_rows(mask)
 printMatrix(Atemp)
@@ -132,7 +133,7 @@ print 'original matrix:'
 printMatrix(Atemp)
 
 print 'Matrix with rows/cols 7 and 8 and deleted:'
-mask = Numeric.ones(n, 'l')
+mask = np.ones(n, 'l')
 mask[7:9] = 0
 Atemp.delete_rowcols(mask)
 printMatrix(Atemp)
@@ -141,7 +142,7 @@ nn = 100
 R = spmatrix_util.ll_mat_rand(nn, nn, 0.3)
 ##print R.nnz
 for i in range(nn-5):
-    mask = Numeric.ones(nn, 'l')
+    mask = np.ones(nn, 'l')
     mask[0] = 0
     R.delete_rowcols(mask)
     nn -= 1
