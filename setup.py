@@ -6,7 +6,8 @@ Pysparse is a fast sparse matrix library for Python. It provides several sparse
 matrix storage formats and conversion methods. It also implements a number of
 iterative solvers, preconditioners, and interfaces to efficient factorization
 packages. Both low-level and high-level interfaces are available, each with
-different strengths.
+different strengths. PySparse is distributed under the FreeBSD license.
+
 R. Geus    <hamsel@sf.net>
 D. Orban   <d-orban@sf.net>
 D. Wheeler <wd15@sf.net>
@@ -28,14 +29,16 @@ CLASSIFIERS = """\
 Development Status :: 4 - Beta
 Intended Audience :: Science/Research
 Intended Audience :: Developers
-License :: BSD-style
-Programming Language :: C, Python
+License :: OSI Approved
+Programming Language :: Python
+Programming Language :: C
 Topic :: Software Development
 Topic :: Scientific/Engineering
 Operating System :: Microsoft :: Windows
 Operating System :: POSIX
 Operating System :: Unix
-Operating System :: MacOS
+Operating System :: MacOS :: MacOS X
+Natural Language :: English
 """
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
