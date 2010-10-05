@@ -4,8 +4,12 @@ __docformat__ = 'restructuredtext'
 
 # Imports
 from numpy._import_tools import PackageLoader
-from version import version as __version__
-
+try:
+    from version import version as __version__
+except ImportError:
+    Warning("Run setup.py to generate version number.")
+    __version__ = 'undefined'
+    
 from sparse import spmatrix
 #from sparse import *
 from misc import get_include

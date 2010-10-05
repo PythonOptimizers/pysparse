@@ -63,6 +63,64 @@ def configuration(parent_package='',top_path=None):
 
     return config
 
+##Hacked from numpy
+def svn_version():
+    def _minimal_ext_cmd(cmd):
+        # construct minimal environment
+        env = {}
+        for k in ['SYSTEMROOT', 'PATH']:
+            v = os.environ.get(k)
+            if v is not None:
+                env[k] = v
+        # LANGUAGE is used on win32
+        env['LANGUAGE'] = 'C'
+        env['LANG'] = 'C'
+        env['LC_ALL'] = 'C'
+        import subprocess
+        out = subprocess.Popen(cmd, stdout = subprocess.PIPE, env=env).communicate()[0]
+        return out
+
+    try:
+        out = _minimal_ext_cmd(['svn', 'info'])
+    except OSError:
+        print(" --- Could not run svn info --- ")
+        return ""
+
+    import re
+    r = re.compile('Revision: ([0-9]+)')
+    svnver = ""
+
+    out = out.decode()
+
+    for line in out.split('\n'):
+        m = r.match(line.strip())
+        if m:
+            svnver = m.group(1)
+
+    if not svnver:
+        print("Error while parsing svn version")
+
+    return svnver
+
+def get_version():
+    version = '1.2'
+    release = False
+    if not release:
+        version += '-dev' + svn_version()
+    return version
+
+def write_version_py(filename=os.path.join('pysparse', 'version.py')):
+    cnt = """
+## THIS FILE IS GENERATED FROM PYSPARSE SETUP.PY
+version = '%(version)s'
+"""
+    
+    a = open(filename, 'w')
+    try:
+        a.write(cnt % {'version': get_version()})
+    finally:
+        a.close()
+
 def setup_package():
 
     from numpy.distutils.core import setup, Extension
@@ -97,4 +155,5 @@ def setup_package():
     return
 
 if __name__ == '__main__':
+    write_version_py()
     setup_package()
