@@ -37,7 +37,7 @@ def configuration(parent_package='',top_path=None):
         blas_info = get_info('blas',0)
         if not blas_info:
             print 'No blas info found'
-    print 'Using BLAS info:' ; print blas_info
+    print 'Direct:: Using BLAS info:' ; print blas_info
 
     # If UMFPACK or AMD library was not specified, use default.
     umfpack_lib = ['umfpack']
