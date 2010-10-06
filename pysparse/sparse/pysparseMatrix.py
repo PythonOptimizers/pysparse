@@ -64,23 +64,14 @@ class PysparseMatrix(SparseMatrix):
     type. This class facilitates matrix populating and allows intuitive
     operations on sparse matrices and vectors. 
 
-    :Currently accepted keywords include:
-
-    +-------------+------------------------------------------------------------+
-    | `nrow`      | The number of rows of the matrix                           |
-    +-------------+------------------------------------------------------------+
-    | `ncol`      | The number of columns of the matrix                        |
-    +-------------+------------------------------------------------------------+
-    | `size`      | The common number of rows and columns, for a square matrix |
-    +-------------+------------------------------------------------------------+
-    | `bandwidth` | The bandwidth (if creating a band matrix)                  |
-    +-------------+------------------------------------------------------------+
-    | `matrix`    | The starting `spmatrix` if there is one                    |
-    +-------------+------------------------------------------------------------+
-    | `sizeHint`  | A guess on the number of nonzero elements of the matrix    |
-    +-------------+------------------------------------------------------------+
-    | `symmetric` | A boolean indicating whether the matrix is symmetric.      |
-    +-------------+------------------------------------------------------------+
+    :keywords:
+        :nrow:       The number of rows of the matrix
+        :ncol:       The number of columns of the matrix
+        :size:       The common number of rows and columns, for a square matrix
+        :bandwidth:  The bandwidth (if creating a band matrix)
+        :matrix:     The starting `spmatrix` if there is one
+        :sizeHint:   A guess on the number of nonzero elements of the matrix
+        :symmetric:  A boolean indicating whether the matrix is symmetric.
     """
 
     def __init__(self, **kwargs):
@@ -304,14 +295,15 @@ class PysparseMatrix(SparseMatrix):
     def col_scale(self, v):
         """
         Apply in-place column scaling. Each column is scaled by the
-        corresponding component of v, i.e., A[:,i] *= v[i].
+        corresponding component of ``v``, i.e., ``A[:,i] *= v[i]``.
         """
         return self.matrix.col_scale(v)
 
     def row_scale(self, v):
         """
         Apply in-place row scaling. Each row is scaled by the
-        corresponding component of v, i.e., A[i,:] *= v[i].
+        corresponding component of ``v``, i.e., ``A[i,:] *= v[i]``.
+
         """
         return self.matrix.row_scale(v)
 
