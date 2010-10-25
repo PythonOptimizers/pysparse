@@ -317,26 +317,28 @@ ItSolvers_Solve(PyObject *linsolver, PyObject *A, int n,
 static PyObject *
 LLMat_zeros(PyObject *self, PyObject *args)
 {
-  int dim[2], sizeHint;
+  int dim[2], sizeHint, storeZeros;
   
   sizeHint = 1000;
-  if (!PyArg_ParseTuple(args, "ii|i", dim, dim + 1, &sizeHint))
+  storeZeros = 0;
+  if (!PyArg_ParseTuple(args, "ii|ii", dim, dim + 1, &sizeHint, &storeZeros))
     return NULL;
 
-  return SpMatrix_NewLLMatObject(dim, 0, sizeHint);
+  return SpMatrix_NewLLMatObject(dim, 0, sizeHint, storeZeros);
 }
 
 static PyObject *
 LLMat_sym_zeros(PyObject *self, PyObject *args)
 {
-  int dim[2], n, sizeHint;
+  int dim[2], n, sizeHint, storeZeros;
   
   sizeHint = 1000;
-  if (!PyArg_ParseTuple(args, "i|i", &n, &sizeHint))
+  storeZeros = 0;
+  if (!PyArg_ParseTuple(args, "i|ii", &n, &sizeHint, &storeZeros))
     return NULL;
   dim[0] = dim[1] = n;
 
-  return SpMatrix_NewLLMatObject(dim, 1, sizeHint);
+  return SpMatrix_NewLLMatObject(dim, 1, sizeHint, storeZeros);
 }
 
 /******************************************************************************

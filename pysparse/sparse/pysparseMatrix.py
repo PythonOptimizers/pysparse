@@ -72,6 +72,8 @@ class PysparseMatrix(SparseMatrix):
         :matrix:     The starting `spmatrix` if there is one
         :sizeHint:   A guess on the number of nonzero elements of the matrix
         :symmetric:  A boolean indicating whether the matrix is symmetric.
+    | `storeZeros`| A boolean indicating whether to store zero values.         |
+    +-------------+------------------------------------------------------------+
     """
 
     def __init__(self, **kwargs):
@@ -81,8 +83,10 @@ class PysparseMatrix(SparseMatrix):
         bandwidth = kwargs.get('bandwidth', 0)
         matrix = kwargs.get('matrix', None)
         sizeHint = kwargs.get('sizeHint', 0)
+        storeZeros = kwargs.get('sizeZeros', False)
         symmetric = 'symmetric' in kwargs and kwargs['symmetric']
         size = kwargs.get('size',0)
+        
         if size > 0:
             if nrow > 0 or ncol > 0:
                 if size != nrow or size != ncol:
@@ -100,13 +104,13 @@ class PysparseMatrix(SparseMatrix):
                     sizeHint = nrow
                     if bandwidth > 0:
                         sizeHint += 2*(bandwidth-1)*(2*nrow-bandwidth-2)
-                self.matrix = spmatrix.ll_mat_sym(nrow, sizeHint)
+                self.matrix = spmatrix.ll_mat_sym(nrow, sizeHint, storeZeros)
             else:
                 if sizeHint is None:
                     sizeHint = min(nrow,ncol)
                     if bandwidth > 0:
                         sizeHint = bandwidth * (2*sizeHint-bandwidth-1)/2
-                self.matrix = spmatrix.ll_mat(nrow, ncol, sizeHint)
+                self.matrix = spmatrix.ll_mat(nrow, ncol, sizeHint, storeZeros)
 
     def isSymmetric(self):
         "Returns `True` is `self` is a symmetric matrix or `False` otherwise"
