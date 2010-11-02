@@ -19,12 +19,6 @@
 
 #define PYSP_MAX(A,B) ( (A) > (B) ? (A) : (B) )
 
-
-typedef int bool;
-
-//#define FALSE 0
-//#define TRUE 1
-
 // Iterator object
 #define SLICE 0
 #define LIST  1
@@ -284,7 +278,7 @@ SpMatrix_LLMatSetItem(LLMatObject *a, int i, int j, double x) {
     k = a->link[k];
   }
 
-  if ((x != 0.0) || (a->storeZeros == TRUE)) {
+  if ((x != 0.0) || (a->storeZeros == 1)) {
     
     if (col == j) {
 
@@ -377,7 +371,7 @@ SpMatrix_LLMatUpdateItemAdd(LLMatObject *a, int i, int j, double x) {
     return -1;
   } 
 
-  if ((a->storeZeros == FALSE) && (x == 0.0))
+  if ((a->storeZeros == 0) && (x == 0.0))
     return 0;
 
   /* Find element to be updated */
@@ -394,7 +388,7 @@ SpMatrix_LLMatUpdateItemAdd(LLMatObject *a, int i, int j, double x) {
     /* element already exists: compute updated value */
     x += a->val[k];
 
-    if ((a->storeZeros == FALSE) && (x == 0.0)) {
+    if ((a->storeZeros == 0) && (x == 0.0)) {
       /* the updated element is zero and must be removed */
     
       /* relink row i */
@@ -3171,8 +3165,11 @@ LLMatType_getattr(LLMatObject *self, char *name)
     return PyInt_FromLong(self->nnz);
   if (strcmp(name, "issym") == 0)
     return PyInt_FromLong(self->issym);
+  if (strcmp(name, "storeZeros") == 0)
+    return PyInt_FromLong(self->storeZeros);
+
   if (strcmp(name, "__members__") == 0) {
-    char *members[] = {"shape", "nnz", "issym"};
+    char *members[] = {"shape", "nnz", "issym", "storeZeros"};
     int i;
 
     PyObject *list = PyList_New(sizeof(members)/sizeof(char *));
@@ -3676,7 +3673,7 @@ Returns a new ll_mat object representing the matrix transpose(A)*B";
 static PyObject *LLMat_dot(PyObject *self, PyObject *args) {
 
   int sizeHint = 1000;
-  int storeZeros = 0;
+  int storeZeros = 1;
   LLMatObject *matA, *matB, *matC;
   int dimC[2];
   double valA;
