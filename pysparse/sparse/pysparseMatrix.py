@@ -83,7 +83,7 @@ class PysparseMatrix(SparseMatrix):
         bandwidth = kwargs.get('bandwidth', 0)
         matrix = kwargs.get('matrix', None)
         sizeHint = kwargs.get('sizeHint', 0)
-        storeZeros = kwargs.get('sizeZeros', False)
+        storeZeros = kwargs.get('storeZeros', False)
         symmetric = 'symmetric' in kwargs and kwargs['symmetric']
         size = kwargs.get('size',0)
         
