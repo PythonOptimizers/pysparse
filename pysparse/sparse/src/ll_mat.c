@@ -278,7 +278,7 @@ SpMatrix_LLMatSetItem(LLMatObject *a, int i, int j, double x) {
     k = a->link[k];
   }
 
-  if (x != 0.0) {
+  if ((x != 0.0) || (a->storeZeros == 1)) {
     
     if (col == j) {
 
@@ -371,7 +371,7 @@ SpMatrix_LLMatUpdateItemAdd(LLMatObject *a, int i, int j, double x) {
     return -1;
   } 
 
-  if (x == 0.0)
+  if ((a->storeZeros == 0) && (x == 0.0))
     return 0;
 
   /* Find element to be updated */
@@ -388,7 +388,7 @@ SpMatrix_LLMatUpdateItemAdd(LLMatObject *a, int i, int j, double x) {
     /* element already exists: compute updated value */
     x += a->val[k];
 
-    if (x == 0.0) {
+    if ((a->storeZeros == 0) && (x == 0.0)) {
       /* the updated element is zero and must be removed */
     
       /* relink row i */
@@ -667,7 +667,7 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
       return NULL;
 
     dim[0] = length0; dim[1] = length1;
-    dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz);
+    dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz, self->storeZeros);
     if( !dst ) return NULL;
 
     row = start0;
@@ -752,7 +752,7 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
     double val;
 
     dim[0] = length0; dim[1] = length1;
-    dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz);
+    dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz, self->storeZeros);
     if( !dst ) return NULL;
 
     for( i = 0; i < length0; i++ ) {
@@ -798,7 +798,7 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
     npy_intp length1 = PyArray_DIM(index1, 0);
 
     dim[0] = length0; dim[1] = length1;
-    dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz);
+    dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz, self->storeZeros);
     if( !dst ) {
       Py_XDECREF(iterator0);
       Py_XDECREF(iterator1);
@@ -864,7 +864,7 @@ static PyObject *getSubMatrix_FromList(LLMatObject *self,
       }
 
       dim[0] = nrow; dim[1] = ncol;
-      dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz);
+      dst = (LLMatObject *)SpMatrix_NewLLMatObject(dim, symmetric, self->nnz, self->storeZeros);
       if( !dst ) {
         free(irow);
         free(jcol);
@@ -925,7 +925,7 @@ clear_submatrix(LLMatObject *self,
 //                                 long *irow, int nrow, long *jcol, int ncol) {
 static void //int
 setSubMatrix_FromList(LLMatObject *self, PyObject *other,
-                                 PyObject *index0, PyObject *index1) {
+		      PyObject *index0, PyObject *index1) {
 
   LLMatObject *mat = NULL;
   int other_is_num = 0, other_is_sym;
@@ -1822,7 +1822,7 @@ LLMat_copy(LLMatObject *self, PyObject *args) {
   if (!PyArg_ParseTuple(args, "")) return NULL;
   
   new = (LLMatObject *)SpMatrix_NewLLMatObject(self->dim,
-                                               self->issym, self->nnz);
+                                               self->issym, self->nnz, self->storeZeros);
   if (new == NULL) return NULL;
 
   for (i = 0; i < self->dim[0]; i++) {
@@ -3165,8 +3165,11 @@ LLMatType_getattr(LLMatObject *self, char *name)
     return PyInt_FromLong(self->nnz);
   if (strcmp(name, "issym") == 0)
     return PyInt_FromLong(self->issym);
+  if (strcmp(name, "storeZeros") == 0)
+    return PyInt_FromLong(self->storeZeros);
+
   if (strcmp(name, "__members__") == 0) {
-    char *members[] = {"shape", "nnz", "issym"};
+    char *members[] = {"shape", "nnz", "issym", "storeZeros"};
     int i;
 
     PyObject *list = PyList_New(sizeof(members)/sizeof(char *));
@@ -3327,7 +3330,7 @@ static PyTypeObject LLMatType = {
 /*************************************************/
 
 static PyObject *
-SpMatrix_NewLLMatObject(int dim[], int sym, int sizeHint) {
+SpMatrix_NewLLMatObject(int dim[], int sym, int sizeHint, int storeZeros) {
   int i;
   LLMatObject *op;
 
@@ -3368,6 +3371,7 @@ SpMatrix_NewLLMatObject(int dim[], int sym, int sizeHint) {
   op->dim[0] = dim[0];
   op->dim[1] = dim[1];
   op->issym = sym;
+  op->storeZeros = storeZeros;
   op->nnz = 0;
   op->nalloc = sizeHint;
   op->free = -1;
@@ -3393,6 +3397,7 @@ LLMat_from_mtx(PyObject *module, PyObject *args) {
   int ret, i;
   double val;
   int row, col;
+  int storeZeros=0;
 
   if (!PyArg_ParseTuple(args, "s", &fileName))
     return NULL;
@@ -3420,7 +3425,7 @@ LLMat_from_mtx(PyObject *module, PyObject *args) {
   }
 
   /* allocate matrix object */
-  self = (LLMatObject *)SpMatrix_NewLLMatObject(dim, mm_is_symmetric(matcode), nz);
+  self = (LLMatObject *)SpMatrix_NewLLMatObject(dim, mm_is_symmetric(matcode), nz, storeZeros);
   if (self == NULL)
     goto fail;
 
@@ -3458,6 +3463,7 @@ static PyObject *
 LLMat_matrixmultiply(PyObject *self, PyObject *args)
 {
   int sizeHint = 1000;
+  int storeZeros = 0;
   LLMatObject *matA, *matB, *matC;
   int dimC[2];
   int symCode, ret;
@@ -3475,9 +3481,12 @@ LLMat_matrixmultiply(PyObject *self, PyObject *args)
     return NULL;
   }
 
+  if ((matA->storeZeros == 1) && (matB->storeZeros == 1))
+    storeZeros = 1;
+
   /* create result object
    */
-  matC = (LLMatObject *)SpMatrix_NewLLMatObject(dimC, 0, sizeHint);
+  matC = (LLMatObject *)SpMatrix_NewLLMatObject(dimC, 0, sizeHint, storeZeros);
   if (matC == NULL)
     return NULL;
 
@@ -3664,6 +3673,7 @@ Returns a new ll_mat object representing the matrix transpose(A)*B";
 static PyObject *LLMat_dot(PyObject *self, PyObject *args) {
 
   int sizeHint = 1000;
+  int storeZeros = 1;
   LLMatObject *matA, *matB, *matC;
   int dimC[2];
   double valA;
@@ -3686,7 +3696,10 @@ static PyObject *LLMat_dot(PyObject *self, PyObject *args) {
     return NULL;
   }
 
-  matC = (LLMatObject *)SpMatrix_NewLLMatObject(dimC, 0, sizeHint);
+  if ((matA->storeZeros == 1) && (matB->storeZeros == 1))
+    storeZeros = 1;
+
+  matC = (LLMatObject *)SpMatrix_NewLLMatObject(dimC, 0, sizeHint, storeZeros);
   if (matC == NULL)
     return NULL;
 

@@ -205,6 +205,8 @@ static PyObject *UMFPack_Lu(UMFPackObject *self, PyObject *args) {
   PyObject      *Lmat,    *Umat;
   int            ldims[2], udims[2];
 
+  int storeZeros = 0;
+
   /* Obtain number of nonzeros in factors */
   status = umfpack_di_get_lunz(&lnz, &unz, &nrow, &ncol, &nz_udiag, Numeric);
 
@@ -261,7 +263,7 @@ static PyObject *UMFPack_Lu(UMFPackObject *self, PyObject *args) {
   /* Create LL_Mat structure for factor L and populate it */
   ldims[0] = nrow;
   ldims[1] = nrow < ncol ? nrow : ncol;
-  Lmat = SpMatrix_NewLLMatObject( ldims, GENERAL, lnz );
+  Lmat = SpMatrix_NewLLMatObject( ldims, GENERAL, lnz, storeZeros);
 
   for( i=0; i<nrow+1; i++ )
     for( j=Lp[i]; j<Lp[i+1]; j++ )
@@ -272,7 +274,7 @@ static PyObject *UMFPack_Lu(UMFPackObject *self, PyObject *args) {
   /* Create LL_Mat structure for factor U and populate it */
   udims[0] = nrow < ncol ? nrow : ncol;
   udims[1] = ncol;
-  Umat = SpMatrix_NewLLMatObject( udims, GENERAL, unz );
+  Umat = SpMatrix_NewLLMatObject( udims, GENERAL, unz, stroeZeros);
 
   for( j=0; j<ncol+1; j++ )
       for( i=Up[j]; i<Up[j+1]; i++ )

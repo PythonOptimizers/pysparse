@@ -47,7 +47,7 @@ static int
 SpMatrix_ParseVecOpArgs(PyObject *args, double **x_data, double **y_data, int n) {
   PyObject *x_obj, *y_obj;
   int nx, ny, res;
-  
+
   /* parse input arguments */
   if (!PyArg_ParseTuple(args, "OO", &x_obj, &y_obj))
     return -1;
@@ -63,7 +63,7 @@ SpMatrix_ParseVecOpArgs(PyObject *args, double **x_data, double **y_data, int n)
     PyErr_SetString(PyExc_ValueError, "Unable to convert second argument to double array");
     return -1;
   }
-  
+
   /* check operand shapes */
   if (nx != n || ny != n) {
     PyErr_SetString(PyExc_ValueError, "incompatible operand shapes");
@@ -86,7 +86,7 @@ SpMatrix_ParseVecOpArgs(PyObject *args, double **x_data, double **y_data, int n)
 static int
 SpMatrix_GetShape(PyObject *op, int dim[]) {
   PyObject *sh, *elem;
-  
+
   if ((sh = PyObject_GetAttrString(op, "shape")) == NULL)
     return -1;
   if (PySequence_Size(sh) != 2) {
@@ -121,7 +121,7 @@ SpMatrix_GetOrder(PyObject *op, int *n) {
 
   if (SpMatrix_GetShape(op, dim) == -1)
     return -1;
-  
+
   if (dim[0] != dim[1]) {
     PyErr_SetString(PyExc_ValueError, "matrix is not square");
     return -1;
@@ -138,7 +138,7 @@ SpMatrix_GetOrder(PyObject *op, int *n) {
  *      returns matrix entry op[i,j] as a double                              *
  *                                                                            *
  ******************************************************************************/
-static double 
+static double
 SpMatrix_GetItem(PyObject *op, int i, int j) {
   PyObject *index;
   PyObject *fo;
@@ -188,7 +188,7 @@ SpMatrix_Matvec(PyObject *matrix, int nx, double *x, int ny, double *y) {
   if (res == NULL)
     goto fail;
   Py_DECREF(res);
-  
+
   /* free array objects */
   Py_DECREF(x_arr);
   Py_DECREF(y_arr);
@@ -235,7 +235,7 @@ SpMatrix_Precon(PyObject *prec, int n, double *x, double *y) {
     goto fail;
 
   Py_DECREF(res);
-  
+
   /* free array objects */
   Py_DECREF(x_arr);
   Py_DECREF(y_arr);
@@ -264,7 +264,7 @@ SpMatrix_Precon(PyObject *prec, int n, double *x, double *y) {
  *                                                                            *
  ******************************************************************************/
 static int
-ItSolvers_Solve(PyObject *linsolver, PyObject *A, int n, 
+ItSolvers_Solve(PyObject *linsolver, PyObject *A, int n,
 		double *b, double *x, double tol, int itmax, PyObject *K,
 		int *info, int *iter, double *relres) {
   PyObject *b_arr = NULL;
@@ -290,11 +290,11 @@ ItSolvers_Solve(PyObject *linsolver, PyObject *A, int n,
   if (res == NULL)
     goto fail;
 
-  /* Parse result 
+  /* Parse result
      Abuse PyArg_ParseTuple to parse res tuple (is this safe?) */
   PyArg_ParseTuple(res, "iid", info, iter, relres);
   Py_DECREF(res);
-  
+
   /* free array objects */
   Py_DECREF(b_arr);
   Py_DECREF(x_arr);
@@ -317,26 +317,28 @@ ItSolvers_Solve(PyObject *linsolver, PyObject *A, int n,
 static PyObject *
 LLMat_zeros(PyObject *self, PyObject *args)
 {
-  int dim[2], sizeHint;
-  
+  int dim[2], sizeHint, storeZeros;
+
   sizeHint = 1000;
-  if (!PyArg_ParseTuple(args, "ii|i", dim, dim + 1, &sizeHint))
+  storeZeros = 0;
+  if (!PyArg_ParseTuple(args, "ii|ii", dim, dim + 1, &sizeHint, &storeZeros))
     return NULL;
 
-  return SpMatrix_NewLLMatObject(dim, 0, sizeHint);
+  return SpMatrix_NewLLMatObject(dim, 0, sizeHint, storeZeros);
 }
 
 static PyObject *
 LLMat_sym_zeros(PyObject *self, PyObject *args)
 {
-  int dim[2], n, sizeHint;
-  
+  int dim[2], n, sizeHint, storeZeros;
+
   sizeHint = 1000;
-  if (!PyArg_ParseTuple(args, "i|i", &n, &sizeHint))
+  storeZeros = 0;
+  if (!PyArg_ParseTuple(args, "i|ii", &n, &sizeHint, &storeZeros))
     return NULL;
   dim[0] = dim[1] = n;
 
-  return SpMatrix_NewLLMatObject(dim, 1, sizeHint);
+  return SpMatrix_NewLLMatObject(dim, 1, sizeHint, storeZeros);
 }
 
 /******************************************************************************
@@ -372,7 +374,7 @@ initspmatrix(void)
   PyDict_SetItemString(d, "SSSMatType", (PyObject *)&SSSMatType);
   SpMatrix_ErrorObject = PyString_FromString("spmatrix.error");
   PyDict_SetItemString(d, "error", SpMatrix_ErrorObject);
- 
+
   /* initialise C API */
   init_c_api(d);
 

@@ -7,6 +7,7 @@ typedef struct {
   PyObject_VAR_HEAD
   int dim[2];         /* array dimension */
   int issym;          /* non-zero, if obj represents a symmetric matrix */
+  int storeZeros;     /* whether to store zero values */
   int nnz;            /* number of stored items */
   int nalloc;         /* allocated size of value and index arrays */
   int free;           /* index to first element in free chain */

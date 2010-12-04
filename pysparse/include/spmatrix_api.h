@@ -39,7 +39,7 @@
 
 #define SpMatrix_NewLLMatObject_NUM 9
 #define SpMatrix_NewLLMatObject_RET PyObject *
-#define SpMatrix_NewLLMatObject_PROTO (int dim[], int sym, int sizeHint)
+#define SpMatrix_NewLLMatObject_PROTO (int dim[], int sym, int sizeHint, int storeZeros)
 
 #define SpMatrix_LLMatGetItem_NUM 10
 #define SpMatrix_LLMatGetItem_RET double
