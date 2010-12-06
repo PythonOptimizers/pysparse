@@ -235,7 +235,7 @@ static PyObject *UMFPack_Lu(UMFPackObject *self, PyObject *args) {
   dp[0] = nrow; dq[0] = ncol; dr[0] = nrow;
   P = (PyArrayObject *)PyArray_SimpleNew(1, dp, NPY_INT);
   pval = (npy_int *)P->data;
-  
+
   Q = (PyArrayObject *)PyArray_SimpleNew(1, dq, NPY_INT);
   qval = (npy_int *)Q->data;
 
@@ -274,14 +274,14 @@ static PyObject *UMFPack_Lu(UMFPackObject *self, PyObject *args) {
   /* Create LL_Mat structure for factor U and populate it */
   udims[0] = nrow < ncol ? nrow : ncol;
   udims[1] = ncol;
-  Umat = SpMatrix_NewLLMatObject( udims, GENERAL, unz, stroeZeros);
+  Umat = SpMatrix_NewLLMatObject( udims, GENERAL, unz, storeZeros);
 
   for( j=0; j<ncol+1; j++ )
       for( i=Up[j]; i<Up[j+1]; i++ )
           SpMatrix_LLMatSetItem((LLMatObject *)Umat, Ui[i], j, Ux[i]);
 
   free( Up ); free( Ui ); free( Ux );
-  
+
   /* Return output data */
   return Py_BuildValue( "OOOOOi", Lmat, Umat, P, Q, R, do_recip );
 }
@@ -374,7 +374,7 @@ UMFPack_solve(UMFPackObject *self, PyObject *args) {
     PyErr_SetString(PyExc_SystemError, "invalid Numeric object");
     return NULL;
   }
-  
+
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -476,7 +476,7 @@ static void sortcol(int *row, double *val, int n)
         tmpint = row[j+1];
         row[j+1] = row[j];
         row[j] = tmpint;
-        
+
         /* swap values */
         tmpdbl = val[j+1];
         val[j+1] = val[j];
@@ -691,7 +691,7 @@ factorize(PyObject *self, PyObject *args, PyObject *keywds) {
 
   static char *kwlist[] = {"", "strategy", "tol2by2", "scale", "tolpivot", "tolsympivot", NULL};
 
-  res = PyArg_ParseTupleAndKeywords(args, keywds, "O!|sdsdd", kwlist, 
+  res = PyArg_ParseTupleAndKeywords(args, keywds, "O!|sdsdd", kwlist,
                     &LLMatType, &matrix,
                     &strategy,
                     &tol2by2,
@@ -733,7 +733,7 @@ DL_EXPORT(void)
 initumfpack(void)
 {
   PyObject *m, *d;
-  
+
   UMFPackType.ob_type = &PyType_Type;
 
   m = Py_InitModule("umfpack", precon_methods);
