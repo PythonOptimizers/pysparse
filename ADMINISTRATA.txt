@@ -1,0 +1,166 @@
+=============
+SVN practices
+=============
+
+--------
+Branches
+--------
+
+Break off for radical refactoring::
+
+    $ cd trunk    
+    $ BRANCH=refactoring_etc
+    $ PYSPARSEROOT=https://pysparse.svn.sourceforge.net/svnroot/pysparse
+    $ svn copy $PYSPARSEROOT/trunk $PYSPARSEROOT/branches/$BRANCH -m "creating branch for $BRANCH"
+    $ cd ..
+    $ svn co $PYSPARSEROOT/branches/$BRANCH
+
+Edit and add to branch::
+
+    $ cd $BRANCH
+    $ emacs ...
+    $ svn ci -m "refactoring_stage_A"
+    $ emacs ...
+    $ svn ci -m "refactoring_stage_B"
+
+Merging changes from trunk to the branch
+----------------------------------------
+
+Find the initial (IRN) and latest (LRN) revision numbers from the last 
+merge from trunk::
+
+    $ cd ../trunk
+    $ svn update
+
+Set ``$LRN`` based on the updated revision of trunk::
+
+    $ LRN=...
+
+    $ svn log $PYSPARSEROOT/branches/$BRANCH --stop-on-copy
+    
+Look for ":samp:`merged trunk changes r{IRN}:{LRN} to {BRANCH}`" or
+":samp:`merged log:trunk@{IRN}:{LRN} to source:branches/{BRANCH}`" and set
+``IRN`` to :samp:`{LRN}` from the log message, otherwise to the revision at
+which the branch was created::
+
+    $ IRN=...
+
+Merge updated state of trunk to the branch::
+
+    $ cd ../$BRANCH
+    $ svn merge -r${IRN}:${LRN} $PYSPARSEROOT/trunk
+    $ svn diff
+
+Resolve any conflicts::
+
+    $ python setup.py test
+    $ svn ci -m "merged log:trunk@${IRN}:${LRN} to source:branches/${BRANCH}@${LRN}"
+    
+Refactoring complete: merge branch to the trunk
+-----------------------------------------------
+
+First, follow the instructions for 
+`Merging changes from trunk to the branch`_.
+
+Find the ``HEAD`` revision number::
+
+    $ cd trunk
+    $ svn update
+    $ HRN=...
+
+Merge the branch ``HEAD`` to trunk::
+
+    $ svn merge ${PYSPARSEROOT}/trunk@${HRN} \
+                ${PYSPARSEROOT}/branches/${BRANCH}@${HRN}
+    $ svn diff
+
+Resolve any conflicts::
+
+    $ python setup.py test
+    $ svn ci -m "merged source:branches/${BRANCH}@${HRN} to source:trunk@${HRN}"
+
+When completely done with the branch::
+
+    $ svn delete -m "Refactoring complete. Merged source:branches/${BRANCH} to source:trunk" \
+        ${PYSPARSEROOT}/branches/${BRANCH}
+    
+--------
+Versions
+--------
+
+At point of version release x.y, *on main trunk*::
+
+    $ svn copy $PYSPARSEROOT/trunk $PYSPARSEROOT/tags/version-x_y -m "tagging version x.y"
+
+---------
+Bug fixes
+---------
+
+At the point some fix is made to an old version n.m::
+
+    $ BRANCH=version-n_m
+    $ svn copy $PYSPARSEROOT/tags/version-n_m  $PYSPARSEROOT/branches/$BRANCH -m "making branch for version n.m"
+    $ svn co $PYSPARSEROOT/branches/$BRANCH
+
+Fix the code::
+
+    $ cd $BRANCH
+    $ svn ci -m "fix n.m.q"
+    $ svn copy $PYSPARSEROOT/branches/$BRANCH $PYSPARSEROOT/tags/version-n_m_q
+
+Find the initial revision number for the branch (``IRN``) and the latest 
+revision number (``LRN``)::
+
+    $ svn log $PYSPARSEROOT/branches/$BRANCH --stop-on-copy
+    $ IRN=..
+    $ LRN=...
+
+Now merge n.m.q changes back to main trunk::
+
+    $ cd ../trunk
+    $ svn merge -r${IRN}:${LRN} $PYSPARSEROOT/branches/$BRANCH
+    $ svn ci -m "merged version n.m.q, source:branches/${BRANCH}@${IRN}:${LRN} to source:trunk@${LRN}"
+
+Make new fix q+1 to n.m::
+
+    $ cd ../$BRANCH 
+    
+Fix the code::
+
+    $ svn ci -m "fix version n.m.q+1"
+
+Find the previous revision number for the branch (``PRN``) and the latest 
+revision number (``LRN``)::
+
+    $ svn log $PYSPARSEROOT/branches/$BRANCH --stop-on-copy
+    $ PRN=..
+    $ LRN=...
+
+Again, merge n.m.q+1 changes back to main trunk::
+
+    $ cd ../trunk
+    $ svn merge -r${PRN}:${LRN} $PYSPARSEROOT/branches/$BRANCH
+    $ svn ci -m "merged version n.m.q+1, log:branches/${BRANCH}@${PRN}:${LRN} to source:trunk@${LRN}"
+
+==========================================
+Making a Windows Distribution for Pysparse
+==========================================
+
+Make sure of the following:
+
+   - mingw is installed
+   - libpython.a is in c:\pythonXX\libs
+   - libblas.a is in c:\mingw\lib
+   - liblapack.a is in c:\mingw\lib
+   - Numeric is installed
+
+If the above is not satisfied implement the Pysparse INSTALL instructions.
+
+Set the PATH to use MINGW's tools.
+
+   set PATH=C:\mingw\bin
+
+Build the distribution.
+
+   C:\pythonXX\python setup.py build --compiler=mingw32 bdist --format=wininst
+
