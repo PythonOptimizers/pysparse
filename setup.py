@@ -114,7 +114,7 @@ def write_version_py(filename=os.path.join('pysparse', 'version.py')):
 ## THIS FILE IS GENERATED FROM PYSPARSE SETUP.PY
 version = '%(version)s'
 """
-    
+
     a = open(filename, 'w')
     try:
         a.write(cnt % {'version': get_version()})
@@ -139,6 +139,7 @@ def setup_package():
             author_email = "{hamsel,d-orban,wd15}@sf.net,",
             maintainer = "PySparse Developers",
             maintainer_email = "{hamsel,d-orban,wd15}@sf.net,",
+            summary = "Fast sparse matrix library for Python",
             description = DOCLINES[0],
             long_description = "\n".join(DOCLINES[2:]),
             url = "pysparse.sf.net",
