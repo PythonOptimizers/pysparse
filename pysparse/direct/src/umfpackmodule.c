@@ -496,7 +496,7 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
   UMFPackObject *self;
   void *Symbolic;
   struct llColIndex *colidx;
-  int i, validx, curridx, status;
+  int i, validx, curridx, status, exitCode=0;
 
   if (SpMatrix_LLMatBuildColIndex(&colidx, matrix, 1) == 1)
     return NULL;
@@ -520,22 +520,27 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
     self->nnz = matrix->nnz;
 
   self->val = (double *)PyMem_Malloc(self->nnz * sizeof(double));
-  if (self->val == NULL)
-    goto failmemory;
+  if (self->val == NULL) {
+    exitCode = -1;
+    goto freememory;
+  }
 
   self->row = (int *)PyMem_Malloc(self->nnz * sizeof(int));
   if (self->row == NULL) {
-    goto failmemory;
+    exitCode = -1;
+    goto freememory;
   }
   self->ind = (int *)PyMem_Malloc((self->n + 1) * sizeof(int) );
   if (self->ind == NULL) {
-    goto failmemory;
+    exitCode = -1;
+    goto freememory;
   }
   self->ind[self->n] = self->nnz;
 
   self->Control = (double *)PyMem_Malloc(UMFPACK_CONTROL * sizeof(double));
   if (self->Control == NULL) {
-    goto failmemory;
+    exitCode = -1;
+    goto freememory;
   }
 
   umfpack_di_defaults(self->Control);
@@ -557,7 +562,8 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
 
   self->Info = (double *)PyMem_Malloc(UMFPACK_INFO * sizeof(double));
   if (self->Info == NULL) {
-    goto failmemory;
+    exitCode = -1;
+    goto freememory;
   }
 
   validx = 0;
@@ -585,19 +591,24 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
   switch(status) {
     case UMFPACK_ERROR_n_nonpositive:
       PyErr_SetString(PyExc_SystemError, "n must be positive");
-      return NULL;
+      exitCode = -2;
+      goto freememory;
     case UMFPACK_ERROR_out_of_memory:
       PyErr_SetString(PyExc_SystemError, "insufficient memory");
-      return NULL;
+      exitCode = -2;
+      goto freememory;
     case UMFPACK_ERROR_argument_missing:
       PyErr_SetString(PyExc_SystemError, "one or more argument missing");
-      return NULL;
+      exitCode = -2;
+      goto freememory;
     case UMFPACK_ERROR_invalid_matrix:
       PyErr_SetString(PyExc_SystemError, "invalid matrix");
-      return NULL;
+      exitCode = -2;
+      goto freememory;
     case UMFPACK_ERROR_internal_error:
       PyErr_SetString(PyExc_SystemError, "bug in umfpack");
-      return NULL;
+      exitCode = -2;
+      goto freememory;
   }
 
   status = umfpack_di_numeric(self->ind, self->row, self->val, Symbolic, &(self->Numeric), self->Control, self->Info);
@@ -606,26 +617,31 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
 
     case UMFPACK_WARNING_singular_matrix:
       PyErr_SetString(PyExc_SystemError, "singular matrix");
-      return NULL;
+      exitCode = -2;
+      goto freememory;
     case UMFPACK_ERROR_out_of_memory:
       PyErr_SetString(PyExc_SystemError, "insufficient memory");
-      return NULL;
+      exitCode = -2;
+      goto freememory;
     case UMFPACK_ERROR_argument_missing:
       PyErr_SetString(PyExc_SystemError, "one or more argument missing");
-      return NULL;
+      exitCode = -2;
+      goto freememory;
     case UMFPACK_ERROR_invalid_Symbolic_object:
       PyErr_SetString(PyExc_SystemError, "invalid symbolic object");
-      return NULL;
+      exitCode = -2;
+      goto freememory;
     case UMFPACK_ERROR_different_pattern:
       PyErr_SetString(PyExc_SystemError, "matrix has changed since last factorization");
-      return NULL;
+      exitCode = -2;
+      goto freememory;
   }
 
   umfpack_di_free_symbolic(&Symbolic);
 
   return (PyObject *)self;
 
-  failmemory:
+  freememory:
     SpMatrix_LLMatDestroyColIndex(&colidx);
     if (self->val != NULL)
       PyMem_Free(self->val);
@@ -638,7 +654,11 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
     if (self->Info != NULL)
       PyMem_Free(self->Info);
     PyObject_Del(self);
-    return PyErr_NoMemory();
+
+    if (exitCode == -1)
+        return PyErr_NoMemory();
+    else
+        return NULL;
 
 }
 
