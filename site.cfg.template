@@ -28,7 +28,7 @@
 #       List of directories to add to the header file earch path.
 #           include_dirs = /usr/include:/usr/local/include
 #
-#   src_dirs 
+#   src_dirs
 #       List of directories that contain extracted source code for the
 #       dependency. For some dependencies, numpy.distutils will be able to build
 #       them from source if binaries cannot be found. The FORTRAN BLAS and
@@ -82,12 +82,12 @@
 
 # UMFPACK
 # -------
-# If the UMFPACK header files and library are in nonstandard locations,
-# specify them here. Comment out this section to use a default version of
-# UMFPACK included with the PySparse source distribution.
+# Specify the top directory of SuiteSparse below. Make sure you have built
+# UMFPACK, CHOLMOD, AMD, CAMD, COLAMD, CCOLAMD and used METIS.
+# If you specify suitesparse_dir, there is no need to fill out the AMD
+# section of this file.
 [UMFPACK]
-#umfpack_include = /Users/dpo/local/linalg/UMFPACK/UMFPACK/Include
-#umfpack_libdir  = /Users/dpo/local/linalg/UMFPACK/UMFPACK/Lib
+#suitesparse_dir =
 
 # SuperLU
 # -------
