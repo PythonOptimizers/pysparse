@@ -17,6 +17,7 @@ DOCLINES = __doc__.split("\n")
 
 import os
 import sys
+from pkg_resources import require
 
 try:
     import setuptools  # If you want to enable 'python setup.py develop'
@@ -24,6 +25,8 @@ try:
 except:
     print 'setuptools module not found.'
     print "Install setuptools if you want to enable 'python setup.py develop'."
+
+require('numpy>=1.2')
 
 CLASSIFIERS = """\
 Development Status :: 4 - Beta
@@ -147,6 +150,7 @@ def setup_package():
             license = 'BSD-style',
             classifiers=filter(None, CLASSIFIERS.split('\n')),
             platforms = ["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
+            install_requires=['numpy>=1.2'],
             configuration=configuration,
             )
     finally:
