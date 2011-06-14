@@ -1,31 +1,45 @@
 """This module defines encapsulation classes for all iterative solvers
 implemented in the krylov module.
 
-All classes provide a method "solve(b, x)" for approximatively compute
-x = inv(A)*b.
+All classes provide a method "solve(b, x)" to approximatively solve the
+linear system Ax=b using Krylov subspace methods.
 
 The classes are intended to replace superlu.superlu_context in cases
 where appropriate."""
 
+from pysparse.sparse.pysparseMatrix import PysparseMatrix
 from pysparse.itsolvers import krylov
 
 class ItSolver:
-    "abstract base class for iteravtive solver classes"
-    def __init__(self, A, tol, maxit, K, debug):
-        self.A = A
-        self.tol = tol
-        self.maxit = maxit
-        self.K = K
+    "Abstract base class for iteravtive solver classes."
+    def __init__(self, A, debug):
+        self.name = 'Generic'
+        self.itsolver = None
+
+        if isinstance(A, PysparseMatrix):
+            self.A = A.matrix
+        else:
+            self.A = A
+
         self.nofCalled = 0
         self.totalIterations = 0
         self.lastIterations = 0
         self.lastInfo = 0
         self.debug = debug
-        
-    def solve(self, b, x):
-        "solve A*x = b iteratively with zero initial guess"
+
+    def set_name(self, name):
+        self.name = name
+
+    def set_solver(self, solver):
+        self.itsolver = solver
+
+    def solve(self, b, x, tol, maxit, K=None):
+        "Solve Ax = b iteratively with zero initial guess"
+        if not self.itsolver:
+            raise NotImplementedError, 'This class cannot be used directly.'
+
         x[:] = 0
-        info, iter, relres = self.itsolver(self.A, b, x, self.tol, self.maxit, self.K)
+        info, iter, relres = self.itsolver(self.A, b, x, tol, maxit, K)
         self.nofCalled += 1
         self.totalIterations += iter
         self.lastIterations = iter
@@ -35,9 +49,14 @@ class ItSolver:
         if info < 0:
             raise RuntimeError, ('iterative solver %s returned error code %d' % (self.__class__.__name__, info), info, iter, relres)
 
+    def __call__(self, *args, **kwargs):
+        return self.solve(*args, **kwargs)
+
     def __str__(self):
-        s = '<%s.%s instance>\n\n' % (self.__class__.__module__, self.__class__.__name__)
-        for name in ['nofCalled', 'totalIterations', 'lastIterations', 'lastInfo']:
+        s = '<%s.%s instance>\n\n' % (self.__class__.__module__,
+                                      self.__class__.__name__)
+        attrs = ['nofCalled', 'totalIterations', 'lastIterations', 'lastInfo']
+        for name in attrs:
             s += '   %s: %s\n' % (name, getattr(self, name))
         s += '\n'
         return s
@@ -45,33 +64,66 @@ class ItSolver:
     def __repr__(self):
         return self.__str__()
 
+
 class Pcg(ItSolver):
-    def __init__(self, A, tol, maxit, K=None, debug=0):
-        ItSolver.__init__(self, A, tol, maxit, K, debug)
-        self.itsolver = krylov.pcg
+    """
+    Wrapper class for the preconditioned conjugate gradient iterative solver.
+    """
+    def __init__(self, A, debug=False):
+        ItSolver.__init__(self, A, debug)
+        self.set_name('PCG')
+        self.set_solver(krylov.pcg)
+
 
 class Minres(ItSolver):
-    def __init__(self, A, tol, maxit, K=None, debug=0):
-        ItSolver.__init__(self, A, tol, maxit, K, debug)
-        self.itsolver = krylov.minres
-        
+    """
+    Wrapper class for the minimum residual iterative solver.
+    """
+    def __init__(self, A, debug=False):
+        ItSolver.__init__(self, A, debug)
+        self.set_name('MINRES')
+        self.set_solver(krylov.minres)
+
+
 class Qmrs(ItSolver):
-    def __init__(self, A, tol, maxit, K=None, debug=0):
-        ItSolver.__init__(self, A, tol, maxit, K, debug)
-        self.itsolver = krylov.qmrs
+    """
+    Wrapper class for the quasi-minimum residual smoothing iterative solver.
+    """
+    def __init__(self, A, debug=False):
+        ItSolver.__init__(self, A, debug)
+        self.set_name('QMRS')
+        self.set_solver(krylov.qmrs)
+
 
 class Cgs(ItSolver):
-    """wrapper class for the krylov.cgs iterative solver
+    """
+    Wrapper class for the conjugate gradient squared iterative solver.
+    """
+    def __init__(self, A, debug=False):
+        ItSolver.__init__(self, A, debug)
+        self.set_name('CGS')
+        self.set_solver(krylov.cgs)
 
-Cgs(A, tol, maxit, K=None) constructs the Cgs object.
 
-methods:
+class Bicgstab(ItSolver):
+    """
+    Wrapper class for the bi-conjugate gradient stabilized iterative solver.
+    """
+    def __init__(self, A, debug=False):
+        ItSolver.__init__(self, A, debug)
+        self.set_name('BICGSTAB')
+        self.set_solver(krylov.bicgstab)
 
-solve(b, x) solves the linear system A*x = b with a zero initial guess
-"""
-    def __init__(self, A, tol, maxit, K=None, debug=0):
-        ItSolver.__init__(self, A, tol, maxit, K, debug)
-        self.itsolver = krylov.cgs
+
+class Gmres(ItSolver):
+    """
+    Wrapper class for the generalized minimum residual iterative solver.
+    """
+    def __init__(self, A, debug=False):
+        ItSolver.__init__(self, A, debug)
+        self.set_name('GMRES')
+        self.set_solver(krylov.gmres)
+
 
 from pysparse.misc import Deprecated
 
@@ -91,31 +143,37 @@ def qmrs(*args, **kwargs):
 def cgs(*args, **kwargs):
     return  krylov.cgs(*args, **kwargs)
 
-@Deprecated('Use pysparse.itsolvers.krylov.gmres instead.')
+@Deprecated('Use pysparse.itsolvers.Bicgstab instead.')
+def gmres(*args, **kwargs):
+    return  krylov.bicgstab(*args, **kwargs)
+
+@Deprecated('Use pysparse.itsolvers.Gmres instead.')
 def gmres(*args, **kwargs):
     return  krylov.gmres(*args, **kwargs)
-                        
-if __name__ == '__main__':
-    import math
-    import numpy
-    import precon, poisson
 
-    A = poisson.poisson2d_sym(100)
-    n = A.shape[0];
-    b = numpy.ones(n, 'd'); b = b / math.sqrt(numpy.dot(b, b))
-    x = numpy.zeros(n, 'd')
+if __name__ == '__main__':
+    import numpy
+    from pysparse.precon import precon
+    from pysparse.tools import poisson
+
+    n = 100
+    n2 = n*n
+    A = PysparseMatrix(matrix=poisson.poisson2d_sym(n))
+    b = numpy.ones(n2); b /= numpy.linalg.norm(b)
+    x = numpy.empty(n2)
+    K = precon.ssor(A.matrix.to_sss())
+    fmt = '%8s  %7.1e  %2d  %4d'
 
     def resid(A, b, x):
-        r = x.copy()
-        A.matvec(x, r)
-        r = b - r
-        return math.sqrt(numpy.dot(r, r))
-    
-    solver = Pcg(A, 1e-10, 300)
-    solver.solve(b, x)
-    print resid(A, b, x), solver.nofCalled, solver.totalIterations
+        r = b - A*x
+        return numpy.linalg.norm(r)
 
-    solver.K = precon.ssor(A.to_sss())
-    solver.solve(b, x)
-    print resid(A, b, x), solver.nofCalled, solver.totalIterations
-    
+    for Solver in [Pcg, Minres, Cgs, Qmrs, Gmres, Bicgstab]:
+        solver = Solver(A)
+        solver.solve(b, x, 1.0e-6, 3*n)
+        print fmt % (solver.name, resid(A, b, x), solver.nofCalled,
+                     solver.totalIterations)
+        solver.solve(b, x, 1.0e-6, 3*n, K)
+        print fmt % (solver.name, resid(A, b, x), solver.nofCalled,
+                     solver.totalIterations)
+
