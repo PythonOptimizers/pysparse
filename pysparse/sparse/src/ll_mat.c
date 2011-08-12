@@ -156,15 +156,15 @@ SpMatrix_LLMatBuildColIndex(struct llColIndex **idx, LLMatObject *self,
     while (k != -1) {
       j = self->col[k];
       if (i > j)
-	(*idx)->nzLo++;
+    (*idx)->nzLo++;
       else if (i == j)
-	(*idx)->nzDiag++;
+    (*idx)->nzDiag++;
       else
-	(*idx)->nzUp++;
+    (*idx)->nzUp++;
       if (includeDiagonal || i != j) {
-	(*idx)->link[k] = (*idx)->root[j];
-	(*idx)->root[j] = k;
-	(*idx)->row[k] = i;
+    (*idx)->link[k] = (*idx)->root[j];
+    (*idx)->root[j] = k;
+    (*idx)->row[k] = i;
       }
       k = self->link[k];
     }
@@ -255,7 +255,7 @@ SpMatrix_LLMatSetItem(LLMatObject *a, int i, int j, double x) {
 
   if (a->issym && i < j) {
     PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
-		    "write operation to upper triangle of symmetric matrix");
+            "write operation to upper triangle of symmetric matrix");
     return -1;
   }
 
@@ -291,44 +291,44 @@ SpMatrix_LLMatSetItem(LLMatObject *a, int i, int j, double x) {
       /* find location for new element */
       if (a->free != -1) {
 
-	/* use element from the free chain */
-	new_elem = a->free;
-	a->free = a->link[new_elem];
+    /* use element from the free chain */
+    new_elem = a->free;
+    a->free = a->link[new_elem];
 
       } else {
 
-	/* append new element to the end */
-	new_elem = a->nnz;
+    /* append new element to the end */
+    new_elem = a->nnz;
 
-	/* test if there is space for a new element */
-	if (a->nnz == a->nalloc) {
-	  int nalloc_new;
+    /* test if there is space for a new element */
+    if (a->nnz == a->nalloc) {
+      int nalloc_new;
 
-	  /* increase size of idx, val and link arrays */
-	  nalloc_new = (int)((double)INCREASE_FACTOR * a->nalloc) + 1;
-	  if ((temp = PyMem_Resize(a->col, int, nalloc_new)) == NULL)
-	    goto fail;
-	  else
-	    a->col = temp;
-	  if ((temp = PyMem_Resize(a->link, int, nalloc_new)) == NULL)
-	    goto fail;
-	  else
-	    a->link = temp;
-	  if ((temp = PyMem_Resize(a->val, double, nalloc_new)) == NULL)
-	    goto fail;
-	  else
-	    a->val = temp;
-	  a->nalloc = nalloc_new;
-	}
+      /* increase size of idx, val and link arrays */
+      nalloc_new = (int)((double)INCREASE_FACTOR * a->nalloc) + 1;
+      if ((temp = PyMem_Resize(a->col, int, nalloc_new)) == NULL)
+        goto fail;
+      else
+        a->col = temp;
+      if ((temp = PyMem_Resize(a->link, int, nalloc_new)) == NULL)
+        goto fail;
+      else
+        a->link = temp;
+      if ((temp = PyMem_Resize(a->val, double, nalloc_new)) == NULL)
+        goto fail;
+      else
+        a->val = temp;
+      a->nalloc = nalloc_new;
+    }
       }
 
       a->val[new_elem] = x;
       a->col[new_elem] = j;
       a->link[new_elem] = k;
       if (last == -1)
-	a->root[i] = new_elem;
+    a->root[i] = new_elem;
       else
-	a->link[last] = new_elem;
+    a->link[last] = new_elem;
 
       a->nnz ++;
     }
@@ -338,9 +338,9 @@ SpMatrix_LLMatSetItem(LLMatObject *a, int i, int j, double x) {
     if (col == j) {
       /* relink row i */
       if (last == -1)
-	a->root[i] = a->link[k];
+    a->root[i] = a->link[k];
       else
-	a->link[last] = a->link[k];
+    a->link[last] = a->link[k];
       /* add element to free list */
       a->link[k] = a->free;
       a->free = k;
@@ -367,7 +367,7 @@ SpMatrix_LLMatUpdateItemAdd(LLMatObject *a, int i, int j, double x) {
 
   if (a->issym && i < j) {
     PyErr_SetString(PyExc_IndexError, //SpMatrix_ErrorObject,
-		    "write operation to upper triangle of symmetric matrix");
+            "write operation to upper triangle of symmetric matrix");
     return -1;
   }
 
@@ -393,9 +393,9 @@ SpMatrix_LLMatUpdateItemAdd(LLMatObject *a, int i, int j, double x) {
 
       /* relink row i */
       if (last == -1)
-	a->root[i] = a->link[k];
+    a->root[i] = a->link[k];
       else
-	a->link[last] = a->link[k];
+    a->link[last] = a->link[k];
       /* add element to free list */
       a->link[k] = a->free;
       a->free = k;
@@ -420,23 +420,23 @@ SpMatrix_LLMatUpdateItemAdd(LLMatObject *a, int i, int j, double x) {
 
       /* test if there is space for a new element */
       if (a->nnz == a->nalloc) {
-	int nalloc_new;
+    int nalloc_new;
 
-	/* increase size of idx, val and link arrays */
-	nalloc_new = (int)((double)INCREASE_FACTOR * a->nalloc) + 1;
-	if ((temp = PyMem_Resize(a->col, int, nalloc_new)) == NULL)
-	  goto fail;
-	else
-	  a->col = temp;
-	if ((temp = PyMem_Resize(a->link, int, nalloc_new)) == NULL)
-	  goto fail;
-	else
-	  a->link = temp;
-	if ((temp = PyMem_Resize(a->val, double, nalloc_new)) == NULL)
-	  goto fail;
-	else
-	  a->val = temp;
-	a->nalloc = nalloc_new;
+    /* increase size of idx, val and link arrays */
+    nalloc_new = (int)((double)INCREASE_FACTOR * a->nalloc) + 1;
+    if ((temp = PyMem_Resize(a->col, int, nalloc_new)) == NULL)
+      goto fail;
+    else
+      a->col = temp;
+    if ((temp = PyMem_Resize(a->link, int, nalloc_new)) == NULL)
+      goto fail;
+    else
+      a->link = temp;
+    if ((temp = PyMem_Resize(a->val, double, nalloc_new)) == NULL)
+      goto fail;
+    else
+      a->val = temp;
+    a->nalloc = nalloc_new;
       }
     }
 
@@ -476,9 +476,9 @@ LLMat_Compress(LLMatObject *self, int *nofFreed) {
     k_next =  self->link[k];
     if (k >= nalloc_new) {
       if (k_last == -1)
-	self->free = k_next;
+    self->free = k_next;
       else
-	self->link[k_last] = k_next;
+    self->link[k_last] = k_next;
     } else
       k_last = k;
     k = k_next;
@@ -488,18 +488,18 @@ LLMat_Compress(LLMatObject *self, int *nofFreed) {
     k_last = -1;
     for (k = self->root[i]; k != -1; k = self->link[k]) {
       if (k >= nalloc_new) {
-	k_new = self->free;
-	if (k_last == -1)
-	  self->root[i] = k_new;
-	else
-	  self->link[k_last] = k_new;
-	self->free = self->link[k_new];
-	self->val[k_new] = self->val[k];
-	self->col[k_new] = self->col[k];
-	self->link[k_new] = self->link[k];
-	k_last = k_new;
+    k_new = self->free;
+    if (k_last == -1)
+      self->root[i] = k_new;
+    else
+      self->link[k_last] = k_new;
+    self->free = self->link[k_new];
+    self->val[k_new] = self->val[k];
+    self->col[k_new] = self->col[k];
+    self->link[k_new] = self->link[k];
+    k_last = k_new;
       } else
-	k_last = k;
+    k_last = k;
     }
   }
   /* shrink arrays */
@@ -900,17 +900,17 @@ clear_submatrix(LLMatObject *self,
       j = self->col[k];
       next = self->link[k];
       if (start1 <= j && j < stop1) {
-	/* remove element */
-	if (last == -1)
-	  self->root[i] = next;
-	else
-	  self->link[last] = next;
-	/* add element to free list */
-	self->link[k] = self->free;
-	self->free = k;
-	self->nnz--;
+    /* remove element */
+    if (last == -1)
+      self->root[i] = next;
+    else
+      self->link[last] = next;
+    /* add element to free list */
+    self->link[k] = self->free;
+    self->free = k;
+    self->nnz--;
       } else
-	last = k;
+    last = k;
       k = next;
     }
   }
@@ -925,7 +925,7 @@ clear_submatrix(LLMatObject *self,
 //                                 long *irow, int nrow, long *jcol, int ncol) {
 static void //int
 setSubMatrix_FromList(LLMatObject *self, PyObject *other,
-		      PyObject *index0, PyObject *index1) {
+              PyObject *index0, PyObject *index1) {
 
   LLMatObject *mat = NULL;
   int other_is_num = 0, other_is_sym;
@@ -1261,7 +1261,7 @@ setSubMatrix_FromList(LLMatObject *self, PyObject *other,
 
 static void
 ll_matvec_kernel(int m, double *x, double *y,
-		 double *val, int *col, int *link, int *root) {
+         double *val, int *col, int *link, int *root) {
   double s;
   int i, k;
 
@@ -1278,9 +1278,9 @@ ll_matvec_kernel(int m, double *x, double *y,
 
 static void
 ll_matvec_kernel_stride(int m,
-			double *x, int incx,
-			double *y, int incy,
-			double *val, int *col, int *link, int *root) {
+            double *x, int incx,
+            double *y, int incy,
+            double *val, int *col, int *link, int *root) {
   double s;
   int i, k;
 
@@ -1297,7 +1297,7 @@ ll_matvec_kernel_stride(int m,
 
 static void
 ll_matvec_kernel_sym(int m, double *x, double *y,
-		     double *val, int *col, int *link, int *root) {
+             double *val, int *col, int *link, int *root) {
   double s, v, xi;
   int i, j, k;
 
@@ -1310,7 +1310,7 @@ ll_matvec_kernel_sym(int m, double *x, double *y,
       v = val[k];
       s += v * x[j];
       if (i != j)
-	y[j] += v * xi;
+    y[j] += v * xi;
       k = link[k];
     }
     y[i] = s;
@@ -1319,9 +1319,9 @@ ll_matvec_kernel_sym(int m, double *x, double *y,
 
 static void
 ll_matvec_kernel_stride_sym(int m,
-			    double *x, int incx,
-			    double *y, int incy,
-			    double *val, int *col, int *link, int *root) {
+                double *x, int incx,
+                double *y, int incy,
+                double *val, int *col, int *link, int *root) {
   double s, v, xi;
   int i, j, k;
 
@@ -1334,7 +1334,7 @@ ll_matvec_kernel_stride_sym(int m,
       v = val[k];
       s += v * x[j*incx];
       if (i != j)
-	y[j*incy] += v * xi;
+    y[j*incy] += v * xi;
       k = link[k];
     }
     y[i*incy] = s;
@@ -1343,7 +1343,7 @@ ll_matvec_kernel_stride_sym(int m,
 
 static void
 ll_matvec_transp_kernel(int m, int n, double *x, double *y,
-			    double *val, int *col, int *link, int *root) {
+                double *val, int *col, int *link, int *root) {
   double xi;
   int i, k;
 
@@ -1362,9 +1362,9 @@ ll_matvec_transp_kernel(int m, int n, double *x, double *y,
 
 static void
 ll_matvec_transp_kernel_stride(int m, int n,
-			       double *x, int incx,
-			       double *y, int incy,
-			       double *val, int *col, int *link, int *root) {
+                   double *x, int incx,
+                   double *y, int incy,
+                   double *val, int *col, int *link, int *root) {
   double xi;
   int i, k;
 
@@ -1403,22 +1403,22 @@ LLMat_matvec_transp(LLMatObject *self, PyObject *args)
     if (self->issym)
       ll_matvec_kernel_sym(self->dim[0],
                            (double *)(xp->data), (double *)(yp->data),
-			   self->val, self->col, self->link, self->root);
+               self->val, self->col, self->link, self->root);
     else
       ll_matvec_transp_kernel(self->dim[0], self->dim[1],
                               (double *)(xp->data), (double *)(yp->data),
-			      self->val, self->col, self->link, self->root);
+                  self->val, self->col, self->link, self->root);
   else
     if (self->issym)
       ll_matvec_kernel_stride_sym(self->dim[0],
-				  (double *)(xp->data), xp->strides[0] / sd,
-				  (double *)(yp->data), yp->strides[0] / sd,
-				  self->val, self->col, self->link, self->root);
+                  (double *)(xp->data), xp->strides[0] / sd,
+                  (double *)(yp->data), yp->strides[0] / sd,
+                  self->val, self->col, self->link, self->root);
     else
       ll_matvec_transp_kernel_stride(self->dim[0], self->dim[1],
-				     (double *)(xp->data), xp->strides[0] / sd,
-				     (double *)(yp->data), yp->strides[0] / sd,
-				     self->val, self->col, self->link,
+                     (double *)(xp->data), xp->strides[0] / sd,
+                     (double *)(yp->data), yp->strides[0] / sd,
+                     self->val, self->col, self->link,
                                      self->root);
 
   Py_INCREF(Py_None);
@@ -1443,22 +1443,22 @@ LLMat_matvec(LLMatObject *self, PyObject *args)
     if (self->issym)
       ll_matvec_kernel_sym(self->dim[0],
                            (double *)(xp->data), (double *)(yp->data),
-			   self->val, self->col, self->link, self->root);
+               self->val, self->col, self->link, self->root);
     else
       ll_matvec_kernel(self->dim[0],
                        (double *)(xp->data), (double *)(yp->data),
-		       self->val, self->col, self->link, self->root);
+               self->val, self->col, self->link, self->root);
   else
     if (self->issym)
       ll_matvec_kernel_stride_sym(self->dim[0],
-				  (double *)(xp->data), xp->strides[0] / sd,
-				  (double *)(yp->data), yp->strides[0] / sd,
-				  self->val, self->col, self->link, self->root);
+                  (double *)(xp->data), xp->strides[0] / sd,
+                  (double *)(yp->data), yp->strides[0] / sd,
+                  self->val, self->col, self->link, self->root);
     else
       ll_matvec_kernel_stride(self->dim[0],
-			      (double *)(xp->data), xp->strides[0] / sd,
-			      (double *)(yp->data), yp->strides[0] / sd,
-			      self->val, self->col, self->link, self->root);
+                  (double *)(xp->data), xp->strides[0] / sd,
+                  (double *)(yp->data), yp->strides[0] / sd,
+                  self->val, self->col, self->link, self->root);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -1603,20 +1603,20 @@ LLMat_to_csr(LLMatObject *self, PyObject *args)
       /* store self[0:i+1,i] in op[0:i+1,i] */
       k = self->root[i];
       while (k != -1) {
-	op->val[r] = self->val[k];
-	op->col[r] = self->col[k];
-	r ++;
-	k = self->link[k];
+    op->val[r] = self->val[k];
+    op->col[r] = self->col[k];
+    r ++;
+    k = self->link[k];
       }
 
       /* store self[i,i+1:n] in op[i+1:n,i] */
       k = colIdx->root[i];
       while (k != -1) {
-	j = colIdx->row[k];
-	op->val[r] = self->val[k];
-	op->col[r] = j;
-	r ++;
-	k = colIdx->link[k];
+    j = colIdx->row[k];
+    op->val[r] = self->val[k];
+    op->col[r] = j;
+    r ++;
+    k = colIdx->link[k];
       }
 
       op->ind[i+1] = r;
@@ -1635,10 +1635,10 @@ LLMat_to_csr(LLMatObject *self, PyObject *args)
     for (i = 0; i < self->dim[0]; i ++) {
       k = self->root[i];
       while (k != -1) {
-	op->val[r] = self->val[k];
-	op->col[r] = self->col[k];
-	r ++;
-	k = self->link[k];
+    op->val[r] = self->val[k];
+    op->col[r] = self->col[k];
+    r ++;
+    k = self->link[k];
       }
       op->ind[i+1] = r;
     }
@@ -1674,7 +1674,7 @@ LLMat_to_sss(LLMatObject *self, PyObject *args)
     while (k != -1) {
       j = self->col[k];
       if (i > j)
-	nnz ++;
+    nnz ++;
       k = self->link[k];
     }
   }
@@ -1694,11 +1694,11 @@ LLMat_to_sss(LLMatObject *self, PyObject *args)
     while (k != -1) {
       j = self->col[k];
       if (i > j) {
-	op->val[r] = self->val[k];
-	op->col[r] = j;
-	r ++;
+    op->val[r] = self->val[k];
+    op->col[r] = j;
+    r ++;
       } else if (i == j)
-	op->diag[i] = self->val[k];
+    op->diag[i] = self->val[k];
       k = self->link[k];
     }
     op->ind[i+1] = r;
@@ -1720,12 +1720,12 @@ LLMat_generalize(LLMatObject *self, PyObject *args) {
     self->issym = 0;
     for (i = 0; i < self->dim[0]; i ++) {
       /* New elements are inserted into the matrix while it is being traversed.
-	 However, this should not be a problem */
+     However, this should not be a problem */
       for (k = self->root[i]; k != -1; k = self->link[k]) {
-	j = self->col[k];
-	if (i > j)
-	  if (SpMatrix_LLMatSetItem(self, j, i, self->val[k]))
-	    return NULL;
+    j = self->col[k];
+    if (i > j)
+      if (SpMatrix_LLMatSetItem(self, j, i, self->val[k]))
+        return NULL;
       }
     }
   }
@@ -1794,8 +1794,8 @@ LLMat_export_mtx(LLMatObject *self, PyObject *args) {
       ret = fprintf(f, "%d %d %.*e\n",
                     i+1, self->col[k]+1, precision-1, self->val[k]);
       if (ret < 0) {
-	PyErr_SetString(PyExc_IOError, "Error writing matrix data");
-	return NULL;
+    PyErr_SetString(PyExc_IOError, "Error writing matrix data");
+    return NULL;
       }
       k = self->link[k];
     }
@@ -1829,8 +1829,8 @@ LLMat_copy(LLMatObject *self, PyObject *args) {
     k = self->root[i];
     while (k != -1) {
       if (SpMatrix_LLMatSetItem(new, i, self->col[k], self->val[k]) == -1) {
-	Py_DECREF(new);
-	return NULL;
+    Py_DECREF(new);
+    return NULL;
       }
       k = self->link[k];
     }
@@ -1936,8 +1936,8 @@ LLMat_norm(LLMatObject *self, PyObject *args)
       if (SpMatrix_LLMatBuildColIndex(&colIdx, self, 1))
         return NULL;
       for( norm = 0.0, i = 0; i < self->dim[1]; i++ ) {
-	for( s = 0.0, k = colIdx->root[i]; k != -1; k = colIdx->link[k] )
-	  s += fabs(self->val[k]);
+    for( s = 0.0, k = colIdx->root[i]; k != -1; k = colIdx->link[k] )
+      s += fabs(self->val[k]);
         norm = s > norm ? s : norm;
       }
       SpMatrix_LLMatDestroyColIndex(&colIdx);
@@ -1951,8 +1951,8 @@ LLMat_norm(LLMatObject *self, PyObject *args)
       return NULL;
     } else {
       for( norm = 0.0, i = 0; i < self->dim[0]; i++ ) {
-	for( s = 0.0, k = self->root[i]; k != -1; k = self->link[k] )
-	  s += fabs(self->val[k]);
+    for( s = 0.0, k = self->root[i]; k != -1; k = self->link[k] )
+      s += fabs(self->val[k]);
         norm = s > norm ? s : norm;
       }
     }
@@ -1961,9 +1961,9 @@ LLMat_norm(LLMatObject *self, PyObject *args)
 
     for( norm = 0.0, i = 0; i < self->dim[0]; i++ )
       for (k = self->root[i]; k != -1; k = self->link[k]) {
-	v = self->val[k];
-	norm += v*v;
-	if (self->issym && self->col[k] != i) norm += v*v;
+    v = self->val[k];
+    norm += v*v;
+    if (self->issym && self->col[k] != i) norm += v*v;
       }
     norm = sqrt(norm);
 
@@ -1998,30 +1998,30 @@ LLMat_shift(LLMatObject *self, PyObject *args) {
     for (i = 0; i < mat->dim[0]; i ++) {
       k = mat->root[i];
       while (k != -1) {
-	err = SpMatrix_LLMatUpdateItemAdd(self, i,
+    err = SpMatrix_LLMatUpdateItemAdd(self, i,
                                           mat->col[k], sigma * mat->val[k]);
         if( err == -1 ) return NULL;
-	k = mat->link[k];
+    k = mat->link[k];
       }
     }
   } else if (mat->issym) {
     for (i = 0; i < mat->dim[0]; i ++) {
       k = mat->root[i];
       while (k != -1) {
-	j = mat->col[k];
-	v = sigma * mat->val[k];
-	if (SpMatrix_LLMatUpdateItemAdd(self, i, j, v) == -1)
-	  return NULL;
-	if (i != j)
-	  if (SpMatrix_LLMatUpdateItemAdd(self, j, i, v) == -1)
-	    return NULL;
+    j = mat->col[k];
+    v = sigma * mat->val[k];
+    if (SpMatrix_LLMatUpdateItemAdd(self, i, j, v) == -1)
+      return NULL;
+    if (i != j)
+      if (SpMatrix_LLMatUpdateItemAdd(self, j, i, v) == -1)
+        return NULL;
 
-	k = mat->link[k];
+    k = mat->link[k];
       }
     }
   } else {
     PyErr_SetString(PyExc_NotImplementedError,
-		    "Cannot shift symmetric matrix by non-symmetric matrix.");
+            "Cannot shift symmetric matrix by non-symmetric matrix.");
     return NULL;
   }
 
@@ -2084,10 +2084,10 @@ LLMat_keys(LLMatObject *a, PyObject *args) {
       k = a->root[i];
       while (k != -1) {
         j = a->col[k];
-	PyList_SET_ITEM(listi, pos, PyInt_FromLong(i));
-	PyList_SET_ITEM(listj, pos, PyInt_FromLong(j));
-	pos++;
-	k = a->link[k];
+    PyList_SET_ITEM(listi, pos, PyInt_FromLong(i));
+    PyList_SET_ITEM(listj, pos, PyInt_FromLong(j));
+    pos++;
+    k = a->link[k];
       }
     }
 
@@ -2098,7 +2098,7 @@ LLMat_keys(LLMatObject *a, PyObject *args) {
 
   } else {
     PyErr_SetString(PyExc_NotImplementedError,
-		    "keys() doesn't yet support symmetric matrices");
+            "keys() doesn't yet support symmetric matrices");
     return NULL;
   }
 }
@@ -2123,11 +2123,11 @@ LLMat_values(LLMatObject *a, PyObject *args) {
             return NULL;
 
         for (i = 0; i < a->dim[0]; i ++) {
-	    k = a->root[i];
-	    while (k != -1) {
+        k = a->root[i];
+        while (k != -1) {
                 PyList_SET_ITEM(list, pos++, PyFloat_FromDouble(a->val[k]));
                 k = a->link[k];
-	    }
+        }
         }
         return list;
 
@@ -2248,27 +2248,27 @@ LLMat_update_add_mask(LLMatObject *self, PyObject *args) {
 
       i1 = ((long *)ind0->data)[i];
       if (i1 < 0)
-	i1 += self->dim[0];
+    i1 += self->dim[0];
       if (i1 < 0 || i1 >= self->dim[0]) {
-	PyErr_SetString(PyExc_IndexError, "element of arg 2 out of range");
-	goto fail;
+    PyErr_SetString(PyExc_IndexError, "element of arg 2 out of range");
+    goto fail;
       }
 
       for (j = 0; j < len1; j ++) {
-	if (((long *)mask1->data)[j]) {
+    if (((long *)mask1->data)[j]) {
 
-	  j1 = ((long *)ind1->data)[j];
-	  if (j1 < 0)
-	    j1 += self->dim[1];
-	  if (j1 < 0 || j1 >= self->dim[1]) {
-	    PyErr_SetString(PyExc_IndexError, "element of arg 3 out of range");
-	    goto fail;
-	  }
+      j1 = ((long *)ind1->data)[j];
+      if (j1 < 0)
+        j1 += self->dim[1];
+      if (j1 < 0 || j1 >= self->dim[1]) {
+        PyErr_SetString(PyExc_IndexError, "element of arg 3 out of range");
+        goto fail;
+      }
 
-	  v = ((double *)b->data)[i + ldb*j];
-	  if (SpMatrix_LLMatUpdateItemAdd(self, i1, j1, v) == -1)
-	    goto fail;
-	}
+      v = ((double *)b->data)[i + ldb*j];
+      if (SpMatrix_LLMatUpdateItemAdd(self, i1, j1, v) == -1)
+        goto fail;
+    }
       }
     }
   }
@@ -2339,40 +2339,40 @@ LLMat_update_add_mask_sym(LLMatObject *self, PyObject *args) {
 
       i1 = ((long *)ind->data)[i];
       if (i1 < 0)
-	i1 += self->dim[0];
+    i1 += self->dim[0];
       if (i1 < 0 || i1 >= self->dim[0]) {
-	PyErr_SetString(PyExc_IndexError, "element of arg 2 out of range");
-	goto fail;
+    PyErr_SetString(PyExc_IndexError, "element of arg 2 out of range");
+    goto fail;
       }
 
       for (j = 0; j <= i; j ++) {
-	if (((long *)mask->data)[j]) {
+    if (((long *)mask->data)[j]) {
 
-	  j1 = ((long *)ind->data)[j]; /* index check not necessary here */
-	  if (j1 < 0)
-	    j1 += self->dim[1];
-	  v = ((double *)b->data)[i + ldb*j];
+      j1 = ((long *)ind->data)[j]; /* index check not necessary here */
+      if (j1 < 0)
+        j1 += self->dim[1];
+      v = ((double *)b->data)[i + ldb*j];
 
-	  if (self->issym) {
-	    /* symmetric matrix: update entry in lower triangle */
-	    if (i1 > j1) {
-	      if (SpMatrix_LLMatUpdateItemAdd(self, i1, j1, v) == -1)
-		goto fail;
-	    } else {
-	      if (SpMatrix_LLMatUpdateItemAdd(self, j1, i1, v) == -1)
-		goto fail;
-	    }
-	  } else {
-	    /* non-symmetric matrix: update two entries if not on diagonal */
-	    if (SpMatrix_LLMatUpdateItemAdd(self, i1, j1, v) == -1)
-	      goto fail;
-	    if (i1 != j1) {
-	      if (SpMatrix_LLMatUpdateItemAdd(self, j1, i1, v) == -1)
-		goto fail;
-	    }
-	  }
+      if (self->issym) {
+        /* symmetric matrix: update entry in lower triangle */
+        if (i1 > j1) {
+          if (SpMatrix_LLMatUpdateItemAdd(self, i1, j1, v) == -1)
+        goto fail;
+        } else {
+          if (SpMatrix_LLMatUpdateItemAdd(self, j1, i1, v) == -1)
+        goto fail;
+        }
+      } else {
+        /* non-symmetric matrix: update two entries if not on diagonal */
+        if (SpMatrix_LLMatUpdateItemAdd(self, i1, j1, v) == -1)
+          goto fail;
+        if (i1 != j1) {
+          if (SpMatrix_LLMatUpdateItemAdd(self, j1, i1, v) == -1)
+        goto fail;
+        }
+      }
 
-	}
+    }
       }
     }
   }
@@ -2448,7 +2448,7 @@ LLMat_take(LLMatObject *self, PyObject *args) {
 
   /* Perform take operation */
   for( i = 0; i < lenb; i++ ) {
-    int	i1, j1;
+    int i1, j1;
     if( id1 )
       i1 = ((long *) id1->data)[i];
     else
@@ -2786,16 +2786,16 @@ LLMat_delete_rows(LLMatObject *self, PyObject* args){
     if (*(int *)(maskObj->data + row*maskObj->strides[0]) != 0){ /* This row has to be kept */
       self->root[newm] = self->root[row];
       newm ++;
-    } else {			/* row let out; update free list */
+    } else {            /* row let out; update free list */
       act = self->root[row];
-      if(act != -1){		/* only do smth. for non-empty rows */
-	newnnz --;
-	while(self->link[act] != -1) { /* Walk to the end of the list */
-	  act = self->link[act];
-	  newnnz --;
-	}
-	self->link[act] = self->free;	/* Attach end of row to free list */
-	self->free = self->root[row];	/* Start free list where row began */
+      if(act != -1){        /* only do smth. for non-empty rows */
+    newnnz --;
+    while(self->link[act] != -1) { /* Walk to the end of the list */
+      act = self->link[act];
+      newnnz --;
+    }
+    self->link[act] = self->free;   /* Attach end of row to free list */
+    self->free = self->root[row];   /* Start free list where row began */
       }
     }
   }
@@ -2856,22 +2856,22 @@ LLMat_delete_cols(LLMatObject *self, PyObject* args){
   for(row = 0; row < self->dim[0]; row ++) {
     old = -1; act = self->root[row];
     while (act != -1){
-      if (MASK(self->col[act])) {	      // Keep this column
-	self->col[act] -= shift[self->col[act]];
-	old = act; act = self->link[act];
-      } else {				      // Drop the column
-	newnnz--;
-	if (self->root[row] == act) {	      // Special case: first row element
-	  self->root[row] = self->link[act];
-	  old = act; act = self->link[act];
-	  self->link[old] = self->free;	      // Append element into freelist
-	  self->free = old;
-	} else {			      // Regular case: element inbetween
-	  act = self->link[act];
-	  self->link[self->link[old]] = self->free;
-	  self->free = self->link[old];
-	  self->link[old] = act;	      // Append element into freelist
-	}
+      if (MASK(self->col[act])) {         // Keep this column
+    self->col[act] -= shift[self->col[act]];
+    old = act; act = self->link[act];
+      } else {                    // Drop the column
+    newnnz--;
+    if (self->root[row] == act) {         // Special case: first row element
+      self->root[row] = self->link[act];
+      old = act; act = self->link[act];
+      self->link[old] = self->free;       // Append element into freelist
+      self->free = old;
+    } else {                  // Regular case: element inbetween
+      act = self->link[act];
+      self->link[self->link[old]] = self->free;
+      self->free = self->link[old];
+      self->link[old] = act;          // Append element into freelist
+    }
       }
     }
   }
@@ -2923,19 +2923,19 @@ LLMat_delete_rowcols(LLMatObject *self, PyObject* args){
   newm = 0;
   newnnz = self->nnz;
   for(row = 0; row < self->dim[0]; row ++){
-    if (MASK(row)){			      // This row has to be kept
+    if (MASK(row)){               // This row has to be kept
       self->root[newm] = self->root[row];
       newm ++;
-    } else {				      // row let out; update free list
+    } else {                      // row let out; update free list
       act = self->root[row];
-      if(act != -1){			      // only do sth for non-empty rows
-	newnnz --;
-	while(self->link[act] != -1) {	      // Walk to the end of the list
-	  act = self->link[act];
-	  newnnz --;
-	}
-	self->link[act] = self->free;	      // Attach end of row to free list
-	self->free = self->root[row];	      // Start free list where row began
+      if(act != -1){                  // only do sth for non-empty rows
+    newnnz --;
+    while(self->link[act] != -1) {        // Walk to the end of the list
+      act = self->link[act];
+      newnnz --;
+    }
+    self->link[act] = self->free;         // Attach end of row to free list
+    self->free = self->root[row];         // Start free list where row began
       }
     }
   }
@@ -2961,22 +2961,22 @@ LLMat_delete_rowcols(LLMatObject *self, PyObject* args){
   for(row = 0; row < self->dim[0]; row ++) {
     old = -1; act = self->root[row];
     while (act != -1){
-      if (MASK(self->col[act])) {	       /* Keep this column */
-	self->col[act] -= shift[self->col[act]];
-	old = act; act = self->link[act];
-      } else {				       /* Drop the column */
-	newnnz--;
-	if (self->root[row] == act) {	      // Special case: first row element
-	  self->root[row] = self->link[act];
-	  old = act; act = self->link[act];
-	  self->link[old] = self->free;	      // Append element into freelist
-	  self->free = old;
-	} else {			      // Regular case: element inbetween
-	  act = self->link[act];
-	  self->link[self->link[old]] = self->free;
-	  self->free = self->link[old];
-	  self->link[old] = act;	      // Append element into freelist
-	}
+      if (MASK(self->col[act])) {          /* Keep this column */
+    self->col[act] -= shift[self->col[act]];
+    old = act; act = self->link[act];
+      } else {                     /* Drop the column */
+    newnnz--;
+    if (self->root[row] == act) {         // Special case: first row element
+      self->root[row] = self->link[act];
+      old = act; act = self->link[act];
+      self->link[old] = self->free;       // Append element into freelist
+      self->free = old;
+    } else {                  // Regular case: element inbetween
+      act = self->link[act];
+      self->link[self->link[old]] = self->free;
+      self->free = self->link[old];
+      self->link[old] = act;          // Append element into freelist
+    }
       }
     }
   }
@@ -3065,7 +3065,7 @@ PyMethodDef LLMat_methods[] = {
   {"delete_rowcols", (PyCFunction)LLMat_delete_rowcols,  METH_VARARGS, LLMat_delete_rowcols_doc},
   {"update_add_at", (PyCFunction)LLMat_update_add_at,  METH_VARARGS, update_add_at_doc},
 
-  {NULL, NULL}			/* sentinel */
+  {NULL, NULL}          /* sentinel */
 };
 
 /*****************************************/
@@ -3105,30 +3105,30 @@ LLMatType_print(LLMatObject *a, FILE *fp, int flags)
     fprintf(fp, "ll_mat(%s, [%d,%d]):\n", symStr, a->dim[0], a->dim[1]);
     for (i = 0; i < a->dim[0]; i ++) {
       for (j = 0; j < a->dim[1]; j ++)
-	mat[i*a->dim[1] + j] = 0.0;
+    mat[i*a->dim[1] + j] = 0.0;
       k = a->root[i];
       while (k != -1) {
-	mat[(i*a->dim[1])+a->col[k]] = a->val[k];
-	k = a->link[k];
+    mat[(i*a->dim[1])+a->col[k]] = a->val[k];
+    k = a->link[k];
       }
     }
 
     for (i = 0; i < a->dim[0]; i ++) {
       for (j = 0; j < a->dim[1]; j ++) {
-	val = mat[(i*a->dim[1])+j];
-	if (val != 0.0) {
-	  int exp = (int)log10(fabs(val));
-	  if (abs(exp) <= 4) {
-	    if (exp < 0)
-	      fprintf(fp, "%9.*f ", 6, val);
-	    else
-	      fprintf(fp, "%9.*f ", 6-exp, val);
-	  } else
-	    fprintf(fp, "%9.1e ", val);
-	}
-	else
-	  if (!(a->issym) || i > j)
-	    fprintf(fp, " -------- ");
+    val = mat[(i*a->dim[1])+j];
+    if (val != 0.0) {
+      int exp = (int)log10(fabs(val));
+      if (abs(exp) <= 4) {
+        if (exp < 0)
+          fprintf(fp, "%9.*f ", 6, val);
+        else
+          fprintf(fp, "%9.*f ", 6-exp, val);
+      } else
+        fprintf(fp, "%9.1e ", val);
+    }
+    else
+      if (!(a->issym) || i > j)
+        fprintf(fp, " -------- ");
       }
       fprintf(fp, "\n");
     }
@@ -3145,7 +3145,7 @@ LLMatType_print(LLMatObject *a, FILE *fp, int flags)
     k = a->root[i];
     while (k != -1) {
       if (!first)
-	fprintf(fp, ", ");
+    fprintf(fp, ", ");
       first = 0;
       fprintf(fp, "(%d,%d): %g", i, a->col[k], a->val[k]);
       k = a->link[k];
@@ -3175,10 +3175,10 @@ LLMatType_getattr(LLMatObject *self, char *name)
     PyObject *list = PyList_New(sizeof(members)/sizeof(char *));
     if (list != NULL) {
       for (i = 0; i < sizeof(members)/sizeof(char *); i ++)
-	PyList_SetItem(list, i, PyString_FromString(members[i]));
+    PyList_SetItem(list, i, PyString_FromString(members[i]));
       if (PyErr_Occurred()) {
-	Py_DECREF(list);
-	list = NULL;
+    Py_DECREF(list);
+    list = NULL;
       }
     }
     return list;
@@ -3290,7 +3290,7 @@ static PyMappingMethods LLMat_as_mapping = {
 #ifdef LENFUNC_OK
   (lenfunc)LLMat_length,              /*mp_length*/
 #else
-  (inquiry)LLMat_length,	      /*mp_length*/
+  (inquiry)LLMat_length,          /*mp_length*/
 #endif
   (binaryfunc)LLMat_subscript,        /*mp_subscript*/
   (objobjargproc)LLMat_ass_subscript, /*mp_ass_subscript*/
@@ -3307,15 +3307,15 @@ static PyTypeObject LLMatType = {
   sizeof(LLMatObject),            /* tp_basicsize */
   0,                              /* tp_itemsize */
   (destructor)LLMatType_dealloc,  /* tp_dealloc */
-  (printfunc)LLMatType_print,	  /* tp_print */
+  (printfunc)LLMatType_print,     /* tp_print */
   (getattrfunc)LLMatType_getattr, /* tp_getattr */
-  0,				  /* tp_setattr */
-  0,				  /* tp_compare */
-  0,				  /* tp_repr */
-  0,				  /* tp_as_number */
-  0,				  /* tp_as_sequence */
-  &LLMat_as_mapping,		  /* tp_as_mapping */
-  0,				  /* tp_hash */
+  0,                  /* tp_setattr */
+  0,                  /* tp_compare */
+  0,                  /* tp_repr */
+  0,                  /* tp_as_number */
+  0,                  /* tp_as_sequence */
+  &LLMat_as_mapping,          /* tp_as_mapping */
+  0,                  /* tp_hash */
   0,                              /* tp_call */
   0,                              /* tp_str */
   0,                              /* tp_getattro */
@@ -3414,7 +3414,7 @@ LLMat_from_mtx(PyObject *module, PyObject *args) {
     goto fail;
   }
   if (!(mm_is_real(matcode) && mm_is_matrix(matcode) &&
-	mm_is_sparse(matcode))) {
+    mm_is_sparse(matcode))) {
     PyErr_SetString(SpMatrix_ErrorObject, "must be real, sparse matrix");
     goto fail;
   }
@@ -3502,18 +3502,18 @@ LLMat_matrixmultiply(PyObject *self, PyObject *args)
     for (iA = 0; iA < matA->dim[0]; iA ++) {
       kA = matA->root[iA];
       while (kA != -1) {
-	valA = matA->val[kA];
-	jA = matA->col[kA];
-	kA = matA->link[kA];
+    valA = matA->val[kA];
+    jA = matA->col[kA];
+    kA = matA->link[kA];
 
-	/* add jA-th row of B to iA-th row of C */
-	kB = matB->root[jA];
-	while (kB != -1) {
-	  ret = SpMatrix_LLMatUpdateItemAdd(matC, iA, matB->col[kB], valA*matB->val[kB]);
-	  if (ret == -1)
-	    goto fail;
-	  kB = matB->link[kB];
-	}
+    /* add jA-th row of B to iA-th row of C */
+    kB = matB->root[jA];
+    while (kB != -1) {
+      ret = SpMatrix_LLMatUpdateItemAdd(matC, iA, matB->col[kB], valA*matB->val[kB]);
+      if (ret == -1)
+        goto fail;
+      kB = matB->link[kB];
+    }
       }
 
     }
@@ -3546,45 +3546,45 @@ LLMat_matrixmultiply(PyObject *self, PyObject *args)
     for(row=0; row < matA->dim[0]; row++) {
       indA = matA->root[row];         // Pick first entry of A[row,:]
       while(indA != -1){       // As long as there is an element in A[row,:] ...
-	colA = matA->col[indA];       // ... get its column number ...
-	valA = matA->val[indA];       // ... and value ...
+    colA = matA->col[indA];       // ... get its column number ...
+    valA = matA->val[indA];       // ... and value ...
 
-	indB = matB->root[colA];       // colA is equivalent to rowB!
-	while(indB != -1){
-	  colB = matB->col[indB];
+    indB = matB->root[colA];       // colA is equivalent to rowB!
+    while(indB != -1){
+      colB = matB->col[indB];
 
-	  if(tmpage[colB] != row){         // This column never appeared so far
-	    nxttmp++;
-	    tmpage[colB]  = row;
-	    tmpind[colB]  = nxttmp;
+      if(tmpage[colB] != row){         // This column never appeared so far
+        nxttmp++;
+        tmpage[colB]  = row;
+        tmpind[colB]  = nxttmp;
 
-	    if(nxttmp >= tmpsize){          // If tmp storage too small, realloc
-	      tmpsize = (int)((tmpsize*12)/10)+1;
-	      tmpcol = (int*)realloc(tmpcol, tmpsize * sizeof(int));
-	      tmpval = (double*)realloc(tmpval, tmpsize * sizeof(double));
-	      if (tmpcol == NULL ||tmpval == NULL) {
-		PyErr_NoMemory();
-		goto fail_unsym_unsym;
-	      }
-	    }
+        if(nxttmp >= tmpsize){          // If tmp storage too small, realloc
+          tmpsize = (int)((tmpsize*12)/10)+1;
+          tmpcol = (int*)realloc(tmpcol, tmpsize * sizeof(int));
+          tmpval = (double*)realloc(tmpval, tmpsize * sizeof(double));
+          if (tmpcol == NULL ||tmpval == NULL) {
+        PyErr_NoMemory();
+        goto fail_unsym_unsym;
+          }
+        }
 
-	    tmpcol[nxttmp] = colB;
-	    tmpval[nxttmp] = valA * matB->val[indB];
-	  }else{                   // This column appeared at least once already
-	    dummy = tmpind[colB];
-	    tmpval[dummy] += valA * matB->val[indB];
-	  }
+        tmpcol[nxttmp] = colB;
+        tmpval[nxttmp] = valA * matB->val[indB];
+      }else{                   // This column appeared at least once already
+        dummy = tmpind[colB];
+        tmpval[dummy] += valA * matB->val[indB];
+      }
 
-	  indB = matB->link[indB];
-	}
-	indA = matA->link[indA];
+      indB = matB->link[indB];
+    }
+    indA = matA->link[indA];
       }
 
       /* All the new values for rowC = rowA have now to be filled in */
       /* into the matrix C */
       for(dummy=0; dummy<=nxttmp; dummy++) {
-	if (SpMatrix_LLMatSetItem(matC,row,tmpcol[dummy],tmpval[dummy]))
-	  goto fail_unsym_unsym;
+    if (SpMatrix_LLMatSetItem(matC,row,tmpcol[dummy],tmpval[dummy]))
+      goto fail_unsym_unsym;
       }
 
       nxttmp=-1; /* For the next row of A we need a "fresh" tmp storage */
@@ -3614,30 +3614,30 @@ LLMat_matrixmultiply(PyObject *self, PyObject *args)
     for (iA = 0; iA < matA->dim[0]; iA ++) {
       kA = matA->root[iA];
       while (kA != -1) {
-	valA = matA->val[kA];
-	jA = matA->col[kA];
-	kA = matA->link[kA];
+    valA = matA->val[kA];
+    jA = matA->col[kA];
+    kA = matA->link[kA];
 
-	/* add jA-th row of B to iA-th row of C */
-	kB = matB->root[jA];
-	while (kB != -1) {
-	  ret = SpMatrix_LLMatUpdateItemAdd(matC, iA, matB->col[kB], valA*matB->val[kB]);
-	  if (ret == -1)
-	    goto fail;
-	  kB = matB->link[kB];
-	}
+    /* add jA-th row of B to iA-th row of C */
+    kB = matB->root[jA];
+    while (kB != -1) {
+      ret = SpMatrix_LLMatUpdateItemAdd(matC, iA, matB->col[kB], valA*matB->val[kB]);
+      if (ret == -1)
+        goto fail;
+      kB = matB->link[kB];
+    }
 
-	if (iA == jA)
-	  continue;
+    if (iA == jA)
+      continue;
 
-	/* add iA-th row of B to jA-th row of C */
-	kB = matB->root[iA];
-	while (kB != -1) {
-	  ret = SpMatrix_LLMatUpdateItemAdd(matC, jA, matB->col[kB], valA*matB->val[kB]);
-	  if (ret == -1)
-	    goto fail;
-	  kB = matB->link[kB];
-	}
+    /* add iA-th row of B to jA-th row of C */
+    kB = matB->root[iA];
+    while (kB != -1) {
+      ret = SpMatrix_LLMatUpdateItemAdd(matC, jA, matB->col[kB], valA*matB->val[kB]);
+      if (ret == -1)
+        goto fail;
+      kB = matB->link[kB];
+    }
       }
     }
 
@@ -3708,9 +3708,9 @@ static PyObject *LLMat_dot(PyObject *self, PyObject *args) {
       valA = matA->val[kA];
       iC = matA->col[kA];
       for( kB = matB->root[iA]; kB != -1; kB = matB->link[kB] ) {
-	ret = SpMatrix_LLMatUpdateItemAdd(matC, iC, matB->col[kB],
+    ret = SpMatrix_LLMatUpdateItemAdd(matC, iC, matB->col[kB],
                                           valA*matB->val[kB]);
-	if (ret == -1) goto fail;
+    if (ret == -1) goto fail;
       }
     }
   }
@@ -3725,8 +3725,8 @@ static PyObject *LLMat_dot(PyObject *self, PyObject *args) {
 
 static int
 LLMat_parse_index(PyObject *op, int dim[],
-		  int *start0, int *stop0, int *step0, int *len0,
-		  int *start1, int *stop1, int *step1, int *len1) {
+          int *start0, int *stop0, int *step0, int *len0,
+          int *start1, int *stop1, int *step1, int *len1) {
 
 
   PyErr_SetString(PyExc_IndexError, "Not yet transitioned to fancy indexing for SSS matrices");
