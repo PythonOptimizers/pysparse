@@ -3721,6 +3721,78 @@ static PyObject *LLMat_dot(PyObject *self, PyObject *args) {
   return NULL;
 }
 
+static char LLMat_symdot_doc[] = "symdot(A) or symdot(A,d)\n\
+\n\
+Returns a new symmetric ll_mat object representing the matrix transpose(A)*A\n\
+If the numpy array d is specified, returns a new symmetric ll_mat object\n\
+representing the matrix transpose(A)*D*A, where D=diag(d).";
+
+static PyObject *LLMat_symdot(PyObject *self, PyObject *args) {
+
+  int sizeHint = 1000;
+  int storeZeros = 1;
+  PyObject *DIn = NULL;
+  PyArrayObject *D = NULL;
+  LLMatObject *matA, *matC;
+  int dimC[2];
+  double valA;
+  int iA, kA, iC, kA2, ret;
+
+  if (!PyArg_ParseTuple(args, "O!|O", &LLMatType, &matA, &DIn))
+      return NULL;
+
+  if (DIn != NULL) {
+    D = (PyArrayObject *)PyArray_ContiguousFromObject(DIn,PyArray_DOUBLE,1,1);
+      if( D == NULL ) {
+        PyErr_SetString(SpMatrix_ErrorObject,
+                        "Could not read scaling vector.");
+        return NULL;
+      }
+
+      // Check for dimensions mismatch.
+      if( D->dimensions[0] != matA->dim[0] ) {
+        PyErr_SetString(SpMatrix_ErrorObject,
+                        "Scaling vector has wrong dimension.");
+        return NULL;
+      }
+  }
+
+  dimC[0] = matA->dim[1];
+  dimC[1] = matA->dim[1];
+
+  if (matA->issym) {
+    PyErr_SetString(PyExc_NotImplementedError,
+                    "symdot operation with symmetric matrices not supported");
+    return NULL;
+  }
+
+  storeZeros = (matA->storeZeros == 1);
+
+  matC = (LLMatObject *)SpMatrix_NewLLMatObject(dimC, 1, sizeHint, storeZeros);
+  if (matC == NULL)
+    return NULL;
+
+  for( iA = 0; iA < matA->dim[0]; iA++ ) {
+    for( kA = matA->root[iA]; kA != -1; kA = matA->link[kA] ) {
+      valA = matA->val[kA];
+      if (D != NULL) // Apply scaling.
+        valA *= ((double *)D->data)[iA];
+      iC = matA->col[kA];
+      for( kA2 = matA->root[iA]; kA2 != -1; kA2 = matA->link[kA2] )
+        if (iC >= matA->col[kA2]) {
+            ret = SpMatrix_LLMatUpdateItemAdd(matC, iC, matA->col[kA2],
+                                              valA*matA->val[kA2]);
+            if (ret == -1) goto fail;
+        }
+    }
+  }
+  return (PyObject *)matC;
+
+ fail:
+  Py_DECREF(matC);
+  return NULL;
+}
+
 /* For backward compatibility. This is still called by sss_mat. */
 
 static int
