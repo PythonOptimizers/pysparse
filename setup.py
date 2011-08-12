@@ -8,9 +8,9 @@ iterative solvers, preconditioners, and interfaces to efficient factorization
 packages. Both low-level and high-level interfaces are available, each with
 different strengths. PySparse is distributed under the FreeBSD license.
 
-R. Geus    <hamsel@sf.net>
-D. Orban   <d-orban@sf.net>
-D. Wheeler <wd15@sf.net>
+R. Geus    <hamsel@users.sf.net>
+D. Orban   <d-orban@users.sf.net>
+D. Wheeler <wd15@users.sf.net>
 """
 
 DOCLINES = __doc__.split("\n")
