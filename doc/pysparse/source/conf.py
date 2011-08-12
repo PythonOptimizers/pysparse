@@ -22,16 +22,19 @@ sys.path.append('sphinxext')
 # Import support for ipython console session syntax highlighting (lives
 # in the sphinxext directory defined above)
 import ipython_console_highlighting
+import mathjax
 
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.jsmath']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest'] #, 'sphinx.ext.jsmath']
 extensions += ['sphinx.ext.todo']
 extensions += ['ipython_console_highlighting']
-jsmath_path = 'jsMath/easy/load.js'  # Under _static/ by default
+extensions += ['mathjax']
+mathjax_path = 'http://mathjax.connectmv.com/MathJax.js'
+#jsmath_path = 'jsMath/easy/load.js'  # Under _static/ by default
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -47,7 +50,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'Pysparse'
-copyright = u'2008, Roman Geus, Daniel Wheeler and Dominique Orban'
+copyright = u'2008-2011, Roman Geus, Daniel Wheeler and Dominique Orban'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -113,7 +116,7 @@ html_style = 'pysparse.css'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = 'spmatrix-logo.png' 
+html_logo = 'spmatrix-logo.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
