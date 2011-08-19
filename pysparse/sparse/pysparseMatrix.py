@@ -159,10 +159,9 @@ class PysparseMatrix(SparseMatrix):
 
     def _iadd(self, L, other, sign = 1):
         # In-place addition helper
-        if other != 0:
-            if self.isSymmetric() and not other.isSymmetric():
-                L.generalize()
-            L.shift(sign, other.getMatrix())
+        if self.isSymmetric() and not other.isSymmetric():
+            L.generalize()
+        L.shift(sign, other.getMatrix())
         return self
 
     def __add__(self, other):
