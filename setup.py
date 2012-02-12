@@ -143,7 +143,7 @@ def setup_package():
             maintainer = "PySparse Developers",
             maintainer_email = "{hamsel,d-orban,wd15}@sf.net,",
             summary = "Fast sparse matrix library for Python",
-            description = DOCLINES[0],
+            description = "Fast sparse matrix library for Python",
             long_description = "\n".join(DOCLINES[2:]),
             url = "pysparse.sf.net",
             download_url = "sf.net/projects/pysparse",
