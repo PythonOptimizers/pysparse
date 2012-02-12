@@ -86,6 +86,7 @@
 # UMFPACK, CHOLMOD, AMD, CAMD, COLAMD, CCOLAMD and used METIS.
 # If you specify suitesparse_dir, there is no need to fill out the AMD
 # section of this file.
+# If you leave suitesparse_dir empty, a default UMFPACK will be built.
 [UMFPACK]
 #suitesparse_dir =
 
