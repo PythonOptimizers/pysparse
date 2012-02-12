@@ -106,7 +106,7 @@ def svn_version():
     return svnver
 
 def get_version():
-    version = '1.2'
+    version = '1.3'
     release = False
     if not release:
         version += '-dev' + svn_version()
