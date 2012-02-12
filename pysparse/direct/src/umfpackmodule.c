@@ -489,8 +489,10 @@ static void sortcol(int *row, double *val, int n)
   return;
 }
 
+// newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
+//                   double tolpivot, double tolsympivot)
 static PyObject *
-newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
+newUMFPackObject(LLMatObject *matrix, int strategy, int scale,
                   double tolpivot, double tolsympivot)
 {
   UMFPackObject *self;
@@ -548,8 +550,8 @@ newUMFPackObject(LLMatObject *matrix, int strategy, double tol2by2, int scale,
   if (strategy != -1)
     self->Control[UMFPACK_STRATEGY] = strategy;
 
-  if (tol2by2 != -1)
-    self->Control[UMFPACK_2BY2_TOLERANCE] = tol2by2;
+  //if (tol2by2 != -1)
+  //  self->Control[UMFPACK_2BY2_TOLERANCE] = tol2by2;
 
   if (scale != -1)
     self->Control[UMFPACK_SCALE] = scale;
@@ -702,19 +704,28 @@ static PyObject *
 factorize(PyObject *self, PyObject *args, PyObject *keywds) {
   LLMatObject *matrix;
   char *strategy="UMFPACK_STRATEGY_AUTO";
-  double tol2by2 = 0.1;
+  //double tol2by2 = 0.1;
   char *scale="UMFPACK_SCALE_SUM";
   double tolpivot = 0.1;
   double tolsympivot = 0.0;
   int res;
   int strategyval = UMFPACK_STRATEGY_AUTO, scaleval = UMFPACK_SCALE_SUM;
 
-  static char *kwlist[] = {"", "strategy", "tol2by2", "scale", "tolpivot", "tolsympivot", NULL};
+  //static char *kwlist[] = {"", "strategy", "tol2by2", "scale", "tolpivot", "tolsympivot", NULL};
+  static char *kwlist[] = {"", "strategy", "scale", "tolpivot", "tolsympivot", NULL};
 
-  res = PyArg_ParseTupleAndKeywords(args, keywds, "O!|sdsdd", kwlist,
+  /*
+   res = PyArg_ParseTupleAndKeywords(args, keywds, "O!|sdsdd", kwlist,
                     &LLMatType, &matrix,
                     &strategy,
                     &tol2by2,
+                    &scale,
+                    &tolpivot,
+                    &tolsympivot);
+                    */
+  res = PyArg_ParseTupleAndKeywords(args, keywds, "O!|ssdd", kwlist,
+                    &LLMatType, &matrix,
+                    &strategy,
                     &scale,
                     &tolpivot,
                     &tolsympivot);
@@ -727,8 +738,8 @@ factorize(PyObject *self, PyObject *args, PyObject *keywds) {
     strategyval = UMFPACK_STRATEGY_UNSYMMETRIC;
   else if (strcmp("UMFPACK_STRATEGY_SYMMETRIC", strategy) == 0)
     strategyval = UMFPACK_STRATEGY_SYMMETRIC;
-  else if (strcmp("UMFPACK_STRATEGY_2BY2", strategy) == 0)
-    strategyval = UMFPACK_STRATEGY_2BY2;
+  // else if (strcmp("UMFPACK_STRATEGY_2BY2", strategy) == 0)
+  //   strategyval = UMFPACK_STRATEGY_2BY2;
 
   if (strcmp("UMFPACK_SCALE_NONE", scale) == 0)
     scaleval = UMFPACK_SCALE_NONE;
@@ -737,7 +748,8 @@ factorize(PyObject *self, PyObject *args, PyObject *keywds) {
   if (strcmp("UMFPACK_SCALE_MAX", scale) == 0)
     scaleval = UMFPACK_SCALE_MAX;
 
-  return newUMFPackObject(matrix, strategyval, tol2by2, scaleval, tolpivot, tolsympivot);
+  // return newUMFPackObject(matrix, strategyval, tol2by2, scaleval, tolpivot, tolsympivot);
+  return newUMFPackObject(matrix, strategyval, scaleval, tolpivot, tolsympivot);
 }
 
 

@@ -159,10 +159,9 @@ class PysparseMatrix(SparseMatrix):
 
     def _iadd(self, L, other, sign = 1):
         # In-place addition helper
-        if other != 0:
-            if self.isSymmetric() and not other.isSymmetric():
-                L.generalize()
-            L.shift(sign, other.getMatrix())
+        if self.isSymmetric() and not other.isSymmetric():
+            L.generalize()
+        L.shift(sign, other.getMatrix())
         return self
 
     def __add__(self, other):
@@ -347,7 +346,9 @@ class PysparseMatrix(SparseMatrix):
         If ``value`` is a scalar, it has the same effect as the vector
         of appropriate length with all values equal to ``value``.
         If ``id1`` is omitted, it is replaced with ``range(nrow)``.
-        If ``id2`` is omitted, it is replaced with ``range(ncol)``.
+        If ``id2`` also is omitted, it is replaced with ``range(ncol)``.
+        If ``id2`` is omitted but ``id1`` is present, ``id2`` is set to
+        ``id1``.
         """
         nrow, ncol = self.getShape()
         if id2 is None and id1 is not None: id2 = id1

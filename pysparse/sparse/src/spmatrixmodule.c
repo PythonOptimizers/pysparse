@@ -352,6 +352,7 @@ static PyMethodDef spmatrix_methods[] = {
   {"ll_mat_from_mtx", LLMat_from_mtx,       METH_VARARGS, 0},
   {"matrixmultiply",  LLMat_matrixmultiply, METH_VARARGS, LLMat_matrixmultiply_doc},
   {"dot",             LLMat_dot,            METH_VARARGS, LLMat_dot_doc},
+  {"symdot",          LLMat_symdot,         METH_VARARGS, LLMat_symdot_doc},
   {NULL, NULL}	/* sentinel */
 };
 

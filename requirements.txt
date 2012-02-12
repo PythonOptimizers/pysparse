@@ -1,0 +1,5 @@
+. Numpy (pip install numpy)
+
+. SuiteSparse (download from
+http://www.cise.ufl.edu/research/sparse/SuiteSparse/ and unpack in a fresh
+directory. No need to install but specify the location in site.cf)
