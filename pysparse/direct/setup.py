@@ -2,7 +2,7 @@
 
 def getoption(config, section, option):
     try:
-        val = config.get(section,option)
+        val = config.get(section,option).split(':')
     except:
         val = None
     return val
@@ -21,7 +21,8 @@ def configuration(parent_package='',top_path=None):
     pysparse_config = ConfigParser.SafeConfigParser()
     pysparse_config.read(os.path.join(top_path, 'site.cfg'))
 
-    suitesparse_dir = getoption(pysparse_config, 'UMFPACK', 'suitesparse_dir')
+    suitesparse_include = getoption(pysparse_config, 'UMFPACK', 'suitesparse_include')
+    suitesparse_libdir = getoption(pysparse_config, 'UMFPACK', 'suitesparse_libdir')
     superlu_libdir = getoption(pysparse_config, 'SuperLU', 'superlu_libdir')
     superlu_include = getoption(pysparse_config, 'SuperLU', 'superlu_include')
     amd_libdir = getoption(pysparse_config, 'AMD', 'amd_libdir')
@@ -43,7 +44,7 @@ def configuration(parent_package='',top_path=None):
     umfpack_src = []
     amd_lib = ['amd']
     amd_src = []
-    if suitesparse_dir is None:
+    if suitesparse_libdir is None or suitesparse_include is None:
         print 'Using default UMFPACK and AMD'
         print ' If you do not like this, edit the [UMFPACK] and [AMD]'
         print ' sections of site.cfg'
@@ -69,16 +70,19 @@ def configuration(parent_package='',top_path=None):
         umfpack_lib.append('metis')
         umfpack_lib.append('ccolamd')
         umfpack_lib.append('amd')
-        umfpack_libdir = [os.path.join(suitesparse_dir,'UMFPACK','Lib')]
-        umfpack_libdir.append(os.path.join(suitesparse_dir,'CHOLMOD','Lib'))
-        umfpack_libdir.append(os.path.join(suitesparse_dir,'CAMD','Lib'))
-        umfpack_libdir.append(os.path.join(suitesparse_dir,'COLAMD','Lib'))
-        umfpack_libdir.append(os.path.join(suitesparse_dir,'metis-4.0'))
-        umfpack_libdir.append(os.path.join(suitesparse_dir,'CCOLAMD','Lib'))
-        umfpack_libdir.append(os.path.join(suitesparse_dir,'AMD','Lib'))
-        umfpack_include = [os.path.join(suitesparse_dir,'UMFPACK','Include'),
-                           os.path.join(suitesparse_dir,'AMD','Include'),
-                           os.path.join(suitesparse_dir,'UFconfig')]
+        umfpack_lib.append('suitesparseconfig')
+        umfpack_libdir = [suitesparse_libdir]
+        #umfpack_libdir = [os.path.join(suitesparse_dir,'UMFPACK','Lib')]
+        #umfpack_libdir.append(os.path.join(suitesparse_dir,'CHOLMOD','Lib'))
+        #umfpack_libdir.append(os.path.join(suitesparse_dir,'CAMD','Lib'))
+        #umfpack_libdir.append(os.path.join(suitesparse_dir,'COLAMD','Lib'))
+        #umfpack_libdir.append(os.path.join(suitesparse_dir,'metis-4.0'))
+        #umfpack_libdir.append(os.path.join(suitesparse_dir,'CCOLAMD','Lib'))
+        #umfpack_libdir.append(os.path.join(suitesparse_dir,'AMD','Lib'))
+        umfpack_include = [suitesparse_include]
+        #umfpack_include = [os.path.join(suitesparse_dir,'UMFPACK','Include'),
+        #                   os.path.join(suitesparse_dir,'AMD','Include'),
+        #                   os.path.join(suitesparse_dir,'UFconfig')]
 
     # Build UMFPACK extension.
     if blas_info:
