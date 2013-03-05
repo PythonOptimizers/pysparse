@@ -49,7 +49,7 @@
 # This is a good place to add general library and include directories like
 # /usr/local/{lib,include}
 #
-#[DEFAULT]
+[DEFAULT]
 #library_dirs = /usr/local/lib
 #include_dirs = /usr/local/include
 
@@ -82,13 +82,12 @@
 
 # UMFPACK
 # -------
-# Specify the top directory of SuiteSparse below. Make sure you have built
-# UMFPACK, CHOLMOD, AMD, CAMD, COLAMD, CCOLAMD and used METIS.
-# If you specify suitesparse_dir, there is no need to fill out the AMD
-# section of this file.
-# If you leave suitesparse_dir empty, a default UMFPACK will be built.
+# If the UMFPACK header files and library are in nonstandard locations,
+# specify them here. Comment out this section to use a default version of
+# UMFPACK included with the PySparse source distribution.
 [UMFPACK]
-#suitesparse_dir =
+#suitesparse_libdir = /usr/local/Cellar/suite-sparse-julia/4.0.2/lib:/usr/local/Cellar/metis4/4.0.3/lib
+#suitesparse_include = /usr/local/Cellar/suite-sparse-julia/4.0.2/include
 
 # SuperLU
 # -------
@@ -98,11 +97,3 @@
 [SuperLU]
 #superlu_include = /Users/dpo/local/linalg/SuperLU/SuperLU_3.1/SRC
 #superlu_libdir  = /Users/dpo/local/linalg/SuperLU/SuperLU_3.1/lib
-
-# AMD
-# ---
-# If the AMD header files and library are in nonstandard locations,
-# specify it here.
-[AMD]
-#amd_include= /Users/dpo/local/linalg/UMFPACK/AMD/Include
-#amd_libdir  = /Users/dpo/local/linalg/UMFPACK/AMD/Lib
