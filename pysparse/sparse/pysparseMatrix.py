@@ -282,7 +282,7 @@ class PysparseMatrix(SparseMatrix):
 
     def __rmul__(self, other):
         # Compute  other * A  which is really  A^T * other
-        if type(numpy.ones(1.0)) == type(other):
+        if type(numpy.ones(1)) == type(other):
             M, N = self.getShape()
             y = numpy.empty(N)
             self.matrix.matvec_transp(other, y)
